@@ -10,16 +10,7 @@ Bachelor thesis project — TU Munich, School of Computation, Information and Te
 
 GLASS is a Streamlit web application that turns a natural-language simulation goal plus an event log into a valid, goal-oriented set of BPM simulation parameters. It bridges the gap between what a stakeholder wants (a goal) and what a simulator like Prosimos needs (concrete parameter changes on top of a discovered baseline).
 
-The pipeline has six stages, all runnable from a single web UI:
-
-1. **First LLM — Goal → SMART KPIs.** Takes a process description and a simulation goal, produces a validated set of SMART KPIs (Specific, Measurable, Achievable, Relevant, Time-bound). Optionally grounded in an uploaded event log through structured evidence profiling with statistical hardening.
-2. **Human review.** Per-KPI accept/reject with iterative refinement — only rejected KPIs are regenerated.
-3. **Second LLM — KPIs → ScenarioPatch.** Consumes the validated KPI set, a SIMOD baseline (BPMN + parameters JSON), and clarification-chat context, then proposes a **delta-only** `ScenarioPatch` (not a full scenario body).
-4. **Deterministic merger.** Applies the patch onto the SIMOD baseline through seven typed appliers. No LLM in the loop — this eliminates token waste and silent drift from re-emitting the baseline.
-5. **Simulation.** Runs both baseline and proposed scenarios through Prosimos (via Docker) to produce simulated event logs.
-6. **Evaluation.** Compares simulated KPIs against the target directions from stage 1, reporting whether the proposed scenario actually moved the KPIs in the intended direction.
-
-The full pipeline runs in a single Streamlit app split into three workspaces: **Goal → KPI**, **Scenario Studio**, and **Scenario Evaluation**.
+The full pipeline runs in a single Streamlit app split into three workspaces: **Goal to KPI**, **Scenario Studio**, and **Scenario Evaluation**.
 
 ---
 
