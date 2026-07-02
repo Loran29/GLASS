@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local secrets
+.env
+goal_to_parameters/.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp test directories
+.tmp_test_dirs/
+
+# Embedding/retrieval caches (auto-generated on first run)
+goal_to_parameters/knowledge/cache/
+
+# Evaluation logs (large public datasets — re-download with download_logs.py)
+evaluation/logs/
+
+# Claude Code local config
+.claude/settings.local.json
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Old package folder leftovers
+goal_to_kpi/

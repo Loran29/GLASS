@@ -1,0 +1,4 @@
+log,schema_valid,n_applied,n_total_mods,dhr_mean,dhr_ci_half,nis_mean,nis_ci_half,best_iter_score,n_kpis,n_kpis_hit,error
+bpic2017,True,3,3,0.8,0.392,34.06,58.86,60.49,5,4,
+bpic2012,True,3,3,1.0,0.0,41.65,31.26,128.99,4,4,
+sepsis,True,2,2,0.3333,0.6533,3.29,6.51,9.805,3,1,

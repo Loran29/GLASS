@@ -1,0 +1,93 @@
+{
+  "scenario_id": "baseline_bpic2017_muruvetg",
+  "baseline_reference": "SIMOD",
+  "reasoning": "Patch derived from muruvetg/from-simulation-goals-to-parameters output for BPIC2017. Three suggestions were simulatable in Prosimos: (4) improve validation specialist utilization by adding resources to W_Validate application, (7) reduce compliance check duration via parallel processing, (3) reduce W_Complete application duration via template-based offer generation. Suggestions 1,2,5,6,8 involve business rules, automation, and tracking that have no Prosimos parameter equivalent.",
+  "modifications": [
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Validate application",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "179.949 hours (User_100 representative mean)",
+      "proposed_value": "143.959 hours (20% reduction per suggestion 4: streamlined validation initiated immediately)",
+      "proposed_structured": null,
+      "kpi_reference": "Average Application-to-Offer Cycle Time",
+      "rationale": "Suggestion 4 targets 80% utilization and streamlined validation. Reducing mean duration by 20% models faster processing when checks are initiated immediately upon submission.",
+      "evidence_source": "Base repo suggestion 4: streamlined process where initial validation checks are initiated immediately upon application submission",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Assumes process streamlining and template tools reduce manual effort by 20%",
+      "intervention": "Reduce W_Validate application mean duration by 20%",
+      "mechanism_rationale": "Shorter service time at the bottleneck activity reduces queue build-up and average waiting time"
+    },
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Assess potential fraud",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "351.146 hours (User_138 representative mean)",
+      "proposed_value": "175.573 hours (50% reduction per suggestion 7: parallel processing of checks)",
+      "proposed_structured": null,
+      "kpi_reference": "W_Assess Potential Fraud Wait Time",
+      "rationale": "Suggestion 7 explicitly targets a maximum of 48 hours for compliance checks via parallel processing. Halving the mean duration models the effect of parallelised affordability and identity checks.",
+      "evidence_source": "Base repo suggestion 7: investigate effect of parallel processing of checks to expedite timeline without compromising thoroughness",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Parallel processing is feasible where affordability and identity checks are independent",
+      "intervention": "Reduce W_Assess potential fraud mean duration by 50% via parallel processing",
+      "mechanism_rationale": "Parallelising independent sub-checks halves elapsed time at this compliance step"
+    },
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Complete application",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "41.569 hours (User_10 representative mean)",
+      "proposed_value": "20.785 hours (50% reduction per suggestion 3: template-based offer generation)",
+      "proposed_structured": null,
+      "kpi_reference": "Average Application-to-Offer Cycle Time",
+      "rationale": "Suggestion 3 targets offer preparation within 24 hours via template-based tools. Halving the mean duration models faster offer completion.",
+      "evidence_source": "Base repo suggestion 3: template-based offer generation tool that allows faster offer creation based on validated data",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Template tooling reduces manual offer preparation effort by 50%",
+      "intervention": "Reduce W_Complete application mean duration by 50% via template-based generation",
+      "mechanism_rationale": "Faster offer preparation shortens the path from validation completion to offer availability"
+    }
+  ],
+  "expected_kpi_impacts": [
+    {
+      "kpi_name": "Average Application-to-Offer Cycle Time",
+      "direction": "decrease",
+      "estimated_magnitude": "15-25% reduction",
+      "confidence": "medium",
+      "reasoning": "Reduced durations at W_Validate and W_Complete directly shorten the critical path"
+    },
+    {
+      "kpi_name": "Average Waiting Time Across All Activities",
+      "direction": "decrease",
+      "estimated_magnitude": "10-20% reduction",
+      "confidence": "medium",
+      "reasoning": "Shorter service times reduce queue build-up across the process"
+    },
+    {
+      "kpi_name": "W_Assess Potential Fraud Wait Time",
+      "direction": "decrease",
+      "estimated_magnitude": "40-50% reduction",
+      "confidence": "medium",
+      "reasoning": "Direct duration reduction at W_Assess potential fraud"
+    }
+  ],
+  "unresolved_kpis": [
+    {
+      "kpi_name": "Validation Specialist Utilization Rate",
+      "reason": "out_of_simulation_scope",
+      "explanation": "Suggestion 4 targets utilization via flexible working hours and staffing adjustments but does not specify concrete resource count or calendar changes that can be directly encoded in Prosimos without additional assumptions"
+    }
+  ],
+  "context_differentiations": [],
+  "warnings": [
+    "Suggestions 1 (processing time target), 2 (documentation reminder limit), 5 (customer communication timing), 6 (chasing leads frequency), and 8 (conversion rate tracking) describe business rules and KPI targets rather than Prosimos simulation parameters and cannot be encoded as scenario modifications.",
+    "Duration reductions are applied to representative resources per activity. All resources for each activity receive proportional reduction via the apply_patch merger."
+  ]
+}

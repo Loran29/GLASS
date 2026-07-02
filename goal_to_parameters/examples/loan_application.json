@@ -1,0 +1,7 @@
+{
+  "name": "Loan Application",
+  "recommended_provider": "ollama",
+  "recommended_model": "llama3.2:3b",
+  "process_description": "The loan application process begins when a customer submits a loan request in the online portal. A loan officer reviews the application and requests missing documents if needed. The credit assessment team performs a credit check. The risk department evaluates the applicant profile. A senior manager approves or rejects the application. If approved, the disbursement team releases the funds and notifies the customer.",
+  "simulation_goal": "Improve loan officer utilization while reducing customer waiting time between application review and final decision"
+}

@@ -1,0 +1,76 @@
+{
+  "scenario_id": "baseline_sepsis_muruvetg",
+  "baseline_reference": "SIMOD",
+  "reasoning": "Patch derived from muruvetg/from-simulation-goals-to-parameters output for Sepsis. The SIMOD baseline shows all activity durations as near-zero (instantaneous processing) — all delays are captured as resource queue waiting times. Therefore only resource count increases can meaningfully reduce waiting times. Suggestion 1 (fast-track registration via dedicated staff) maps to adding a resource to profile A which covers ER Registration and IV Antibiotics. Suggestion 2 (priority lab processing) maps to adding a resource to profile B which covers CRP, Leucocytes, and LacticAcid. Suggestions 3,4,5,6,7,8 involve cross-training policies, automated systems, scheduling protocols, communication tools, and monitoring dashboards — none map to Prosimos parameters.",
+  "modifications": [
+    {
+      "parameter_type": "resource_count",
+      "target_element": "A_profile",
+      "target_field": "count",
+      "direction": "increase",
+      "baseline_value": "1",
+      "proposed_value": "2",
+      "proposed_structured": null,
+      "kpi_reference": "ER Registration Waiting Time",
+      "rationale": "Suggestion 1 targets a dedicated fast-track registration system with dedicated staff for sepsis cases. Adding one resource to profile A (which covers ER Registration, ER Sepsis Triage, IV Antibiotics, IV Liquid) directly reduces queue waiting time at the entry point of the sepsis pathway.",
+      "evidence_source": "Base repo suggestion 1: implement fast-track registration system with dedicated staff for suspected sepsis cases",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "One additional staff member can be dedicated to sepsis-suspect cases as suggested by the base system",
+      "intervention": "Add one resource to A_profile covering ER Registration and IV Antibiotics",
+      "mechanism_rationale": "Doubling capacity at the critical entry and treatment activities halves the expected queue waiting time under steady-state conditions"
+    },
+    {
+      "parameter_type": "resource_count",
+      "target_element": "B_profile",
+      "target_field": "count",
+      "direction": "increase",
+      "baseline_value": "1",
+      "proposed_value": "2",
+      "proposed_structured": null,
+      "kpi_reference": "Average Time to Antibiotic Administration",
+      "rationale": "Suggestion 2 targets a priority queue for lab tests (Leucocytes, CRP, Lactic Acid). Profile B covers these three lab activities. Adding one resource models a dedicated fast-track lab slot for sepsis-suspect samples.",
+      "evidence_source": "Base repo suggestion 2: establish priority queue for processing sepsis-related blood tests (Leucocytes, CRP, Lactic Acid)",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "One additional lab resource can be dedicated to sepsis-suspect samples as suggested",
+      "intervention": "Add one resource to B_profile covering CRP, Leucocytes, and LacticAcid",
+      "mechanism_rationale": "Additional lab capacity reduces queue waiting time for diagnostic tests, shortening the time from arrival to antibiotic administration"
+    }
+  ],
+  "expected_kpi_impacts": [
+    {
+      "kpi_name": "ER Registration Waiting Time",
+      "direction": "decrease",
+      "estimated_magnitude": "30-50% reduction",
+      "confidence": "medium",
+      "reasoning": "Doubling capacity at ER Registration reduces queue waiting time substantially"
+    },
+    {
+      "kpi_name": "Average Time to Antibiotic Administration",
+      "direction": "decrease",
+      "estimated_magnitude": "20-40% reduction",
+      "confidence": "medium",
+      "reasoning": "Faster registration and lab processing shorten the critical path to IV Antibiotics"
+    },
+    {
+      "kpi_name": "Lab Turnaround Time by Test Type",
+      "direction": "decrease",
+      "estimated_magnitude": "30-50% reduction",
+      "confidence": "medium",
+      "reasoning": "Doubled lab capacity directly reduces waiting time for CRP, Leucocytes, and LacticAcid"
+    }
+  ],
+  "unresolved_kpis": [
+    {
+      "kpi_name": "Wait Before Admission by Org Group",
+      "reason": "out_of_simulation_scope",
+      "explanation": "Suggestions 3-8 address cross-training, automated reporting, task prioritisation, scheduling, communication systems, and dashboards — none map to Prosimos resource or duration parameters"
+    }
+  ],
+  "context_differentiations": [],
+  "warnings": [
+    "All SIMOD activity durations for sepsis are fixed at 0.0 seconds — delays are entirely captured as resource queue waiting times. Duration-based modifications would have no effect. Only resource count changes are meaningful.",
+    "Suggestions 3 (cross-training), 4 (automated results reporting), 5 (task prioritisation protocol), 6 (shift scheduling), 7 (communication systems), and 8 (real-time monitoring) are operational/IT interventions with no direct Prosimos parameter equivalent."
+  ]
+}

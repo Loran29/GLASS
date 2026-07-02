@@ -1,0 +1,7 @@
+{
+  "name": "Context-Aware Loan Application",
+  "recommended_provider": "ollama",
+  "recommended_model": "llama3.2:3b",
+  "process_description": "The loan application process begins when a customer submits a loan request in the online portal. A loan officer reviews the application. The credit assessment team performs a credit check. The risk department evaluates the applicant profile. A senior manager makes the final decision. If approved, the disbursement team releases the funds and notifies the customer.",
+  "simulation_goal": "Reduce loan decision cycle time while maintaining responsive service across customer segments and priority levels"
+}

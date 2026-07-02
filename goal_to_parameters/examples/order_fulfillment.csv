@@ -1,0 +1,61 @@
+case_id,activity,timestamp,resource,status
+O-3001,Place Order,2025-03-01 10:00,Webshop,received
+O-3001,Verify Order Details,2025-03-01 10:45,Sales Rep Torres,completed
+O-3001,Confirm Payment,2025-03-01 11:00,Sales Rep Torres,confirmed
+O-3001,Pick Items,2025-03-01 13:00,Warehouse Worker A,completed
+O-3001,Pack Items,2025-03-01 14:15,Warehouse Worker A,completed
+O-3001,Packaging and Completeness Check,2025-03-01 14:45,Quality Inspector Müller,passed
+O-3001,Schedule Courier Pickup,2025-03-01 15:30,Logistics Coordinator,completed
+O-3001,Customer Confirms Delivery,2025-03-03 11:00,,delivered
+O-3002,Place Order,2025-03-01 11:30,Webshop,received
+O-3002,Verify Order Details,2025-03-01 14:00,Sales Rep Torres,completed
+O-3002,Confirm Payment,2025-03-01 14:20,Sales Rep Torres,confirmed
+O-3002,Pick Items,2025-03-02 09:00,Warehouse Worker B,completed
+O-3002,Pack Items,2025-03-02 10:30,Warehouse Worker B,completed
+O-3002,Packaging and Completeness Check,2025-03-02 11:00,Quality Inspector Müller,failed
+O-3002,Pack Items,2025-03-02 12:00,Warehouse Worker B,completed
+O-3002,Packaging and Completeness Check,2025-03-02 12:30,Quality Inspector Müller,passed
+O-3002,Schedule Courier Pickup,2025-03-02 13:15,Logistics Coordinator,completed
+O-3002,Customer Confirms Delivery,2025-03-04 14:00,,delivered
+O-3003,Place Order,2025-03-01 14:00,Webshop,received
+O-3003,Verify Order Details,2025-03-02 09:30,Sales Rep Lin,completed
+O-3003,Confirm Payment,2025-03-02 09:45,Sales Rep Lin,confirmed
+O-3003,Pick Items,2025-03-02 11:00,Warehouse Worker A,completed
+O-3003,Pack Items,2025-03-02 12:00,Warehouse Worker A,completed
+O-3003,Packaging and Completeness Check,2025-03-02 12:20,Quality Inspector Müller,passed
+O-3003,Schedule Courier Pickup,2025-03-02 13:00,Logistics Coordinator,completed
+O-3003,Customer Confirms Delivery,2025-03-04 10:00,,delivered
+O-3004,Place Order,2025-03-02 08:00,Webshop,received
+O-3004,Verify Order Details,2025-03-02 09:00,Sales Rep Lin,completed
+O-3004,Confirm Payment,2025-03-02 09:15,Sales Rep Lin,confirmed
+O-3004,Pick Items,2025-03-02 14:00,Warehouse Worker B,completed
+O-3004,Pack Items,2025-03-02 15:30,Warehouse Worker B,completed
+O-3004,Packaging and Completeness Check,2025-03-02 16:00,Quality Inspector Müller,passed
+O-3004,Schedule Courier Pickup,2025-03-03 08:30,Logistics Coordinator,completed
+O-3004,Customer Confirms Delivery,2025-03-05 09:30,,delivered
+O-3005,Place Order,2025-03-02 12:00,Webshop,received
+O-3005,Verify Order Details,2025-03-02 16:30,Sales Rep Torres,completed
+O-3005,Confirm Payment,2025-03-02 16:45,Sales Rep Torres,confirmed
+O-3005,Pick Items,2025-03-03 09:00,Warehouse Worker A,completed
+O-3005,Pack Items,2025-03-03 10:15,Warehouse Worker A,completed
+O-3005,Packaging and Completeness Check,2025-03-03 10:45,Quality Inspector Müller,passed
+O-3005,Schedule Courier Pickup,2025-03-03 11:30,Logistics Coordinator,completed
+O-3005,Customer Confirms Delivery,2025-03-05 14:00,,delivered
+O-3006,Place Order,2025-03-03 09:00,Webshop,received
+O-3006,Verify Order Details,2025-03-03 10:00,Sales Rep Lin,completed
+O-3006,Confirm Payment,2025-03-03 10:15,Sales Rep Lin,confirmed
+O-3006,Pick Items,2025-03-03 13:00,Warehouse Worker B,completed
+O-3006,Pack Items,2025-03-03 14:30,Warehouse Worker B,completed
+O-3006,Packaging and Completeness Check,2025-03-03 15:00,Quality Inspector Müller,failed
+O-3006,Pack Items,2025-03-03 16:00,Warehouse Worker A,completed
+O-3006,Packaging and Completeness Check,2025-03-03 16:20,Quality Inspector Müller,passed
+O-3006,Schedule Courier Pickup,2025-03-04 08:00,Logistics Coordinator,completed
+O-3006,Customer Confirms Delivery,2025-03-06 11:00,,delivered
+O-3007,Place Order,2025-03-03 15:00,Webshop,received
+O-3007,Verify Order Details,2025-03-04 09:00,Sales Rep Torres,completed
+O-3007,Confirm Payment,2025-03-04 09:20,Sales Rep Torres,confirmed
+O-3007,Pick Items,2025-03-04 11:00,Warehouse Worker A,completed
+O-3007,Pack Items,2025-03-04 12:15,Warehouse Worker A,completed
+O-3007,Packaging and Completeness Check,2025-03-04 12:45,Quality Inspector Müller,passed
+O-3007,Schedule Courier Pickup,2025-03-04 13:30,Logistics Coordinator,completed
+O-3007,Customer Confirms Delivery,2025-03-06 10:00,,delivered

@@ -1,0 +1,19 @@
+[theme]
+base = "light"
+primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#1e293b"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[logger]
+# Suppress Streamlit's verbose module-path introspection warnings.
+# These fire when transformers vision models try to import torchvision
+# (not installed) and Streamlit's file-watcher catches the ImportError.
+level = "error"

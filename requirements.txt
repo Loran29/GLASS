@@ -1,0 +1,24 @@
+streamlit>=1.30.0
+pydantic>=2.0.0
+ollama>=0.1.0
+huggingface-hub>=0.20.0
+openai>=1.0.0
+anthropic>=0.18.0
+python-dotenv>=1.0.0
+pyyaml>=6.0
+scipy>=1.13.0
+numpy>=1.26.0
+simod>=5.0.0
+pandas>=2.0.0
+
+# Optional: BPS simulation engine for scenario evaluation.
+# If prosimos is installed, the evaluation panel can run simulations
+# directly. Otherwise it accepts uploaded simulation result CSVs.
+#   prosimos>=2.0.0
+
+# Optional: semantic embedding backend for the hybrid RAG retriever.
+# If sentence-transformers is installed, dense retrieval uses
+# all-MiniLM-L6-v2 locally. Otherwise the retriever auto-falls back
+# to Ollama's nomic-embed-text (if the server is running) and finally
+# to a pure-numpy TF-IDF embedder, so the pipeline works on any host.
+#   sentence-transformers>=2.7.0

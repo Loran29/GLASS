@@ -1,0 +1,101 @@
+{
+  "simulation_goal_structured": "Reduce the time customers wait between application submission and receiving a usable offer while increasing the proportion of applications that reach an accepted outcome, ensuring compliance checks remain complete and adding no more than one validation specialist.",
+  "kpis": [
+    {
+      "name": "Average Application-to-Offer Cycle Time",
+      "description": "The average elapsed time from application submission to the creation of a usable offer for the customer.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the time from application submission to offer creation across all cases.",
+        "measurable": "Computed as the average difference between the timestamps of application submission and offer creation. Unit: hours.",
+        "achievable": "Cycle time reduction is feasible through process optimization and better handling of incomplete applications.",
+        "relevant": "Directly supports the goal of shortening customer wait times for usable offers.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(offer_creation_time - application_submission_time) across completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Average Cycle Time"
+    },
+    {
+      "name": "Average Waiting Time Across All Activities",
+      "description": "The average waiting time (queue time) across all activities in the loan origination process, reflecting how long work items sit idle before being picked up.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the mean idle time between activity handoffs across the entire loan origination process.",
+        "measurable": "Computed as the average waiting time per completed case across all activities. Unit: hours.",
+        "achievable": "Reduction is realistic through better resource scheduling and workload balancing.",
+        "relevant": "Queue time is the primary driver of customer wait between application and offer; reducing it directly supports the stated goal.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(waiting_time) across all activities and all completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Average Waiting Time"
+    },
+    {
+      "name": "Validation Specialist Utilization Rate",
+      "description": "The percentage of available working time that validation specialists spend actively processing applications.",
+      "category": "utilization",
+      "smart_breakdown": {
+        "specific": "Measures the productive utilization of validation specialists across all validation-related activities.",
+        "measurable": "Computed as SUM(active processing time) / SUM(available working time) * 100. Unit: percentage.",
+        "achievable": "Utilization can be improved through workload balancing and reducing unnecessary rework.",
+        "relevant": "Addresses the constraint of limited validation specialist capacity while supporting process efficiency.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "maximize",
+      "suggested_formula": "SUM(active_processing_time) / SUM(available_time) * 100 over the simulation run",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Resource Utilization"
+    },
+    {
+      "name": "Wait Time Before Validation Activity",
+      "description": "The average waiting time before the W_Validate application activity, targeting the primary validation bottleneck.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the queue time immediately before W_Validate application across all cases.",
+        "measurable": "Computed as the average waiting time before W_Validate application per completed case. Unit: hours.",
+        "achievable": "Improvement is feasible through better prioritization and scheduling of validation tasks.",
+        "relevant": "W_Validate application is the longest-wait activity in the baseline; reducing its queue time directly shortens customer wait.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(waiting_time('W_Validate application')) across all completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level",
+      "context_segmentation": [],
+      "measurable_as": "W_Validate application Waiting Time"
+    },
+    {
+      "name": "W_Assess Potential Fraud Wait Time",
+      "description": "The average waiting time before the mandatory fraud-assessment compliance step, used as a safeguard to confirm the scenario does not deprioritise this regulatory activity.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the queue time immediately before W_Assess potential fraud across all cases.",
+        "measurable": "Computed as the average waiting time before W_Assess potential fraud per completed case. Unit: hours.",
+        "achievable": "Keeping this time stable is realistic; the constraint is that it must not increase materially.",
+        "relevant": "Dutch and EU consumer-credit rules require this check on every file; any increase in wait time signals the step is being de-resourced.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(waiting_time('W_Assess potential fraud')) across all completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level",
+      "context_segmentation": [],
+      "measurable_as": "W_Assess potential fraud Waiting Time"
+    }
+  ],
+  "reasoning": "This KPI set addresses all key aspects of the simulation goal: reducing customer wait times (cycle time and average waiting time), managing resource constraints (utilization), targeting the primary validation bottleneck (W_Validate application wait time), and safeguarding the mandatory compliance step (W_Assess potential fraud wait time). All five KPIs are directly computable from Prosimos simulation output, ensuring the Stage-2 evaluation can measure directional improvement on every target."
+}

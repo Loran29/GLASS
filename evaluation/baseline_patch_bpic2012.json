@@ -1,0 +1,93 @@
+{
+  "scenario_id": "baseline_bpic2012_muruvetg",
+  "baseline_reference": "SIMOD",
+  "reasoning": "Patch derived from muruvetg/from-simulation-goals-to-parameters output for BPIC2012. Two suggestions were simulatable: (1) reduce call-back activity duration by 30% modelling improved call scripts and training, (7) reduce validation activity duration by 25% modelling faster decision processing. Suggestions 2,3,4,5,6,8 describe policy limits, training hours, workload indices, schedule optimisation and cancellation rate targets — none map to concrete Prosimos parameters without additional assumptions.",
+  "modifications": [
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Nabellen offertes",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "0.243 hours (representative mean from SIMOD)",
+      "proposed_value": "0.170 hours (30% reduction per suggestion 1: improved call scripts and training reduce call-back time from 10 to 7 minutes)",
+      "proposed_structured": null,
+      "kpi_reference": "W_Nabellen Offertes Waiting Time",
+      "rationale": "Suggestion 1 targets a 30% reduction in time per call-back via better call scripts and training. Applying this to the mean activity duration models faster call-back processing.",
+      "evidence_source": "Base repo suggestion 1: reduce average call-back duration from 10 minutes to 7 minutes via improved call scripts or training",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Call script improvements and training reduce mean handling time by 30%",
+      "intervention": "Reduce W_Nabellen offertes mean duration by 30%",
+      "mechanism_rationale": "Shorter service time at the most frequent call-back activity reduces queue build-up and overall cycle time"
+    },
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Nabellen incomplete dossiers",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "0.234 hours (representative mean from SIMOD)",
+      "proposed_value": "0.164 hours (30% reduction per suggestion 1: same call script and training improvement applies to incomplete dossier calls)",
+      "proposed_structured": null,
+      "kpi_reference": "Average Loan Application Cycle Time",
+      "rationale": "The same call-back improvement from suggestion 1 applies to incomplete dossier follow-ups, which are structurally identical call-back activities.",
+      "evidence_source": "Base repo suggestion 1: reduce call-back duration by 30% via improved call scripts and training",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Same call script improvements apply to all call-back type activities",
+      "intervention": "Reduce W_Nabellen incomplete dossiers mean duration by 30%",
+      "mechanism_rationale": "Faster incomplete dossier follow-ups reduce idle time waiting for customer responses"
+    },
+    {
+      "parameter_type": "activity_duration",
+      "target_element": "W_Valideren aanvraag",
+      "target_field": "mean duration",
+      "direction": "decrease",
+      "baseline_value": "1.554 hours (representative mean from SIMOD)",
+      "proposed_value": "1.166 hours (25% reduction per suggestion 7: target 15 days average decision time vs current 20 days)",
+      "proposed_structured": null,
+      "kpi_reference": "Average Loan Application Cycle Time",
+      "rationale": "Suggestion 7 targets a 25% reduction in average time to final decision (20 days to 15 days). Reducing the validation activity duration by 25% directly models faster decision processing.",
+      "evidence_source": "Base repo suggestion 7: reduce average days to final decision from 20 to 15 days",
+      "literature_support": [],
+      "context_condition": null,
+      "feasibility_assumptions": "Process improvements and enhanced decision tools enable 25% faster validation",
+      "intervention": "Reduce W_Valideren aanvraag mean duration by 25%",
+      "mechanism_rationale": "Faster validation directly shortens the critical path to final decision"
+    }
+  ],
+  "expected_kpi_impacts": [
+    {
+      "kpi_name": "Average Loan Application Cycle Time",
+      "direction": "decrease",
+      "estimated_magnitude": "15-25% reduction",
+      "confidence": "medium",
+      "reasoning": "Reduced durations at call-back and validation activities shorten the critical path"
+    },
+    {
+      "kpi_name": "W_Nabellen Offertes Waiting Time",
+      "direction": "decrease",
+      "estimated_magnitude": "20-30% reduction",
+      "confidence": "medium",
+      "reasoning": "Direct duration reduction at the most frequent call-back activity"
+    },
+    {
+      "kpi_name": "Process Throughput",
+      "direction": "increase",
+      "estimated_magnitude": "5-15% increase",
+      "confidence": "low",
+      "reasoning": "Faster activity durations increase throughput indirectly"
+    }
+  ],
+  "unresolved_kpis": [
+    {
+      "kpi_name": "Wait Before Validation by Lifecycle Transition",
+      "reason": "out_of_simulation_scope",
+      "explanation": "Suggestion 5 targets schedule optimisation but provides no concrete resource count or calendar changes that can be encoded in Prosimos"
+    }
+  ],
+  "context_differentiations": [],
+  "warnings": [
+    "Suggestions 2 (call-back round limits), 3 (decision adherence rate), 4 (training hours), 5 (schedule optimisation), 6 (workload balance index), and 8 (cancellation rate) describe business policies and KPI targets with no direct Prosimos parameter equivalent.",
+    "Duration reductions are applied to representative resources. The apply_patch merger propagates changes to all resources for each activity."
+  ]
+}

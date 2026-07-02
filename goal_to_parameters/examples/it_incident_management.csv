@@ -1,0 +1,427 @@
+case_id,activity,timestamp,end_time,resource,severity,priority,incident_type,department,shift,sla_tier,support_level,status
+INC-001,Log Incident,2025-07-01 20:01,2025-07-01 20:09,Service Desk Portal,critical,P1,security,IT,night,platinum,L0,logged
+INC-001,Classify Incident,2025-07-01 20:15,2025-07-01 20:23,Service Desk Lead,critical,P1,security,IT,night,platinum,L0,classified
+INC-001,Initial Diagnosis,2025-07-01 20:32,2025-07-01 21:08,L1 Agent Patel,critical,P1,security,IT,night,platinum,L1,diagnosed
+INC-001,Assign to Team,2025-07-01 21:15,2025-07-01 21:29,Service Desk Lead,critical,P1,security,IT,night,platinum,L1,assigned
+INC-001,Investigate,2025-07-01 21:52,2025-07-01 22:26,L1 Agent Patel,critical,P1,security,IT,night,platinum,L1,investigating
+INC-001,Escalate to L2,2025-07-01 22:31,2025-07-01 22:37,L1 Agent Patel,critical,P1,security,IT,night,platinum,L1,escalated
+INC-001,Investigate,2025-07-01 23:05,2025-07-02 00:39,L2 Engineer Santos,critical,P1,security,IT,night,platinum,L2,investigating
+INC-001,Escalate to L3,2025-07-02 00:58,2025-07-02 01:03,L2 Engineer Santos,critical,P1,security,IT,night,platinum,L2,escalated
+INC-001,Investigate,2025-07-02 01:48,2025-07-02 02:46,L3 Specialist Tanaka,critical,P1,security,IT,night,platinum,L3,investigating
+INC-001,Request Change Approval,2025-07-02 03:10,2025-07-02 04:02,L3 Specialist Tanaka,critical,P1,security,IT,night,platinum,L3,change_requested
+INC-001,Implement Change,2025-07-02 05:07,2025-07-02 07:20,L3 Specialist Tanaka,critical,P1,security,IT,night,platinum,L3,change_implemented
+INC-001,Test Fix,2025-07-02 07:30,2025-07-02 08:09,L3 Specialist Tanaka,critical,P1,security,IT,night,platinum,L3,tested
+INC-001,Verify Resolution,2025-07-02 08:24,2025-07-02 08:47,L3 Specialist Tanaka,critical,P1,security,IT,night,platinum,L3,verified
+INC-001,Close Incident,2025-07-02 09:02,2025-07-02 09:09,Service Desk Portal,critical,P1,security,IT,night,platinum,L0,closed
+INC-002,Log Incident,2025-07-02 09:13,2025-07-02 09:18,Service Desk Portal,critical,P1,network,Operations,day,platinum,L0,logged
+INC-002,Classify Incident,2025-07-02 09:21,2025-07-02 09:32,Service Desk Lead,critical,P1,network,Operations,day,platinum,L0,classified
+INC-002,Initial Diagnosis,2025-07-02 09:40,2025-07-02 10:22,L1 Agent Weber,critical,P1,network,Operations,day,platinum,L1,diagnosed
+INC-002,Assign to Team,2025-07-02 10:38,2025-07-02 10:52,Service Desk Lead,critical,P1,network,Operations,day,platinum,L1,assigned
+INC-002,Investigate,2025-07-02 11:10,2025-07-02 13:23,L1 Agent Weber,critical,P1,network,Operations,day,platinum,L1,investigating
+INC-002,Escalate to L2,2025-07-02 13:29,2025-07-02 13:41,L1 Agent Weber,critical,P1,network,Operations,day,platinum,L1,escalated
+INC-002,Investigate,2025-07-02 14:30,2025-07-02 17:04,L2 Engineer Santos,critical,P1,network,Operations,day,platinum,L2,investigating
+INC-002,Escalate to L3,2025-07-02 17:20,2025-07-02 17:26,L2 Engineer Santos,critical,P1,network,Operations,day,platinum,L2,escalated
+INC-002,Investigate,2025-07-02 18:56,2025-07-02 21:12,L3 Specialist Tanaka,critical,P1,network,Operations,day,platinum,L3,investigating
+INC-002,Request Change Approval,2025-07-02 21:42,2025-07-02 22:36,L3 Specialist Tanaka,critical,P1,network,Operations,day,platinum,L3,change_requested
+INC-002,Implement Change,2025-07-02 23:52,2025-07-03 01:35,L3 Specialist Tanaka,critical,P1,network,Operations,day,platinum,L3,change_implemented
+INC-002,Test Fix,2025-07-03 01:51,2025-07-03 02:28,L3 Specialist Tanaka,critical,P1,network,Operations,day,platinum,L3,tested
+INC-002,Verify Resolution,2025-07-03 02:40,2025-07-03 02:51,L3 Specialist Tanaka,critical,P1,network,Operations,day,platinum,L3,verified
+INC-002,Close Incident,2025-07-03 03:03,2025-07-03 03:10,Service Desk Portal,critical,P1,network,Operations,day,platinum,L0,closed
+INC-003,Log Incident,2025-07-03 08:54,2025-07-03 08:58,Service Desk Portal,critical,P1,software,Finance,day,platinum,L0,logged
+INC-003,Classify Incident,2025-07-03 09:01,2025-07-03 09:10,Auto-Classifier,critical,P1,software,Finance,day,platinum,L0,classified
+INC-003,Initial Diagnosis,2025-07-03 09:29,2025-07-03 09:49,L1 Agent Weber,critical,P1,software,Finance,day,platinum,L1,diagnosed
+INC-003,Assign to Team,2025-07-03 10:05,2025-07-03 10:15,Service Desk Lead,critical,P1,software,Finance,day,platinum,L1,assigned
+INC-003,Investigate,2025-07-03 10:31,2025-07-03 12:26,L1 Agent Weber,critical,P1,software,Finance,day,platinum,L1,investigating
+INC-003,Escalate to L2,2025-07-03 12:39,2025-07-03 12:54,L1 Agent Weber,critical,P1,software,Finance,day,platinum,L1,escalated
+INC-003,Investigate,2025-07-03 13:50,2025-07-03 15:37,L2 Engineer Santos,critical,P1,software,Finance,day,platinum,L2,investigating
+INC-003,Escalate to L3,2025-07-03 15:57,2025-07-03 16:04,L2 Engineer Santos,critical,P1,software,Finance,day,platinum,L2,escalated
+INC-003,Investigate,2025-07-03 17:32,2025-07-03 18:22,L3 Specialist Mueller,critical,P1,software,Finance,day,platinum,L3,investigating
+INC-003,Apply Fix,2025-07-03 18:51,2025-07-03 19:59,L3 Specialist Mueller,critical,P1,software,Finance,day,platinum,L3,fix_applied
+INC-003,Test Fix,2025-07-03 20:12,2025-07-03 20:56,L3 Specialist Mueller,critical,P1,software,Finance,day,platinum,L3,tested
+INC-003,Verify Resolution,2025-07-03 21:26,2025-07-03 21:53,L3 Specialist Mueller,critical,P1,software,Finance,day,platinum,L3,verified
+INC-003,Close Incident,2025-07-03 22:05,2025-07-03 22:13,Service Desk Portal,critical,P1,software,Finance,day,platinum,L0,closed
+INC-004,Log Incident,2025-07-04 20:14,2025-07-04 20:17,Service Desk Portal,critical,P1,hardware,IT,night,gold,L0,logged
+INC-004,Classify Incident,2025-07-04 20:24,2025-07-04 20:33,Auto-Classifier,critical,P1,hardware,IT,night,gold,L0,classified
+INC-004,Initial Diagnosis,2025-07-04 20:40,2025-07-04 21:24,L1 Agent Garcia,critical,P1,hardware,IT,night,gold,L1,diagnosed
+INC-004,Assign to Team,2025-07-04 21:39,2025-07-04 21:47,Service Desk Lead,critical,P1,hardware,IT,night,gold,L1,assigned
+INC-004,Investigate,2025-07-04 22:17,2025-07-04 23:50,L1 Agent Garcia,critical,P1,hardware,IT,night,gold,L1,investigating
+INC-004,Escalate to L2,2025-07-05 00:07,2025-07-05 00:22,L1 Agent Garcia,critical,P1,hardware,IT,night,gold,L1,escalated
+INC-004,Investigate,2025-07-05 01:06,2025-07-05 02:09,L2 Engineer Santos,critical,P1,hardware,IT,night,gold,L2,investigating
+INC-004,Request Change Approval,2025-07-05 02:23,2025-07-05 02:53,L2 Engineer Santos,critical,P1,hardware,IT,night,gold,L2,change_requested
+INC-004,Implement Change,2025-07-05 04:34,2025-07-05 06:12,L2 Engineer Santos,critical,P1,hardware,IT,night,gold,L2,change_implemented
+INC-004,Test Fix,2025-07-05 06:30,2025-07-05 07:08,L2 Engineer Santos,critical,P1,hardware,IT,night,gold,L2,tested
+INC-004,Verify Resolution,2025-07-05 07:36,2025-07-05 07:59,L2 Engineer Santos,critical,P1,hardware,IT,night,gold,L2,verified
+INC-004,Close Incident,2025-07-05 08:16,2025-07-05 08:24,Service Desk Portal,critical,P1,hardware,IT,night,gold,L0,closed
+INC-005,Log Incident,2025-07-05 09:08,2025-07-05 09:15,Service Desk Portal,critical,P1,software,Operations,day,platinum,L0,logged
+INC-005,Classify Incident,2025-07-05 09:24,2025-07-05 09:29,Service Desk Lead,critical,P1,software,Operations,day,platinum,L0,classified
+INC-005,Initial Diagnosis,2025-07-05 09:37,2025-07-05 10:12,L1 Agent Garcia,critical,P1,software,Operations,day,platinum,L1,diagnosed
+INC-005,Assign to Team,2025-07-05 10:22,2025-07-05 10:37,Service Desk Lead,critical,P1,software,Operations,day,platinum,L1,assigned
+INC-005,Investigate,2025-07-05 11:00,2025-07-05 12:46,L1 Agent Garcia,critical,P1,software,Operations,day,platinum,L1,investigating
+INC-005,Escalate to L2,2025-07-05 12:53,2025-07-05 13:04,L1 Agent Garcia,critical,P1,software,Operations,day,platinum,L1,escalated
+INC-005,Investigate,2025-07-05 13:43,2025-07-05 15:12,L2 Engineer Hoffmann,critical,P1,software,Operations,day,platinum,L2,investigating
+INC-005,Escalate to L3,2025-07-05 15:30,2025-07-05 15:39,L2 Engineer Hoffmann,critical,P1,software,Operations,day,platinum,L2,escalated
+INC-005,Investigate,2025-07-05 17:09,2025-07-05 19:06,L3 Specialist Mueller,critical,P1,software,Operations,day,platinum,L3,investigating
+INC-005,Apply Fix,2025-07-05 19:44,2025-07-05 20:18,L3 Specialist Mueller,critical,P1,software,Operations,day,platinum,L3,fix_applied
+INC-005,Test Fix,2025-07-05 20:31,2025-07-05 21:10,L3 Specialist Mueller,critical,P1,software,Operations,day,platinum,L3,tested
+INC-005,Verify Resolution,2025-07-05 21:40,2025-07-05 22:00,L3 Specialist Mueller,critical,P1,software,Operations,day,platinum,L3,verified
+INC-005,Close Incident,2025-07-05 22:08,2025-07-05 22:15,Service Desk Portal,critical,P1,software,Operations,day,platinum,L0,closed
+INC-006,Log Incident,2025-07-06 11:10,2025-07-06 11:16,Service Desk Portal,critical,P1,network,IT,day,gold,L0,logged
+INC-006,Classify Incident,2025-07-06 11:18,2025-07-06 11:31,Auto-Classifier,critical,P1,network,IT,day,gold,L0,classified
+INC-006,Initial Diagnosis,2025-07-06 11:41,2025-07-06 12:23,L1 Agent Patel,critical,P1,network,IT,day,gold,L1,diagnosed
+INC-006,Assign to Team,2025-07-06 12:37,2025-07-06 12:52,Service Desk Lead,critical,P1,network,IT,day,gold,L1,assigned
+INC-006,Investigate,2025-07-06 13:18,2025-07-06 15:05,L1 Agent Patel,critical,P1,network,IT,day,gold,L1,investigating
+INC-006,Escalate to L2,2025-07-06 15:16,2025-07-06 15:23,L1 Agent Patel,critical,P1,network,IT,day,gold,L1,escalated
+INC-006,Investigate,2025-07-06 16:01,2025-07-06 17:40,L2 Engineer Santos,critical,P1,network,IT,day,gold,L2,investigating
+INC-006,Escalate to L3,2025-07-06 17:58,2025-07-06 18:03,L2 Engineer Santos,critical,P1,network,IT,day,gold,L2,escalated
+INC-006,Investigate,2025-07-06 19:04,2025-07-06 19:36,L3 Specialist Tanaka,critical,P1,network,IT,day,gold,L3,investigating
+INC-006,Request Change Approval,2025-07-06 19:49,2025-07-06 20:27,L3 Specialist Tanaka,critical,P1,network,IT,day,gold,L3,change_requested
+INC-006,Implement Change,2025-07-06 21:36,2025-07-06 22:36,L3 Specialist Tanaka,critical,P1,network,IT,day,gold,L3,change_implemented
+INC-006,Test Fix,2025-07-06 22:47,2025-07-06 23:09,L3 Specialist Tanaka,critical,P1,network,IT,day,gold,L3,tested
+INC-006,Verify Resolution,2025-07-06 23:37,2025-07-06 23:49,L3 Specialist Tanaka,critical,P1,network,IT,day,gold,L3,verified
+INC-006,Close Incident,2025-07-06 23:56,2025-07-07 00:06,Service Desk Portal,critical,P1,network,IT,day,gold,L0,closed
+INC-007,Log Incident,2025-07-07 20:48,2025-07-07 20:55,Service Desk Portal,critical,P1,security,Finance,night,platinum,L0,logged
+INC-007,Classify Incident,2025-07-07 20:59,2025-07-07 21:14,Service Desk Lead,critical,P1,security,Finance,night,platinum,L0,classified
+INC-007,Initial Diagnosis,2025-07-07 21:34,2025-07-07 21:57,L1 Agent Garcia,critical,P1,security,Finance,night,platinum,L1,diagnosed
+INC-007,Assign to Team,2025-07-07 22:15,2025-07-07 22:23,Service Desk Lead,critical,P1,security,Finance,night,platinum,L1,assigned
+INC-007,Investigate,2025-07-07 23:02,2025-07-08 00:41,L1 Agent Garcia,critical,P1,security,Finance,night,platinum,L1,investigating
+INC-007,Escalate to L2,2025-07-08 00:52,2025-07-08 01:01,L1 Agent Garcia,critical,P1,security,Finance,night,platinum,L1,escalated
+INC-007,Investigate,2025-07-08 01:41,2025-07-08 03:34,L2 Engineer Hoffmann,critical,P1,security,Finance,night,platinum,L2,investigating
+INC-007,Request Change Approval,2025-07-08 03:55,2025-07-08 04:38,L2 Engineer Hoffmann,critical,P1,security,Finance,night,platinum,L2,change_requested
+INC-007,Implement Change,2025-07-08 06:14,2025-07-08 07:41,L2 Engineer Hoffmann,critical,P1,security,Finance,night,platinum,L2,change_implemented
+INC-007,Test Fix,2025-07-08 07:54,2025-07-08 08:16,L2 Engineer Hoffmann,critical,P1,security,Finance,night,platinum,L2,tested
+INC-007,Verify Resolution,2025-07-08 08:33,2025-07-08 08:45,L2 Engineer Hoffmann,critical,P1,security,Finance,night,platinum,L2,verified
+INC-007,Close Incident,2025-07-08 09:00,2025-07-08 09:03,Service Desk Portal,critical,P1,security,Finance,night,platinum,L0,closed
+INC-008,Log Incident,2025-07-08 12:35,2025-07-08 12:39,Service Desk Portal,critical,P1,software,HR,day,gold,L0,logged
+INC-008,Classify Incident,2025-07-08 12:44,2025-07-08 12:50,Service Desk Lead,critical,P1,software,HR,day,gold,L0,classified
+INC-008,Initial Diagnosis,2025-07-08 13:15,2025-07-08 13:37,L1 Agent Patel,critical,P1,software,HR,day,gold,L1,diagnosed
+INC-008,Assign to Team,2025-07-08 13:44,2025-07-08 13:49,Service Desk Lead,critical,P1,software,HR,day,gold,L1,assigned
+INC-008,Investigate,2025-07-08 14:26,2025-07-08 15:38,L1 Agent Patel,critical,P1,software,HR,day,gold,L1,investigating
+INC-008,Escalate to L2,2025-07-08 15:45,2025-07-08 15:58,L1 Agent Patel,critical,P1,software,HR,day,gold,L1,escalated
+INC-008,Investigate,2025-07-08 16:28,2025-07-08 18:23,L2 Engineer Liu,critical,P1,software,HR,day,gold,L2,investigating
+INC-008,Apply Fix,2025-07-08 18:48,2025-07-08 19:35,L2 Engineer Liu,critical,P1,software,HR,day,gold,L2,fix_applied
+INC-008,Test Fix,2025-07-08 19:44,2025-07-08 20:22,L2 Engineer Liu,critical,P1,software,HR,day,gold,L2,tested
+INC-008,Verify Resolution,2025-07-08 20:50,2025-07-08 21:18,L2 Engineer Liu,critical,P1,software,HR,day,gold,L2,verified
+INC-008,Close Incident,2025-07-08 21:38,2025-07-08 21:44,Service Desk Portal,critical,P1,software,HR,day,gold,L0,closed
+INC-009,Log Incident,2025-07-09 14:30,2025-07-09 14:36,Service Desk Portal,high,P2,software,Finance,day,gold,L0,logged
+INC-009,Classify Incident,2025-07-09 14:41,2025-07-09 14:47,Service Desk Lead,high,P2,software,Finance,day,gold,L0,classified
+INC-009,Initial Diagnosis,2025-07-09 15:05,2025-07-09 15:33,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,diagnosed
+INC-009,Assign to Team,2025-07-09 15:51,2025-07-09 16:03,Service Desk Lead,high,P2,software,Finance,day,gold,L1,assigned
+INC-009,Investigate,2025-07-09 16:40,2025-07-09 17:16,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,investigating
+INC-009,Escalate to L2,2025-07-09 17:24,2025-07-09 17:29,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,escalated
+INC-009,Investigate,2025-07-09 18:09,2025-07-09 19:22,L2 Engineer Hoffmann,high,P2,software,Finance,day,gold,L2,investigating
+INC-009,Apply Fix,2025-07-09 19:57,2025-07-09 20:30,L2 Engineer Hoffmann,high,P2,software,Finance,day,gold,L2,fix_applied
+INC-009,Test Fix,2025-07-09 20:42,2025-07-09 21:03,L2 Engineer Hoffmann,high,P2,software,Finance,day,gold,L2,tested
+INC-009,Verify Resolution,2025-07-09 21:19,2025-07-09 21:46,L2 Engineer Hoffmann,high,P2,software,Finance,day,gold,L2,verified
+INC-009,Close Incident,2025-07-09 22:05,2025-07-09 22:10,Service Desk Portal,high,P2,software,Finance,day,gold,L0,closed
+INC-010,Log Incident,2025-07-10 11:11,2025-07-10 11:16,Service Desk Portal,high,P2,hardware,Operations,day,gold,L0,logged
+INC-010,Classify Incident,2025-07-10 11:25,2025-07-10 11:31,Service Desk Lead,high,P2,hardware,Operations,day,gold,L0,classified
+INC-010,Initial Diagnosis,2025-07-10 11:50,2025-07-10 12:06,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,diagnosed
+INC-010,Assign to Team,2025-07-10 12:11,2025-07-10 12:17,Service Desk Lead,high,P2,hardware,Operations,day,gold,L1,assigned
+INC-010,Investigate,2025-07-10 12:56,2025-07-10 13:56,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,investigating
+INC-010,Apply Fix,2025-07-10 14:11,2025-07-10 15:23,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,fix_applied
+INC-010,Test Fix,2025-07-10 15:43,2025-07-10 16:13,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,tested
+INC-010,Rework Fix,2025-07-10 16:21,2025-07-10 17:46,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,reworked
+INC-010,Test Fix,2025-07-10 18:08,2025-07-10 18:51,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,test_passed
+INC-010,Verify Resolution,2025-07-10 19:02,2025-07-10 19:17,L1 Agent Patel,high,P2,hardware,Operations,day,gold,L1,verified
+INC-010,Close Incident,2025-07-10 19:34,2025-07-10 19:37,Service Desk Portal,high,P2,hardware,Operations,day,gold,L0,closed
+INC-011,Log Incident,2025-07-11 23:16,2025-07-11 23:22,Service Desk Portal,high,P2,network,IT,night,standard,L0,logged
+INC-011,Classify Incident,2025-07-11 23:28,2025-07-11 23:41,Auto-Classifier,high,P2,network,IT,night,standard,L0,classified
+INC-011,Initial Diagnosis,2025-07-12 00:01,2025-07-12 00:22,L1 Agent Garcia,high,P2,network,IT,night,standard,L1,diagnosed
+INC-011,Assign to Team,2025-07-12 00:36,2025-07-12 00:44,Service Desk Lead,high,P2,network,IT,night,standard,L1,assigned
+INC-011,Investigate,2025-07-12 01:24,2025-07-12 02:01,L1 Agent Garcia,high,P2,network,IT,night,standard,L1,investigating
+INC-011,Escalate to L2,2025-07-12 02:07,2025-07-12 02:17,L1 Agent Garcia,high,P2,network,IT,night,standard,L1,escalated
+INC-011,Investigate,2025-07-12 02:35,2025-07-12 04:19,L2 Engineer Santos,high,P2,network,IT,night,standard,L2,investigating
+INC-011,Apply Fix,2025-07-12 04:44,2025-07-12 06:08,L2 Engineer Santos,high,P2,network,IT,night,standard,L2,fix_applied
+INC-011,Test Fix,2025-07-12 06:18,2025-07-12 06:34,L2 Engineer Santos,high,P2,network,IT,night,standard,L2,tested
+INC-011,Verify Resolution,2025-07-12 07:00,2025-07-12 07:12,L2 Engineer Santos,high,P2,network,IT,night,standard,L2,verified
+INC-011,Close Incident,2025-07-12 07:22,2025-07-12 07:26,Service Desk Portal,high,P2,network,IT,night,standard,L0,closed
+INC-012,Log Incident,2025-07-12 12:04,2025-07-12 12:12,Service Desk Portal,high,P2,software,HR,day,gold,L0,logged
+INC-012,Classify Incident,2025-07-12 12:17,2025-07-12 12:23,Auto-Classifier,high,P2,software,HR,day,gold,L0,classified
+INC-012,Initial Diagnosis,2025-07-12 12:46,2025-07-12 13:19,L1 Agent Garcia,high,P2,software,HR,day,gold,L1,diagnosed
+INC-012,Assign to Team,2025-07-12 13:25,2025-07-12 13:39,Service Desk Lead,high,P2,software,HR,day,gold,L1,assigned
+INC-012,Investigate,2025-07-12 13:51,2025-07-12 15:14,L1 Agent Garcia,high,P2,software,HR,day,gold,L1,investigating
+INC-012,Escalate to L2,2025-07-12 15:29,2025-07-12 15:38,L1 Agent Garcia,high,P2,software,HR,day,gold,L1,escalated
+INC-012,Investigate,2025-07-12 16:06,2025-07-12 17:16,L2 Engineer Hoffmann,high,P2,software,HR,day,gold,L2,investigating
+INC-012,Escalate to L3,2025-07-12 17:29,2025-07-12 17:38,L2 Engineer Hoffmann,high,P2,software,HR,day,gold,L2,escalated
+INC-012,Investigate,2025-07-12 18:48,2025-07-12 20:43,L3 Specialist Mueller,high,P2,software,HR,day,gold,L3,investigating
+INC-012,Apply Fix,2025-07-12 21:18,2025-07-12 22:16,L3 Specialist Mueller,high,P2,software,HR,day,gold,L3,fix_applied
+INC-012,Test Fix,2025-07-12 22:35,2025-07-12 23:00,L3 Specialist Mueller,high,P2,software,HR,day,gold,L3,tested
+INC-012,Verify Resolution,2025-07-12 23:12,2025-07-12 23:22,L3 Specialist Mueller,high,P2,software,HR,day,gold,L3,verified
+INC-012,Close Incident,2025-07-12 23:41,2025-07-12 23:45,Service Desk Portal,high,P2,software,HR,day,gold,L0,closed
+INC-013,Log Incident,2025-07-13 08:34,2025-07-13 08:38,Service Desk Portal,high,P2,security,IT,day,platinum,L0,logged
+INC-013,Classify Incident,2025-07-13 08:48,2025-07-13 08:55,Auto-Classifier,high,P2,security,IT,day,platinum,L0,classified
+INC-013,Initial Diagnosis,2025-07-13 09:11,2025-07-13 09:54,L1 Agent Patel,high,P2,security,IT,day,platinum,L1,diagnosed
+INC-013,Assign to Team,2025-07-13 10:06,2025-07-13 10:16,Service Desk Lead,high,P2,security,IT,day,platinum,L1,assigned
+INC-013,Investigate,2025-07-13 10:35,2025-07-13 11:25,L1 Agent Patel,high,P2,security,IT,day,platinum,L1,investigating
+INC-013,Escalate to L2,2025-07-13 11:44,2025-07-13 11:57,L1 Agent Patel,high,P2,security,IT,day,platinum,L1,escalated
+INC-013,Investigate,2025-07-13 12:57,2025-07-13 14:45,L2 Engineer Liu,high,P2,security,IT,day,platinum,L2,investigating
+INC-013,Request Change Approval,2025-07-13 15:15,2025-07-13 16:03,L2 Engineer Liu,high,P2,security,IT,day,platinum,L2,change_requested
+INC-013,Implement Change,2025-07-13 16:34,2025-07-13 18:29,L2 Engineer Liu,high,P2,security,IT,day,platinum,L2,change_implemented
+INC-013,Test Fix,2025-07-13 18:56,2025-07-13 19:20,L2 Engineer Liu,high,P2,security,IT,day,platinum,L2,tested
+INC-013,Verify Resolution,2025-07-13 19:33,2025-07-13 19:47,L2 Engineer Liu,high,P2,security,IT,day,platinum,L2,verified
+INC-013,Close Incident,2025-07-13 20:00,2025-07-13 20:04,Service Desk Portal,high,P2,security,IT,day,platinum,L0,closed
+INC-014,Log Incident,2025-07-14 20:47,2025-07-14 20:54,Service Desk Portal,high,P2,hardware,Finance,night,gold,L0,logged
+INC-014,Classify Incident,2025-07-14 20:58,2025-07-14 21:07,Auto-Classifier,high,P2,hardware,Finance,night,gold,L0,classified
+INC-014,Initial Diagnosis,2025-07-14 21:31,2025-07-14 22:08,L1 Agent Garcia,high,P2,hardware,Finance,night,gold,L1,diagnosed
+INC-014,Assign to Team,2025-07-14 22:23,2025-07-14 22:31,Service Desk Lead,high,P2,hardware,Finance,night,gold,L1,assigned
+INC-014,Investigate,2025-07-14 23:02,2025-07-15 00:53,L1 Agent Garcia,high,P2,hardware,Finance,night,gold,L1,investigating
+INC-014,Escalate to L2,2025-07-15 01:06,2025-07-15 01:19,L1 Agent Garcia,high,P2,hardware,Finance,night,gold,L1,escalated
+INC-014,Investigate,2025-07-15 02:05,2025-07-15 02:41,L2 Engineer Liu,high,P2,hardware,Finance,night,gold,L2,investigating
+INC-014,Apply Fix,2025-07-15 02:53,2025-07-15 04:07,L2 Engineer Liu,high,P2,hardware,Finance,night,gold,L2,fix_applied
+INC-014,Test Fix,2025-07-15 04:20,2025-07-15 04:36,L2 Engineer Liu,high,P2,hardware,Finance,night,gold,L2,tested
+INC-014,Verify Resolution,2025-07-15 04:46,2025-07-15 05:06,L2 Engineer Liu,high,P2,hardware,Finance,night,gold,L2,verified
+INC-014,Close Incident,2025-07-15 05:15,2025-07-15 05:22,Service Desk Portal,high,P2,hardware,Finance,night,gold,L0,closed
+INC-015,Log Incident,2025-07-01 09:47,2025-07-01 09:53,Service Desk Portal,high,P2,software,Operations,day,standard,L0,logged
+INC-015,Classify Incident,2025-07-01 10:03,2025-07-01 10:16,Auto-Classifier,high,P2,software,Operations,day,standard,L0,classified
+INC-015,Initial Diagnosis,2025-07-01 10:21,2025-07-01 10:38,L1 Agent Patel,high,P2,software,Operations,day,standard,L1,diagnosed
+INC-015,Assign to Team,2025-07-01 10:47,2025-07-01 11:00,Service Desk Lead,high,P2,software,Operations,day,standard,L1,assigned
+INC-015,Investigate,2025-07-01 11:11,2025-07-01 12:28,L1 Agent Patel,high,P2,software,Operations,day,standard,L1,investigating
+INC-015,Escalate to L2,2025-07-01 12:37,2025-07-01 12:48,L1 Agent Patel,high,P2,software,Operations,day,standard,L1,escalated
+INC-015,Investigate,2025-07-01 13:11,2025-07-01 14:20,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,investigating
+INC-015,Apply Fix,2025-07-01 14:41,2025-07-01 15:06,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,fix_applied
+INC-015,Test Fix,2025-07-01 15:22,2025-07-01 15:43,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,tested
+INC-015,Rework Fix,2025-07-01 15:58,2025-07-01 16:43,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,reworked
+INC-015,Test Fix,2025-07-01 16:56,2025-07-01 17:22,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,test_passed
+INC-015,Verify Resolution,2025-07-01 17:49,2025-07-01 18:12,L2 Engineer Santos,high,P2,software,Operations,day,standard,L2,verified
+INC-015,Close Incident,2025-07-01 18:21,2025-07-01 18:27,Service Desk Portal,high,P2,software,Operations,day,standard,L0,closed
+INC-016,Log Incident,2025-07-02 14:10,2025-07-02 14:14,Service Desk Portal,high,P2,network,HR,day,standard,L0,logged
+INC-016,Classify Incident,2025-07-02 14:22,2025-07-02 14:29,Service Desk Lead,high,P2,network,HR,day,standard,L0,classified
+INC-016,Initial Diagnosis,2025-07-02 14:44,2025-07-02 15:24,L1 Agent Nowak,high,P2,network,HR,day,standard,L1,diagnosed
+INC-016,Assign to Team,2025-07-02 15:36,2025-07-02 15:45,Service Desk Lead,high,P2,network,HR,day,standard,L1,assigned
+INC-016,Investigate,2025-07-02 16:00,2025-07-02 17:59,L1 Agent Nowak,high,P2,network,HR,day,standard,L1,investigating
+INC-016,Apply Fix,2025-07-02 18:12,2025-07-02 19:20,L1 Agent Nowak,high,P2,network,HR,day,standard,L1,fix_applied
+INC-016,Test Fix,2025-07-02 19:26,2025-07-02 20:08,L1 Agent Nowak,high,P2,network,HR,day,standard,L1,tested
+INC-016,Verify Resolution,2025-07-02 20:33,2025-07-02 20:50,L1 Agent Nowak,high,P2,network,HR,day,standard,L1,verified
+INC-016,Close Incident,2025-07-02 21:01,2025-07-02 21:11,Service Desk Portal,high,P2,network,HR,day,standard,L0,closed
+INC-017,Log Incident,2025-07-03 22:19,2025-07-03 22:23,Service Desk Portal,high,P2,software,IT,night,gold,L0,logged
+INC-017,Classify Incident,2025-07-03 22:28,2025-07-03 22:43,Service Desk Lead,high,P2,software,IT,night,gold,L0,classified
+INC-017,Initial Diagnosis,2025-07-03 22:54,2025-07-03 23:19,L1 Agent Nowak,high,P2,software,IT,night,gold,L1,diagnosed
+INC-017,Assign to Team,2025-07-03 23:32,2025-07-03 23:38,Service Desk Lead,high,P2,software,IT,night,gold,L1,assigned
+INC-017,Investigate,2025-07-04 00:18,2025-07-04 01:23,L1 Agent Nowak,high,P2,software,IT,night,gold,L1,investigating
+INC-017,Escalate to L2,2025-07-04 01:39,2025-07-04 01:54,L1 Agent Nowak,high,P2,software,IT,night,gold,L1,escalated
+INC-017,Investigate,2025-07-04 02:41,2025-07-04 04:37,L2 Engineer Liu,high,P2,software,IT,night,gold,L2,investigating
+INC-017,Apply Fix,2025-07-04 05:13,2025-07-04 06:41,L2 Engineer Liu,high,P2,software,IT,night,gold,L2,fix_applied
+INC-017,Test Fix,2025-07-04 06:56,2025-07-04 07:41,L2 Engineer Liu,high,P2,software,IT,night,gold,L2,tested
+INC-017,Verify Resolution,2025-07-04 07:51,2025-07-04 08:04,L2 Engineer Liu,high,P2,software,IT,night,gold,L2,verified
+INC-017,Close Incident,2025-07-04 08:17,2025-07-04 08:22,Service Desk Portal,high,P2,software,IT,night,gold,L0,closed
+INC-018,Log Incident,2025-07-04 12:16,2025-07-04 12:19,Service Desk Portal,high,P2,hardware,Operations,day,standard,L0,logged
+INC-018,Classify Incident,2025-07-04 12:22,2025-07-04 12:32,Auto-Classifier,high,P2,hardware,Operations,day,standard,L0,classified
+INC-018,Initial Diagnosis,2025-07-04 12:47,2025-07-04 13:21,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,diagnosed
+INC-018,Assign to Team,2025-07-04 13:29,2025-07-04 13:40,Service Desk Lead,high,P2,hardware,Operations,day,standard,L1,assigned
+INC-018,Investigate,2025-07-04 14:18,2025-07-04 16:01,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,investigating
+INC-018,Apply Fix,2025-07-04 16:17,2025-07-04 17:09,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,fix_applied
+INC-018,Test Fix,2025-07-04 17:15,2025-07-04 17:52,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,tested
+INC-018,Rework Fix,2025-07-04 18:03,2025-07-04 18:33,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,reworked
+INC-018,Test Fix,2025-07-04 18:49,2025-07-04 19:15,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,test_passed
+INC-018,Verify Resolution,2025-07-04 19:38,2025-07-04 19:50,L1 Agent Nowak,high,P2,hardware,Operations,day,standard,L1,verified
+INC-018,Close Incident,2025-07-04 20:05,2025-07-04 20:13,Service Desk Portal,high,P2,hardware,Operations,day,standard,L0,closed
+INC-019,Log Incident,2025-07-05 13:54,2025-07-05 13:57,Service Desk Portal,high,P2,software,Finance,day,gold,L0,logged
+INC-019,Classify Incident,2025-07-05 14:03,2025-07-05 14:18,Auto-Classifier,high,P2,software,Finance,day,gold,L0,classified
+INC-019,Initial Diagnosis,2025-07-05 14:36,2025-07-05 15:03,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,diagnosed
+INC-019,Assign to Team,2025-07-05 15:17,2025-07-05 15:30,Service Desk Lead,high,P2,software,Finance,day,gold,L1,assigned
+INC-019,Investigate,2025-07-05 15:44,2025-07-05 16:38,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,investigating
+INC-019,Apply Fix,2025-07-05 17:01,2025-07-05 18:09,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,fix_applied
+INC-019,Test Fix,2025-07-05 18:19,2025-07-05 18:53,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,tested
+INC-019,Verify Resolution,2025-07-05 19:21,2025-07-05 19:40,L1 Agent Weber,high,P2,software,Finance,day,gold,L1,verified
+INC-019,Close Incident,2025-07-05 19:57,2025-07-05 20:00,Service Desk Portal,high,P2,software,Finance,day,gold,L0,closed
+INC-020,Log Incident,2025-07-06 10:18,2025-07-06 10:22,Service Desk Portal,high,P2,network,IT,day,platinum,L0,logged
+INC-020,Classify Incident,2025-07-06 10:30,2025-07-06 10:42,Auto-Classifier,high,P2,network,IT,day,platinum,L0,classified
+INC-020,Initial Diagnosis,2025-07-06 11:01,2025-07-06 11:37,L1 Agent Nowak,high,P2,network,IT,day,platinum,L1,diagnosed
+INC-020,Assign to Team,2025-07-06 11:48,2025-07-06 12:01,Service Desk Lead,high,P2,network,IT,day,platinum,L1,assigned
+INC-020,Investigate,2025-07-06 12:26,2025-07-06 13:17,L1 Agent Nowak,high,P2,network,IT,day,platinum,L1,investigating
+INC-020,Escalate to L2,2025-07-06 13:24,2025-07-06 13:33,L1 Agent Nowak,high,P2,network,IT,day,platinum,L1,escalated
+INC-020,Investigate,2025-07-06 14:20,2025-07-06 16:11,L2 Engineer Hoffmann,high,P2,network,IT,day,platinum,L2,investigating
+INC-020,Apply Fix,2025-07-06 16:40,2025-07-06 17:42,L2 Engineer Hoffmann,high,P2,network,IT,day,platinum,L2,fix_applied
+INC-020,Test Fix,2025-07-06 17:49,2025-07-06 18:30,L2 Engineer Hoffmann,high,P2,network,IT,day,platinum,L2,tested
+INC-020,Verify Resolution,2025-07-06 18:47,2025-07-06 19:06,L2 Engineer Hoffmann,high,P2,network,IT,day,platinum,L2,verified
+INC-020,Close Incident,2025-07-06 19:18,2025-07-06 19:24,Service Desk Portal,high,P2,network,IT,day,platinum,L0,closed
+INC-021,Log Incident,2025-07-07 09:01,2025-07-07 09:04,Service Desk Portal,medium,P3,software,HR,day,standard,L0,logged
+INC-021,Classify Incident,2025-07-07 09:09,2025-07-07 09:23,Auto-Classifier,medium,P3,software,HR,day,standard,L0,classified
+INC-021,Initial Diagnosis,2025-07-07 09:30,2025-07-07 09:58,L1 Agent Nowak,medium,P3,software,HR,day,standard,L1,diagnosed
+INC-021,Assign to Team,2025-07-07 10:09,2025-07-07 10:20,Service Desk Lead,medium,P3,software,HR,day,standard,L1,assigned
+INC-021,Investigate,2025-07-07 10:45,2025-07-07 12:06,L1 Agent Nowak,medium,P3,software,HR,day,standard,L1,investigating
+INC-021,Apply Fix,2025-07-07 12:23,2025-07-07 13:01,L1 Agent Nowak,medium,P3,software,HR,day,standard,L1,fix_applied
+INC-021,Test Fix,2025-07-07 13:06,2025-07-07 13:49,L1 Agent Nowak,medium,P3,software,HR,day,standard,L1,tested
+INC-021,Verify Resolution,2025-07-07 14:02,2025-07-07 14:25,L1 Agent Nowak,medium,P3,software,HR,day,standard,L1,verified
+INC-021,Close Incident,2025-07-07 14:37,2025-07-07 14:42,Service Desk Portal,medium,P3,software,HR,day,standard,L0,closed
+INC-022,Log Incident,2025-07-08 14:44,2025-07-08 14:51,Service Desk Portal,medium,P3,hardware,Finance,day,gold,L0,logged
+INC-022,Classify Incident,2025-07-08 15:00,2025-07-08 15:13,Service Desk Lead,medium,P3,hardware,Finance,day,gold,L0,classified
+INC-022,Initial Diagnosis,2025-07-08 15:25,2025-07-08 15:54,L1 Agent Patel,medium,P3,hardware,Finance,day,gold,L1,diagnosed
+INC-022,Assign to Team,2025-07-08 16:03,2025-07-08 16:15,Service Desk Lead,medium,P3,hardware,Finance,day,gold,L1,assigned
+INC-022,Investigate,2025-07-08 16:46,2025-07-08 18:23,L1 Agent Patel,medium,P3,hardware,Finance,day,gold,L1,investigating
+INC-022,Apply Fix,2025-07-08 18:50,2025-07-08 19:50,L1 Agent Patel,medium,P3,hardware,Finance,day,gold,L1,fix_applied
+INC-022,Test Fix,2025-07-08 20:09,2025-07-08 20:43,L1 Agent Patel,medium,P3,hardware,Finance,day,gold,L1,tested
+INC-022,Verify Resolution,2025-07-08 21:09,2025-07-08 21:32,L1 Agent Patel,medium,P3,hardware,Finance,day,gold,L1,verified
+INC-022,Close Incident,2025-07-08 21:51,2025-07-08 21:56,Service Desk Portal,medium,P3,hardware,Finance,day,gold,L0,closed
+INC-023,Log Incident,2025-07-09 23:28,2025-07-09 23:33,Service Desk Portal,medium,P3,software,Operations,night,standard,L0,logged
+INC-023,Classify Incident,2025-07-09 23:38,2025-07-09 23:51,Auto-Classifier,medium,P3,software,Operations,night,standard,L0,classified
+INC-023,Initial Diagnosis,2025-07-10 00:11,2025-07-10 00:34,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,diagnosed
+INC-023,Assign to Team,2025-07-10 00:53,2025-07-10 00:59,Service Desk Lead,medium,P3,software,Operations,night,standard,L1,assigned
+INC-023,Investigate,2025-07-10 01:31,2025-07-10 02:37,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,investigating
+INC-023,Apply Fix,2025-07-10 02:54,2025-07-10 03:48,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,fix_applied
+INC-023,Test Fix,2025-07-10 04:03,2025-07-10 04:28,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,tested
+INC-023,Rework Fix,2025-07-10 04:41,2025-07-10 05:16,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,reworked
+INC-023,Test Fix,2025-07-10 05:30,2025-07-10 05:49,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,test_passed
+INC-023,Verify Resolution,2025-07-10 06:06,2025-07-10 06:28,L1 Agent Garcia,medium,P3,software,Operations,night,standard,L1,verified
+INC-023,Close Incident,2025-07-10 06:37,2025-07-10 06:43,Service Desk Portal,medium,P3,software,Operations,night,standard,L0,closed
+INC-024,Log Incident,2025-07-10 08:26,2025-07-10 08:32,Service Desk Portal,medium,P3,network,IT,day,standard,L0,logged
+INC-024,Classify Incident,2025-07-10 08:39,2025-07-10 08:50,Auto-Classifier,medium,P3,network,IT,day,standard,L0,classified
+INC-024,Initial Diagnosis,2025-07-10 08:56,2025-07-10 09:37,L1 Agent Garcia,medium,P3,network,IT,day,standard,L1,diagnosed
+INC-024,Assign to Team,2025-07-10 09:55,2025-07-10 10:06,Service Desk Lead,medium,P3,network,IT,day,standard,L1,assigned
+INC-024,Investigate,2025-07-10 10:44,2025-07-10 12:28,L1 Agent Garcia,medium,P3,network,IT,day,standard,L1,investigating
+INC-024,Apply Fix,2025-07-10 12:38,2025-07-10 13:46,L1 Agent Garcia,medium,P3,network,IT,day,standard,L1,fix_applied
+INC-024,Test Fix,2025-07-10 14:06,2025-07-10 14:21,L1 Agent Garcia,medium,P3,network,IT,day,standard,L1,tested
+INC-024,Verify Resolution,2025-07-10 14:42,2025-07-10 15:01,L1 Agent Garcia,medium,P3,network,IT,day,standard,L1,verified
+INC-024,Close Incident,2025-07-10 15:18,2025-07-10 15:27,Service Desk Portal,medium,P3,network,IT,day,standard,L0,closed
+INC-025,Log Incident,2025-07-11 12:47,2025-07-11 12:55,Service Desk Portal,medium,P3,software,HR,day,gold,L0,logged
+INC-025,Classify Incident,2025-07-11 13:05,2025-07-11 13:17,Service Desk Lead,medium,P3,software,HR,day,gold,L0,classified
+INC-025,Initial Diagnosis,2025-07-11 13:29,2025-07-11 13:57,L1 Agent Weber,medium,P3,software,HR,day,gold,L1,diagnosed
+INC-025,Assign to Team,2025-07-11 14:17,2025-07-11 14:22,Service Desk Lead,medium,P3,software,HR,day,gold,L1,assigned
+INC-025,Investigate,2025-07-11 14:44,2025-07-11 15:57,L1 Agent Weber,medium,P3,software,HR,day,gold,L1,investigating
+INC-025,Escalate to L2,2025-07-11 16:14,2025-07-11 16:21,L1 Agent Weber,medium,P3,software,HR,day,gold,L1,escalated
+INC-025,Investigate,2025-07-11 17:05,2025-07-11 18:54,L2 Engineer Santos,medium,P3,software,HR,day,gold,L2,investigating
+INC-025,Apply Fix,2025-07-11 19:21,2025-07-11 19:44,L2 Engineer Santos,medium,P3,software,HR,day,gold,L2,fix_applied
+INC-025,Test Fix,2025-07-11 20:01,2025-07-11 20:34,L2 Engineer Santos,medium,P3,software,HR,day,gold,L2,tested
+INC-025,Verify Resolution,2025-07-11 21:02,2025-07-11 21:12,L2 Engineer Santos,medium,P3,software,HR,day,gold,L2,verified
+INC-025,Close Incident,2025-07-11 21:19,2025-07-11 21:28,Service Desk Portal,medium,P3,software,HR,day,gold,L0,closed
+INC-026,Log Incident,2025-07-12 09:55,2025-07-12 10:01,Service Desk Portal,medium,P3,hardware,Operations,day,standard,L0,logged
+INC-026,Classify Incident,2025-07-12 10:05,2025-07-12 10:14,Service Desk Lead,medium,P3,hardware,Operations,day,standard,L0,classified
+INC-026,Initial Diagnosis,2025-07-12 10:31,2025-07-12 10:52,L1 Agent Weber,medium,P3,hardware,Operations,day,standard,L1,diagnosed
+INC-026,Assign to Team,2025-07-12 11:11,2025-07-12 11:21,Service Desk Lead,medium,P3,hardware,Operations,day,standard,L1,assigned
+INC-026,Investigate,2025-07-12 11:41,2025-07-12 12:59,L1 Agent Weber,medium,P3,hardware,Operations,day,standard,L1,investigating
+INC-026,Apply Fix,2025-07-12 13:17,2025-07-12 14:30,L1 Agent Weber,medium,P3,hardware,Operations,day,standard,L1,fix_applied
+INC-026,Test Fix,2025-07-12 14:43,2025-07-12 15:24,L1 Agent Weber,medium,P3,hardware,Operations,day,standard,L1,tested
+INC-026,Verify Resolution,2025-07-12 15:36,2025-07-12 16:01,L1 Agent Weber,medium,P3,hardware,Operations,day,standard,L1,verified
+INC-026,Close Incident,2025-07-12 16:06,2025-07-12 16:09,Service Desk Portal,medium,P3,hardware,Operations,day,standard,L0,closed
+INC-027,Log Incident,2025-07-13 10:14,2025-07-13 10:22,Service Desk Portal,medium,P3,software,Finance,day,gold,L0,logged
+INC-027,Classify Incident,2025-07-13 10:25,2025-07-13 10:30,Service Desk Lead,medium,P3,software,Finance,day,gold,L0,classified
+INC-027,Initial Diagnosis,2025-07-13 10:42,2025-07-13 11:23,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,diagnosed
+INC-027,Assign to Team,2025-07-13 11:28,2025-07-13 11:42,Service Desk Lead,medium,P3,software,Finance,day,gold,L1,assigned
+INC-027,Investigate,2025-07-13 11:56,2025-07-13 12:56,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,investigating
+INC-027,Apply Fix,2025-07-13 13:10,2025-07-13 14:30,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,fix_applied
+INC-027,Test Fix,2025-07-13 14:38,2025-07-13 15:11,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,tested
+INC-027,Rework Fix,2025-07-13 15:19,2025-07-13 16:18,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,reworked
+INC-027,Test Fix,2025-07-13 16:36,2025-07-13 17:15,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,test_passed
+INC-027,Verify Resolution,2025-07-13 17:36,2025-07-13 17:51,L1 Agent Garcia,medium,P3,software,Finance,day,gold,L1,verified
+INC-027,Close Incident,2025-07-13 17:59,2025-07-13 18:04,Service Desk Portal,medium,P3,software,Finance,day,gold,L0,closed
+INC-028,Log Incident,2025-07-14 22:06,2025-07-14 22:13,Service Desk Portal,medium,P3,network,IT,night,standard,L0,logged
+INC-028,Classify Incident,2025-07-14 22:15,2025-07-14 22:29,Auto-Classifier,medium,P3,network,IT,night,standard,L0,classified
+INC-028,Initial Diagnosis,2025-07-14 22:46,2025-07-14 23:31,L1 Agent Nowak,medium,P3,network,IT,night,standard,L1,diagnosed
+INC-028,Assign to Team,2025-07-14 23:42,2025-07-14 23:48,Service Desk Lead,medium,P3,network,IT,night,standard,L1,assigned
+INC-028,Investigate,2025-07-15 00:16,2025-07-15 02:14,L1 Agent Nowak,medium,P3,network,IT,night,standard,L1,investigating
+INC-028,Apply Fix,2025-07-15 02:44,2025-07-15 03:35,L1 Agent Nowak,medium,P3,network,IT,night,standard,L1,fix_applied
+INC-028,Test Fix,2025-07-15 03:43,2025-07-15 04:20,L1 Agent Nowak,medium,P3,network,IT,night,standard,L1,tested
+INC-028,Verify Resolution,2025-07-15 04:39,2025-07-15 05:08,L1 Agent Nowak,medium,P3,network,IT,night,standard,L1,verified
+INC-028,Close Incident,2025-07-15 05:16,2025-07-15 05:19,Service Desk Portal,medium,P3,network,IT,night,standard,L0,closed
+INC-029,Log Incident,2025-07-01 10:34,2025-07-01 10:40,Service Desk Portal,medium,P3,software,Operations,day,standard,L0,logged
+INC-029,Classify Incident,2025-07-01 10:47,2025-07-01 11:00,Service Desk Lead,medium,P3,software,Operations,day,standard,L0,classified
+INC-029,Initial Diagnosis,2025-07-01 11:25,2025-07-01 11:40,L1 Agent Weber,medium,P3,software,Operations,day,standard,L1,diagnosed
+INC-029,Assign to Team,2025-07-01 11:58,2025-07-01 12:10,Service Desk Lead,medium,P3,software,Operations,day,standard,L1,assigned
+INC-029,Investigate,2025-07-01 12:23,2025-07-01 13:48,L1 Agent Weber,medium,P3,software,Operations,day,standard,L1,investigating
+INC-029,Escalate to L2,2025-07-01 14:04,2025-07-01 14:19,L1 Agent Weber,medium,P3,software,Operations,day,standard,L1,escalated
+INC-029,Investigate,2025-07-01 15:03,2025-07-01 15:52,L2 Engineer Hoffmann,medium,P3,software,Operations,day,standard,L2,investigating
+INC-029,Apply Fix,2025-07-01 16:15,2025-07-01 16:57,L2 Engineer Hoffmann,medium,P3,software,Operations,day,standard,L2,fix_applied
+INC-029,Test Fix,2025-07-01 17:10,2025-07-01 17:44,L2 Engineer Hoffmann,medium,P3,software,Operations,day,standard,L2,tested
+INC-029,Verify Resolution,2025-07-01 18:11,2025-07-01 18:36,L2 Engineer Hoffmann,medium,P3,software,Operations,day,standard,L2,verified
+INC-029,Close Incident,2025-07-01 18:55,2025-07-01 19:04,Service Desk Portal,medium,P3,software,Operations,day,standard,L0,closed
+INC-030,Log Incident,2025-07-02 14:46,2025-07-02 14:53,Service Desk Portal,medium,P3,hardware,HR,day,standard,L0,logged
+INC-030,Classify Incident,2025-07-02 14:59,2025-07-02 15:07,Auto-Classifier,medium,P3,hardware,HR,day,standard,L0,classified
+INC-030,Initial Diagnosis,2025-07-02 15:14,2025-07-02 15:57,L1 Agent Weber,medium,P3,hardware,HR,day,standard,L1,diagnosed
+INC-030,Assign to Team,2025-07-02 16:16,2025-07-02 16:24,Service Desk Lead,medium,P3,hardware,HR,day,standard,L1,assigned
+INC-030,Investigate,2025-07-02 16:58,2025-07-02 18:27,L1 Agent Weber,medium,P3,hardware,HR,day,standard,L1,investigating
+INC-030,Apply Fix,2025-07-02 18:55,2025-07-02 20:03,L1 Agent Weber,medium,P3,hardware,HR,day,standard,L1,fix_applied
+INC-030,Test Fix,2025-07-02 20:18,2025-07-02 20:33,L1 Agent Weber,medium,P3,hardware,HR,day,standard,L1,tested
+INC-030,Verify Resolution,2025-07-02 20:58,2025-07-02 21:18,L1 Agent Weber,medium,P3,hardware,HR,day,standard,L1,verified
+INC-030,Close Incident,2025-07-02 21:28,2025-07-02 21:38,Service Desk Portal,medium,P3,hardware,HR,day,standard,L0,closed
+INC-031,Log Incident,2025-07-03 09:22,2025-07-03 09:27,Service Desk Portal,medium,P3,software,Finance,day,gold,L0,logged
+INC-031,Classify Incident,2025-07-03 09:34,2025-07-03 09:48,Auto-Classifier,medium,P3,software,Finance,day,gold,L0,classified
+INC-031,Initial Diagnosis,2025-07-03 10:01,2025-07-03 10:32,L1 Agent Patel,medium,P3,software,Finance,day,gold,L1,diagnosed
+INC-031,Assign to Team,2025-07-03 10:43,2025-07-03 10:49,Service Desk Lead,medium,P3,software,Finance,day,gold,L1,assigned
+INC-031,Investigate,2025-07-03 11:06,2025-07-03 12:28,L1 Agent Patel,medium,P3,software,Finance,day,gold,L1,investigating
+INC-031,Apply Fix,2025-07-03 12:53,2025-07-03 13:43,L1 Agent Patel,medium,P3,software,Finance,day,gold,L1,fix_applied
+INC-031,Test Fix,2025-07-03 14:03,2025-07-03 14:38,L1 Agent Patel,medium,P3,software,Finance,day,gold,L1,tested
+INC-031,Verify Resolution,2025-07-03 15:03,2025-07-03 15:27,L1 Agent Patel,medium,P3,software,Finance,day,gold,L1,verified
+INC-031,Close Incident,2025-07-03 15:32,2025-07-03 15:36,Service Desk Portal,medium,P3,software,Finance,day,gold,L0,closed
+INC-032,Log Incident,2025-07-04 10:14,2025-07-04 10:20,Service Desk Portal,medium,P3,network,Operations,day,standard,L0,logged
+INC-032,Classify Incident,2025-07-04 10:25,2025-07-04 10:40,Auto-Classifier,medium,P3,network,Operations,day,standard,L0,classified
+INC-032,Initial Diagnosis,2025-07-04 11:03,2025-07-04 11:33,L1 Agent Weber,medium,P3,network,Operations,day,standard,L1,diagnosed
+INC-032,Assign to Team,2025-07-04 11:49,2025-07-04 12:00,Service Desk Lead,medium,P3,network,Operations,day,standard,L1,assigned
+INC-032,Investigate,2025-07-04 12:33,2025-07-04 14:13,L1 Agent Weber,medium,P3,network,Operations,day,standard,L1,investigating
+INC-032,Apply Fix,2025-07-04 14:33,2025-07-04 15:38,L1 Agent Weber,medium,P3,network,Operations,day,standard,L1,fix_applied
+INC-032,Test Fix,2025-07-04 15:57,2025-07-04 16:20,L1 Agent Weber,medium,P3,network,Operations,day,standard,L1,tested
+INC-032,Verify Resolution,2025-07-04 16:39,2025-07-04 16:57,L1 Agent Weber,medium,P3,network,Operations,day,standard,L1,verified
+INC-032,Close Incident,2025-07-04 17:09,2025-07-04 17:13,Service Desk Portal,medium,P3,network,Operations,day,standard,L0,closed
+INC-033,Log Incident,2025-07-05 13:12,2025-07-05 13:17,Service Desk Portal,low,P4,software,HR,day,standard,L0,logged
+INC-033,Classify Incident,2025-07-05 13:20,2025-07-05 13:28,Service Desk Lead,low,P4,software,HR,day,standard,L0,classified
+INC-033,Initial Diagnosis,2025-07-05 13:39,2025-07-05 14:02,L1 Agent Nowak,low,P4,software,HR,day,standard,L1,diagnosed
+INC-033,Assign to Team,2025-07-05 14:16,2025-07-05 14:22,Service Desk Lead,low,P4,software,HR,day,standard,L1,assigned
+INC-033,Investigate,2025-07-05 14:58,2025-07-05 15:52,L1 Agent Nowak,low,P4,software,HR,day,standard,L1,investigating
+INC-033,Apply Fix,2025-07-05 16:11,2025-07-05 17:00,L1 Agent Nowak,low,P4,software,HR,day,standard,L1,fix_applied
+INC-033,Test Fix,2025-07-05 17:16,2025-07-05 17:36,L1 Agent Nowak,low,P4,software,HR,day,standard,L1,tested
+INC-033,Verify Resolution,2025-07-05 17:55,2025-07-05 18:05,L1 Agent Nowak,low,P4,software,HR,day,standard,L1,verified
+INC-033,Close Incident,2025-07-05 18:14,2025-07-05 18:21,Service Desk Portal,low,P4,software,HR,day,standard,L0,closed
+INC-034,Log Incident,2025-07-06 08:03,2025-07-06 08:10,Service Desk Portal,low,P4,hardware,Finance,day,standard,L0,logged
+INC-034,Classify Incident,2025-07-06 08:16,2025-07-06 08:31,Service Desk Lead,low,P4,hardware,Finance,day,standard,L0,classified
+INC-034,Initial Diagnosis,2025-07-06 08:51,2025-07-06 09:33,L1 Agent Patel,low,P4,hardware,Finance,day,standard,L1,diagnosed
+INC-034,Assign to Team,2025-07-06 09:38,2025-07-06 09:52,Service Desk Lead,low,P4,hardware,Finance,day,standard,L1,assigned
+INC-034,Investigate,2025-07-06 10:11,2025-07-06 11:41,L1 Agent Patel,low,P4,hardware,Finance,day,standard,L1,investigating
+INC-034,Apply Fix,2025-07-06 12:06,2025-07-06 13:22,L1 Agent Patel,low,P4,hardware,Finance,day,standard,L1,fix_applied
+INC-034,Test Fix,2025-07-06 13:37,2025-07-06 13:57,L1 Agent Patel,low,P4,hardware,Finance,day,standard,L1,tested
+INC-034,Verify Resolution,2025-07-06 14:08,2025-07-06 14:26,L1 Agent Patel,low,P4,hardware,Finance,day,standard,L1,verified
+INC-034,Close Incident,2025-07-06 14:46,2025-07-06 14:50,Service Desk Portal,low,P4,hardware,Finance,day,standard,L0,closed
+INC-035,Log Incident,2025-07-07 14:04,2025-07-07 14:10,Service Desk Portal,low,P4,software,IT,day,standard,L0,logged
+INC-035,Classify Incident,2025-07-07 14:19,2025-07-07 14:33,Service Desk Lead,low,P4,software,IT,day,standard,L0,classified
+INC-035,Initial Diagnosis,2025-07-07 14:58,2025-07-07 15:17,L1 Agent Patel,low,P4,software,IT,day,standard,L1,diagnosed
+INC-035,Assign to Team,2025-07-07 15:26,2025-07-07 15:40,Service Desk Lead,low,P4,software,IT,day,standard,L1,assigned
+INC-035,Investigate,2025-07-07 16:20,2025-07-07 17:28,L1 Agent Patel,low,P4,software,IT,day,standard,L1,investigating
+INC-035,Apply Fix,2025-07-07 17:40,2025-07-07 18:31,L1 Agent Patel,low,P4,software,IT,day,standard,L1,fix_applied
+INC-035,Test Fix,2025-07-07 18:39,2025-07-07 19:11,L1 Agent Patel,low,P4,software,IT,day,standard,L1,tested
+INC-035,Verify Resolution,2025-07-07 19:34,2025-07-07 20:03,L1 Agent Patel,low,P4,software,IT,day,standard,L1,verified
+INC-035,Close Incident,2025-07-07 20:15,2025-07-07 20:24,Service Desk Portal,low,P4,software,IT,day,standard,L0,closed
+INC-036,Log Incident,2025-07-08 11:28,2025-07-08 11:33,Service Desk Portal,low,P4,hardware,Operations,day,standard,L0,logged
+INC-036,Classify Incident,2025-07-08 11:41,2025-07-08 11:55,Auto-Classifier,low,P4,hardware,Operations,day,standard,L0,classified
+INC-036,Initial Diagnosis,2025-07-08 12:19,2025-07-08 12:53,L1 Agent Patel,low,P4,hardware,Operations,day,standard,L1,diagnosed
+INC-036,Assign to Team,2025-07-08 13:01,2025-07-08 13:09,Service Desk Lead,low,P4,hardware,Operations,day,standard,L1,assigned
+INC-036,Investigate,2025-07-08 13:39,2025-07-08 14:36,L1 Agent Patel,low,P4,hardware,Operations,day,standard,L1,investigating
+INC-036,Apply Fix,2025-07-08 14:54,2025-07-08 15:24,L1 Agent Patel,low,P4,hardware,Operations,day,standard,L1,fix_applied
+INC-036,Test Fix,2025-07-08 15:34,2025-07-08 15:56,L1 Agent Patel,low,P4,hardware,Operations,day,standard,L1,tested
+INC-036,Verify Resolution,2025-07-08 16:11,2025-07-08 16:38,L1 Agent Patel,low,P4,hardware,Operations,day,standard,L1,verified
+INC-036,Close Incident,2025-07-08 16:45,2025-07-08 16:50,Service Desk Portal,low,P4,hardware,Operations,day,standard,L0,closed
+INC-037,Log Incident,2025-07-09 08:26,2025-07-09 08:32,Service Desk Portal,low,P4,software,HR,day,standard,L0,logged
+INC-037,Classify Incident,2025-07-09 08:41,2025-07-09 08:46,Auto-Classifier,low,P4,software,HR,day,standard,L0,classified
+INC-037,Initial Diagnosis,2025-07-09 08:58,2025-07-09 09:35,L1 Agent Weber,low,P4,software,HR,day,standard,L1,diagnosed
+INC-037,Assign to Team,2025-07-09 09:49,2025-07-09 10:01,Service Desk Lead,low,P4,software,HR,day,standard,L1,assigned
+INC-037,Investigate,2025-07-09 10:13,2025-07-09 12:10,L1 Agent Weber,low,P4,software,HR,day,standard,L1,investigating
+INC-037,Apply Fix,2025-07-09 12:27,2025-07-09 13:20,L1 Agent Weber,low,P4,software,HR,day,standard,L1,fix_applied
+INC-037,Test Fix,2025-07-09 13:31,2025-07-09 13:59,L1 Agent Weber,low,P4,software,HR,day,standard,L1,tested
+INC-037,Rework Fix,2025-07-09 14:05,2025-07-09 15:09,L1 Agent Weber,low,P4,software,HR,day,standard,L1,reworked
+INC-037,Test Fix,2025-07-09 15:26,2025-07-09 16:01,L1 Agent Weber,low,P4,software,HR,day,standard,L1,test_passed
+INC-037,Verify Resolution,2025-07-09 16:15,2025-07-09 16:33,L1 Agent Weber,low,P4,software,HR,day,standard,L1,verified
+INC-037,Close Incident,2025-07-09 16:42,2025-07-09 16:46,Service Desk Portal,low,P4,software,HR,day,standard,L0,closed
+INC-038,Log Incident,2025-07-10 08:10,2025-07-10 08:15,Service Desk Portal,low,P4,network,Finance,day,standard,L0,logged
+INC-038,Classify Incident,2025-07-10 08:21,2025-07-10 08:27,Auto-Classifier,low,P4,network,Finance,day,standard,L0,classified
+INC-038,Initial Diagnosis,2025-07-10 08:46,2025-07-10 09:23,L1 Agent Weber,low,P4,network,Finance,day,standard,L1,diagnosed
+INC-038,Assign to Team,2025-07-10 09:40,2025-07-10 09:49,Service Desk Lead,low,P4,network,Finance,day,standard,L1,assigned
+INC-038,Investigate,2025-07-10 10:15,2025-07-10 11:54,L1 Agent Weber,low,P4,network,Finance,day,standard,L1,investigating
+INC-038,Apply Fix,2025-07-10 12:19,2025-07-10 13:35,L1 Agent Weber,low,P4,network,Finance,day,standard,L1,fix_applied
+INC-038,Test Fix,2025-07-10 13:42,2025-07-10 14:16,L1 Agent Weber,low,P4,network,Finance,day,standard,L1,tested
+INC-038,Verify Resolution,2025-07-10 14:27,2025-07-10 14:50,L1 Agent Weber,low,P4,network,Finance,day,standard,L1,verified
+INC-038,Close Incident,2025-07-10 15:05,2025-07-10 15:12,Service Desk Portal,low,P4,network,Finance,day,standard,L0,closed
+INC-039,Log Incident,2025-07-11 20:05,2025-07-11 20:09,Service Desk Portal,low,P4,software,IT,night,standard,L0,logged
+INC-039,Classify Incident,2025-07-11 20:11,2025-07-11 20:25,Auto-Classifier,low,P4,software,IT,night,standard,L0,classified
+INC-039,Initial Diagnosis,2025-07-11 20:31,2025-07-11 21:01,L1 Agent Garcia,low,P4,software,IT,night,standard,L1,diagnosed
+INC-039,Assign to Team,2025-07-11 21:20,2025-07-11 21:29,Service Desk Lead,low,P4,software,IT,night,standard,L1,assigned
+INC-039,Investigate,2025-07-11 21:44,2025-07-11 23:28,L1 Agent Garcia,low,P4,software,IT,night,standard,L1,investigating
+INC-039,Apply Fix,2025-07-11 23:51,2025-07-12 01:13,L1 Agent Garcia,low,P4,software,IT,night,standard,L1,fix_applied
+INC-039,Test Fix,2025-07-12 01:20,2025-07-12 01:50,L1 Agent Garcia,low,P4,software,IT,night,standard,L1,tested
+INC-039,Verify Resolution,2025-07-12 02:11,2025-07-12 02:34,L1 Agent Garcia,low,P4,software,IT,night,standard,L1,verified
+INC-039,Close Incident,2025-07-12 02:49,2025-07-12 02:57,Service Desk Portal,low,P4,software,IT,night,standard,L0,closed
+INC-040,Log Incident,2025-07-12 13:06,2025-07-12 13:10,Service Desk Portal,low,P4,hardware,Operations,day,standard,L0,logged
+INC-040,Classify Incident,2025-07-12 13:17,2025-07-12 13:29,Auto-Classifier,low,P4,hardware,Operations,day,standard,L0,classified
+INC-040,Initial Diagnosis,2025-07-12 13:43,2025-07-12 14:24,L1 Agent Nowak,low,P4,hardware,Operations,day,standard,L1,diagnosed
+INC-040,Assign to Team,2025-07-12 14:30,2025-07-12 14:42,Service Desk Lead,low,P4,hardware,Operations,day,standard,L1,assigned
+INC-040,Investigate,2025-07-12 14:54,2025-07-12 16:04,L1 Agent Nowak,low,P4,hardware,Operations,day,standard,L1,investigating
+INC-040,Apply Fix,2025-07-12 16:22,2025-07-12 17:23,L1 Agent Nowak,low,P4,hardware,Operations,day,standard,L1,fix_applied
+INC-040,Test Fix,2025-07-12 17:31,2025-07-12 18:10,L1 Agent Nowak,low,P4,hardware,Operations,day,standard,L1,tested
+INC-040,Verify Resolution,2025-07-12 18:32,2025-07-12 18:58,L1 Agent Nowak,low,P4,hardware,Operations,day,standard,L1,verified
+INC-040,Close Incident,2025-07-12 19:03,2025-07-12 19:13,Service Desk Portal,low,P4,hardware,Operations,day,standard,L0,closed

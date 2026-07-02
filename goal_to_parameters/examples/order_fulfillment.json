@@ -1,0 +1,7 @@
+{
+  "name": "Order Fulfillment",
+  "recommended_provider": "ollama",
+  "recommended_model": "mistral",
+  "process_description": "The order fulfillment process starts when a customer places an order through the webshop. The sales team verifies the order details and confirms payment. After verification, the warehouse team picks the ordered items and packs them for shipment. A quality inspector performs a packaging and completeness check before dispatch. The logistics coordinator schedules courier pickup. The process ends when the customer confirms delivery.",
+  "simulation_goal": "Reduce overall fulfillment cycle time while maintaining packaging quality and shipment reliability"
+}
