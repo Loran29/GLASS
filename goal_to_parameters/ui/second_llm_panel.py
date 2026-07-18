@@ -909,27 +909,53 @@ def _render_iterative_optimization_result() -> None:
             "Worsened": worsened_count,
         })
 
-    st.dataframe(_pd.DataFrame(rows), width="stretch", hide_index=True)
+    st.caption("Select a row to open that iteration's full proposal below.")
+    _iter_df = _pd.DataFrame(rows)
+    # Nonce-based key: bumping it on "close" forces a fresh dataframe widget
+    # with an empty selection, so closing truly deselects the row.
+    _select_nonce = st.session_state.get("_iter_optim_select_nonce", 0)
+    _selection = st.dataframe(
+        _iter_df,
+        width="stretch",
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="single-row",
+        key=f"_iter_optim_history_select_{_select_nonce}",
+    )
+
+    # Resolve the selected iteration. Persist it in session state so the
+    # detail view survives reruns triggered by expanders inside it.
+    _selected_rows = []
+    try:
+        _selected_rows = list(_selection.selection.rows)  # type: ignore[union-attr]
+    except AttributeError:
+        _selected_rows = []
+    if _selected_rows:
+        st.session_state["_iter_optim_detail_idx"] = _selected_rows[0]
+    _selected_idx = st.session_state.get("_iter_optim_detail_idx")
+
+    if _selected_idx is not None and 0 <= _selected_idx < len(iter_result.iterations):
+        st.divider()
+        _sel_it = iter_result.iterations[_selected_idx]
+        _sel_best = (iter_result.best_iteration_idx is not None
+                     and _selected_idx == iter_result.best_iteration_idx)
+        st.markdown(
+            f"#### Iteration {_sel_it.iteration}"
+            + (" ⭐ (best)" if _sel_best else "")
+            + " — proposal detail"
+        )
+        _render_iteration_detail(_sel_it)
+        if st.button("Close iteration detail", key="_iter_optim_detail_close"):
+            st.session_state.pop("_iter_optim_detail_idx", None)
+            # Bump the nonce so the dataframe re-renders with no row selected.
+            st.session_state["_iter_optim_select_nonce"] = _select_nonce + 1
+            st.rerun()
 
     # Best result KPI details
     best = iter_result.best
     if best and best.eval_result and best.eval_result.ok:
         with st.expander("Best Iteration KPI Comparison", expanded=True):
-            for e in best.eval_result.kpi_comparisons:
-                if e.status != "computed":
-                    continue
-                baseline_str = f"{e.baseline_value:.2f}" if e.baseline_value is not None else "?"
-                proposed_str = f"{e.proposed_value:.2f}" if e.proposed_value is not None else "?"
-                pct_str = f"({e.percentage_change:+.1f}%)" if e.percentage_change is not None else ""
-                if e.improved is True:
-                    icon = "✅"
-                elif e.violated_safeguard:
-                    icon = "❌"
-                elif e.improved is False:
-                    icon = "⚠️"
-                else:
-                    icon = "➖"
-                st.markdown(f"{icon} **{e.kpi_name}**: {baseline_str} → {proposed_str} {pct_str}")
+            _render_kpi_comparison_lines(best.eval_result.kpi_comparisons)
 
     # Feedback messages
     feedback_iterations = [it for it in iter_result.iterations if it.feedback_message]
@@ -1219,6 +1245,186 @@ def _render_comparison_report(report, name_map: dict | None = None) -> None:
             st.table(pd.DataFrame(rows).set_index("#"))
 
 
+# -----------------------------------------------------------------------
+# Reusable proposal / KPI renderers
+# -----------------------------------------------------------------------
+
+def _render_proposal_modifications(proposal, name_map: dict[str, str], *, expand_first: int = 3) -> None:
+    """Render a proposal's modification list as expandable cards.
+
+    Shared by the best-scenario panel and the per-iteration detail view so
+    both show identical modification detail (intervention, baseline ->
+    proposed value, mechanism, evidence, feasibility, KPI target).
+    """
+    import re as _re
+
+    st.markdown(f"**Proposed modifications** ({len(proposal.modifications)})")
+    for i, mod in enumerate(proposal.modifications, 1):
+        _elem_label = _display_name(mod.target_element, name_map)
+        intervention = getattr(mod, "intervention", "") or f"{_elem_label} — {mod.parameter_type}"
+        if not getattr(mod, "intervention", ""):
+            intervention = f"{_elem_label} - {mod.parameter_type}"
+        changed_parameters = getattr(mod, "changed_parameters", "") or mod.parameter_type.replace("_", " ")
+        intervention = intervention.replace("—", "-").replace("–", "-")
+        mechanism_rationale = getattr(mod, "mechanism_rationale", "") or mod.rationale
+        feasibility_assumptions = getattr(mod, "feasibility_assumptions", "") or mod.context_condition or "Not specified"
+
+        # Build evidence source with resolved literature references
+        evidence_source = getattr(mod, "evidence_source", "") or ""
+        evidence_source = _re.sub(r"\s*\(paper_id\s*\d+\)", "", evidence_source).strip()
+        literature_citations = _resolve_literature_ids(mod.literature_support) if mod.literature_support else []
+        if literature_citations and not evidence_source:
+            evidence_source = "Knowledge base: " + "; ".join(literature_citations)
+        elif literature_citations:
+            evidence_source += " | KB: " + "; ".join(literature_citations)
+        if not evidence_source:
+            evidence_source = "Not specified"
+
+        dir_val = mod.direction.value if hasattr(mod.direction, "value") else str(mod.direction)
+        _DIR_ICON = {
+            "increase": "▲", "decrease": "▼", "redistribute": "↔",
+            "add_new": "✚", "remove": "✕", "change_distribution": "≈",
+            "differentiate": "↕",
+        }
+        _DIR_COLOR = {
+            "increase": "#15803d", "decrease": "#dc2626",
+            "redistribute": "#2563eb", "add_new": "#7c3aed",
+            "remove": "#b91c1c", "change_distribution": "#0369a1",
+            "differentiate": "#b45309",
+        }
+        dir_icon = _DIR_ICON.get(dir_val, "•")
+        dir_color = _DIR_COLOR.get(dir_val, "#64748b")
+
+        with st.expander(
+            f"{i}. {dir_icon} {intervention}",
+            expanded=i <= expand_first,
+        ):
+            st.markdown(
+                f"<span style='display:inline-block;background:{dir_color};color:white;"
+                f"padding:0.18rem 0.65rem;border-radius:999px;font-size:0.72rem;"
+                f"font-weight:700;letter-spacing:0.04em;text-transform:uppercase;"
+                f"margin-bottom:0.55rem;'>"
+                f"{html.escape(dir_icon)}&nbsp;{html.escape(dir_val.replace('_', ' '))}"
+                f"</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(f"**Intervention:** {intervention}")
+            st.markdown(f"**Changed parameter(s):** {changed_parameters}")
+            st.markdown(f"**Baseline value:** {_fmt_value(mod.baseline_value)}")
+            st.markdown(f"**Proposed value:** {_fmt_value(mod.proposed_value)}")
+            st.markdown(f"**Mechanism/rationale:** {mechanism_rationale}")
+            st.markdown(f"**Evidence source:** {evidence_source}")
+            st.markdown(f"**Feasibility assumptions:** {feasibility_assumptions}")
+            st.caption(
+                f"KPI target: {mod.kpi_reference} | Element: {_elem_label} | "
+                f"Direction: {mod.direction.value}"
+            )
+            if mod.context_condition:
+                st.caption(f"Context condition: {mod.context_condition}")
+
+
+def _render_kpi_comparison_lines(kpi_comparisons) -> None:
+    """Render per-KPI baseline -> proposed comparison lines (computed only)."""
+    any_shown = False
+    for e in kpi_comparisons:
+        if e.status != "computed":
+            continue
+        any_shown = True
+        baseline_str = f"{e.baseline_value:.2f}" if e.baseline_value is not None else "?"
+        proposed_str = f"{e.proposed_value:.2f}" if e.proposed_value is not None else "?"
+        pct_str = f"({e.percentage_change:+.1f}%)" if e.percentage_change is not None else ""
+        if e.improved is True:
+            icon = "✅"
+        elif e.violated_safeguard:
+            icon = "❌"
+        elif e.improved is False:
+            icon = "⚠️"
+        else:
+            icon = "➖"
+        st.markdown(f"{icon} **{e.kpi_name}**: {baseline_str} → {proposed_str} {pct_str}")
+    if not any_shown:
+        st.caption("No computable KPI comparisons for this iteration.")
+
+
+def _render_iteration_detail(iteration_result) -> None:
+    """Render the full proposal detail for a single optimization iteration.
+
+    Shows score/status, strategy, every proposed modification, that
+    iteration's KPI comparison, the feedback sent to the LLM afterwards,
+    and the raw patch JSON — mirroring the best-scenario panel.
+    """
+    from second_llm.scenario_evaluation import OverallStatus
+
+    it = iteration_result
+
+    # --- Header metrics ---
+    status_label = it.status.value if it.status else (it.error or "error")
+    if it.status == OverallStatus.IMPROVED:
+        status_icon = "✅"
+    elif it.status == OverallStatus.WORSENED:
+        status_icon = "❌"
+    elif it.status == OverallStatus.TRADE_OFF_DETECTED:
+        status_icon = "⚠️"
+    elif it.error:
+        status_icon = "💥"
+    else:
+        status_icon = "❓"
+
+    detail_cols = st.columns(3)
+    detail_cols[0].metric("Iteration", str(it.iteration))
+    detail_cols[1].metric("Score", f"{it.score:.1f}")
+    detail_cols[2].markdown(
+        _status_pill("Status", f"{status_icon} {status_label}", "ok" if it.status == OverallStatus.IMPROVED else "warn"),
+        unsafe_allow_html=True,
+    )
+
+    # --- Failed iteration (no proposal) ---
+    if it.error and (it.gen_result is None or it.gen_result.proposal is None):
+        st.error(f"This iteration did not produce a usable proposal: {it.error}")
+        if it.gen_result and it.gen_result.raw_llm_output:
+            with st.expander("Raw LLM output", expanded=False):
+                st.code(it.gen_result.raw_llm_output[:8000], language="json")
+        return
+
+    proposal = it.gen_result.proposal if it.gen_result else None
+    if proposal is None:
+        st.info("No proposal was recorded for this iteration.")
+        return
+
+    # --- BPMN name map for readable element labels ---
+    ws = get_workspace()
+    bpmn_xml = ""
+    if ws.raw_simod_input.simod_result and ws.raw_simod_input.simod_result.bpmn_content:
+        bpmn_xml = ws.raw_simod_input.simod_result.bpmn_content
+    _nm = _build_bpmn_name_map(bpmn_xml)
+
+    # --- Strategy / reasoning ---
+    if proposal.reasoning:
+        st.markdown(f"**Strategy:** {proposal.reasoning}")
+
+    # --- Modifications ---
+    _render_proposal_modifications(proposal, _nm)
+
+    # --- KPI comparison for this iteration ---
+    if it.eval_result and it.eval_result.ok and it.eval_result.kpi_comparisons:
+        st.markdown("**Simulated KPI comparison (baseline → proposed)**")
+        _render_kpi_comparison_lines(it.eval_result.kpi_comparisons)
+
+    # --- Warnings ---
+    if proposal.warnings:
+        for w in proposal.warnings:
+            st.warning(w)
+
+    # --- Feedback sent to LLM after this iteration ---
+    if it.feedback_message:
+        with st.expander("Feedback sent to the LLM after this iteration", expanded=False):
+            st.code(it.feedback_message, language=None)
+
+    # --- Raw patch JSON ---
+    if it.gen_result and it.gen_result.raw_llm_output:
+        with st.expander("Generated scenario patch (raw delta JSON)", expanded=False):
+            st.code(it.gen_result.raw_llm_output[:8000], language="json")
+
 
 def _render_scenario_result() -> None:
     """Display the generated ScenarioProposal, or the draft payload."""
@@ -1279,70 +1485,7 @@ def _render_scenario_result() -> None:
         st.markdown(f"**Strategy:** {proposal.reasoning}")
 
         # --- Modifications ---
-        st.markdown(f"**Proposed modifications** ({len(proposal.modifications)})")
-        for i, mod in enumerate(proposal.modifications, 1):
-            _elem_label = _display_name(mod.target_element, _nm)
-            intervention = getattr(mod, "intervention", "") or f"{_elem_label} — {mod.parameter_type}"
-            if not getattr(mod, "intervention", ""):
-                intervention = f"{_elem_label} - {mod.parameter_type}"
-            changed_parameters = getattr(mod, "changed_parameters", "") or mod.parameter_type.replace("_", " ")
-            intervention = intervention.replace("\u2014", "-").replace("\u2013", "-")
-            mechanism_rationale = getattr(mod, "mechanism_rationale", "") or mod.rationale
-            feasibility_assumptions = getattr(mod, "feasibility_assumptions", "") or mod.context_condition or "Not specified"
-
-            # Build evidence source with resolved literature references
-            import re as _re
-            evidence_source = getattr(mod, "evidence_source", "") or ""
-            evidence_source = _re.sub(r"\s*\(paper_id\s*\d+\)", "", evidence_source).strip()
-            literature_citations = _resolve_literature_ids(mod.literature_support) if mod.literature_support else []
-            if literature_citations and not evidence_source:
-                evidence_source = "Knowledge base: " + "; ".join(literature_citations)
-            elif literature_citations:
-                evidence_source += " | KB: " + "; ".join(literature_citations)
-            if not evidence_source:
-                evidence_source = "Not specified"
-
-            dir_val = mod.direction.value if hasattr(mod.direction, "value") else str(mod.direction)
-            _DIR_ICON = {
-                "increase": "▲", "decrease": "▼", "redistribute": "↔",
-                "add_new": "✚", "remove": "✕", "change_distribution": "≈",
-                "differentiate": "↕",
-            }
-            _DIR_COLOR = {
-                "increase": "#15803d", "decrease": "#dc2626",
-                "redistribute": "#2563eb", "add_new": "#7c3aed",
-                "remove": "#b91c1c", "change_distribution": "#0369a1",
-                "differentiate": "#b45309",
-            }
-            dir_icon = _DIR_ICON.get(dir_val, "•")
-            dir_color = _DIR_COLOR.get(dir_val, "#64748b")
-
-            with st.expander(
-                f"{i}. {dir_icon} {intervention}",
-                expanded=i <= 3,
-            ):
-                st.markdown(
-                    f"<span style='display:inline-block;background:{dir_color};color:white;"
-                    f"padding:0.18rem 0.65rem;border-radius:999px;font-size:0.72rem;"
-                    f"font-weight:700;letter-spacing:0.04em;text-transform:uppercase;"
-                    f"margin-bottom:0.55rem;'>"
-                    f"{html.escape(dir_icon)}&nbsp;{html.escape(dir_val.replace('_', ' '))}"
-                    f"</span>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(f"**Intervention:** {intervention}")
-                st.markdown(f"**Changed parameter(s):** {changed_parameters}")
-                st.markdown(f"**Baseline value:** {_fmt_value(mod.baseline_value)}")
-                st.markdown(f"**Proposed value:** {_fmt_value(mod.proposed_value)}")
-                st.markdown(f"**Mechanism/rationale:** {mechanism_rationale}")
-                st.markdown(f"**Evidence source:** {evidence_source}")
-                st.markdown(f"**Feasibility assumptions:** {feasibility_assumptions}")
-                st.caption(
-                    f"KPI target: {mod.kpi_reference} | Element: {_elem_label} | "
-                    f"Direction: {mod.direction.value}"
-                )
-                if mod.context_condition:
-                    st.caption(f"Context condition: {mod.context_condition}")
+        _render_proposal_modifications(proposal, _nm)
 
         # --- Context differentiations ---
         if proposal.context_differentiations:

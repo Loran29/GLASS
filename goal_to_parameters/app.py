@@ -509,7 +509,9 @@ def apply_custom_styles() -> None:
         div[data-testid="stRadio"] > div[role="radiogroup"] > label {
             display: flex !important;
             align-items: center !important;
-            padding: 0.55rem 1.25rem !important;
+            justify-content: center !important;
+            padding: 0.6rem 2rem !important;
+            min-width: 12rem !important;
             font-size: 0.93rem !important;
             font-weight: 600 !important;
             cursor: pointer !important;
@@ -528,9 +530,31 @@ def apply_custom_styles() -> None:
             color: #2563eb !important;
             border-bottom-color: #2563eb !important;
         }
-        /* Hide the radio circle dot */
-        div[data-testid="stRadio"] > div[role="radiogroup"] > label > div:first-child {
-            display: none !important;
+        /* ---------- Top nav buttons ---------- */
+        .gtk-nav-anchor ~ div button,
+        .gtk-nav-anchor + div button {
+            border: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            color: #94a3b8 !important;
+            font-size: 0.93rem !important;
+            font-weight: 600 !important;
+            padding: 0.6rem 0 !important;
+            line-height: 1.4 !important;
+            overflow: visible !important;
+            height: auto !important;
+            min-height: unset !important;
+            box-shadow: none !important;
+            border-bottom: 2.5px solid transparent !important;
+            width: 100% !important;
+        }
+        .gtk-nav-anchor ~ div button[kind="primary"] {
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+        }
+        .gtk-nav-anchor ~ div button:hover {
+            color: #1e293b !important;
+            background: transparent !important;
         }
         /* ---------- View-switch tab navigation (legacy anchor) ---------- */
         .element-container:has(.gtk-tab-bar-anchor) + [data-testid="stHorizontalBlock"] button[kind="primary"] {
@@ -2289,14 +2313,28 @@ def main() -> None:
     if st.session_state.get("_app_page") not in _PAGE_OPTIONS:
         st.session_state["_app_page"] = _PAGE_OPTIONS[0]
 
-    selected_page = st.radio(
-        "nav",
-        options=_PAGE_OPTIONS,
-        key="_app_page",
-        horizontal=True,
-        label_visibility="collapsed",
+    selected_page = st.session_state["_app_page"]
+
+    # Render tab bar as plain buttons (no radio circles)
+    st.markdown("<div class='gtk-nav-anchor'></div>", unsafe_allow_html=True)
+    tab_cols = st.columns([2, 2, 2, 6])  # 3 tabs + spacer
+    for i, page in enumerate(_PAGE_OPTIONS):
+        active = selected_page == page
+        with tab_cols[i]:
+            if st.button(
+                page,
+                key=f"_nav_btn_{page}",
+                type="primary" if active else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state["_app_page"] = page
+                selected_page = page
+                st.rerun()
+
+    st.markdown(
+        "<div style='border-bottom:2px solid rgba(148,163,184,0.2);margin-bottom:1.25rem;'></div>",
+        unsafe_allow_html=True,
     )
-    st.markdown("<div style='margin-bottom:1.25rem;'></div>", unsafe_allow_html=True)
 
     if selected_page == _PAGE_OPTIONS[1]:
         render_second_llm_panel()
