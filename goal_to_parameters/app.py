@@ -1002,15 +1002,54 @@ _DURATION_FORMULA_RE = re.compile(
 )
 
 
+# A minus sign used as an operator (next to whitespace or a parenthesis), as opposed
+# to a hyphen inside a name such as 'Re-check'.
+_FORMULA_SUBTRACTION_RE = re.compile(r"(?:(?<=[\s)])-|-(?=[\s(]))")
+
+# What follows start_time('X') in a waiting-time formula: minus the end of the
+# predecessor(s), e.g. "- complete_time('P')", "- MAX(end_time('P'), ...)", "- End_Time of ...".
+_FORMULA_PREDECESSOR_END_RE = re.compile(
+    r"""\s*-\s*(?:max\s*\(\s*)?(?:end|complete)_?time""",
+    re.IGNORECASE,
+)
+
+
+def _unquote_formula_activity(raw: str) -> str:
+    """Activity name from the inside of start_time(...), without quotes or escapes."""
+    raw = raw.strip()
+    # Strip surrounding quote characters (handles ', ", and unescaped apostrophes)
+    if len(raw) >= 2 and raw[0] in ("'", '"') and raw[-1] in ("'", '"'):
+        raw = raw[1:-1]
+    elif raw and raw[0] in ("'", '"'):
+        raw = raw[1:]
+    # Unescape backslash-escaped chars (e.g. \' → ')
+    return re.sub(r'\\(.)', r'\1', raw).strip()
+
+
+def _waiting_activity_from_formula(formula: str) -> tuple[str, int] | None:
+    """Activity X whose waiting time the formula measures: the first start_time('X') term,
+    provided it is not itself subtracted (no minus operator before it).
+
+    In start_time('X') - complete_time('P') the wait belongs to X. In
+    end_time('Y') - start_time('X') or complete_time(X) - start_time(X) the start_time term
+    is the subtracted one, so no activity is returned. Also returns the end offset of the
+    start_time term in the formula.
+    """
+    match = _FORMULA_ACTIVITY_RE.search(formula)
+    if not match or _FORMULA_SUBTRACTION_RE.search(formula, 0, match.start()):
+        return None
+    return _unquote_formula_activity(match.group(1)), match.end()
+
+
 def _fill_missing_activity_measurable_as(
     result: KPIGenerationResult,
 ) -> tuple[KPIGenerationResult, list[dict[str, Any]]]:
     """Auto-fill measurable_as for activity-level time KPIs whose LLM left it null.
 
-    Extracts the activity name from suggested_formula using the pattern
-    start_time('Activity Name') and constructs '{Activity Name} Waiting Time'.
-    This prevents the fuzzy matcher in scenario_evaluation from silently
-    matching the KPI against the wrong global metric (e.g. Average Waiting Time).
+    Extracts the activity name from suggested_formula using the start_time('Activity Name')
+    term that is not subtracted (see _waiting_activity_from_formula) and constructs
+    '{Activity Name} Waiting Time'. This prevents the fuzzy matcher in scenario_evaluation
+    from silently matching the KPI against the wrong global metric (e.g. Average Waiting Time).
     """
     payload = result.model_dump()
     warnings: list[dict[str, Any]] = []
@@ -1023,28 +1062,13 @@ def _fill_missing_activity_measurable_as(
         if kpi_payload.get("category") != "time":
             continue
 
-        formula = kpi_payload.get("suggested_formula") or ""
-
-        # Skip duration-pattern formulas: complete_time(X) - start_time(X).
-        # "{X} Waiting Time" is queue wait, not activity processing time.
-        formula_lower = formula.lower()
-        complete_pos = formula_lower.find("complete_time(")
-        start_pos = formula_lower.find("start_time(")
-        if complete_pos != -1 and start_pos != -1 and complete_pos < start_pos:
+        # Duration formulas (complete_time(X) - start_time(X)) and spans that subtract the
+        # start of X yield no activity: "{X} Waiting Time" is the queue wait before X starts.
+        waiting = _waiting_activity_from_formula(kpi_payload.get("suggested_formula") or "")
+        if waiting is None:
             continue
 
-        match = _FORMULA_ACTIVITY_RE.search(formula)
-        if not match:
-            continue
-
-        raw = match.group(1).strip()
-        # Strip surrounding quote characters (handles ', ", and unescaped apostrophes)
-        if len(raw) >= 2 and raw[0] in ("'", '"') and raw[-1] in ("'", '"'):
-            raw = raw[1:-1]
-        elif raw and raw[0] in ("'", '"'):
-            raw = raw[1:]
-        # Unescape backslash-escaped chars (e.g. \' → ')
-        activity_name = re.sub(r'\\(.)', r'\1', raw).strip()
+        activity_name = waiting[0]
         inferred = f"{activity_name} Waiting Time"
         kpi_payload["measurable_as"] = inferred
         warnings.append({
@@ -1057,6 +1081,151 @@ def _fill_missing_activity_measurable_as(
             "kpi_names": [kpi_payload.get("name")],
         })
 
+    return KPIGenerationResult.model_validate(payload), warnings
+
+
+# Metric labels from GLASS's own log-evidence prompt that the model sometimes copies into
+# measurable_as; the simulation evaluator does not compute KPIs under these names.
+_INTERNAL_METRIC_LABELS = frozenset({
+    "case_cycle_time_hours",
+    "case_wait_time_hours",
+    "activity_wait_time_hours",
+    "activity_duration_hours",
+    "resource_workload",
+})
+
+# Whole-case span: the case cycle-time metric, case end - case start, or bare
+# End_Time - Start_Time without an activity argument.
+_FORMULA_WHOLE_CASE_RE = re.compile(
+    r"""case_cycle_time|case[_ ](?:end|completion)[_ ]time\s*-\s*case[_ ]start[_ ]time""",
+    re.IGNORECASE,
+)
+_FORMULA_BARE_SPAN_RE = re.compile(
+    r"""\b(?:end|complete)_?time(?!\s*\()\s*-\s*start_?time\b(?!\s*\()""",
+    re.IGNORECASE,
+)
+# Sum of waits over the case.
+_FORMULA_SUM_OF_WAITS_RE = re.compile(
+    r"""case_wait_time|\bsum\s*\([^)]*wait""",
+    re.IGNORECASE,
+)
+# complete_time(X) - start_time(X) / end_time(X) - start_time(X).
+_FORMULA_SAME_ACTIVITY_SPAN_RE = re.compile(
+    r"""(?:end|complete)_?time\s*\(\s*([^)]+?)\s*\)\s*-\s*start_time\s*\(\s*([^)]+?)\s*\)""",
+    re.IGNORECASE,
+)
+_WAITING_NAME_RE = re.compile(r"wait|delay", re.IGNORECASE)
+
+
+def _log_activity_names(log_profile: dict[str, Any] | None) -> dict[str, str]:
+    """Lower-cased activity name -> spelling in the event log, for every logged activity."""
+    if not log_profile:
+        return {}
+    names = {name: name for name in (log_profile.get("_lookup") or {}).get("activities", [])}
+    for entry in log_profile.get("top_activities", []):
+        if entry.get("name") and entry["name"].lower() in names:
+            names[entry["name"].lower()] = entry["name"]
+    return names
+
+
+def _is_activity_duration_formula(formula: str, process_scope: str | None) -> bool:
+    """Formula measures the processing time of a single activity."""
+    span = _FORMULA_SAME_ACTIVITY_SPAN_RE.search(formula)
+    if span and _unquote_formula_activity(span.group(1)).lower() == _unquote_formula_activity(span.group(2)).lower():
+        return True
+    if process_scope == "activity_level" and _FORMULA_BARE_SPAN_RE.search(formula):
+        return True
+    return "duration" in formula.lower() and "case" not in formula.lower()
+
+
+def _measurable_as_from_content(
+    kpi_payload: dict[str, Any],
+    log_activities: dict[str, str],
+) -> tuple[str, str] | None:
+    """(measurable_as, rule) derived from category, scope, name and formula, or None."""
+    category = kpi_payload.get("category")
+    scope = kpi_payload.get("process_scope")
+    name = kpi_payload.get("name") or ""
+    formula = kpi_payload.get("suggested_formula") or ""
+
+    if category == "utilization":
+        return "Resource Utilization", "utilization KPI"
+    if category != "time":
+        return None
+    if scope == "end_to_end" and (_FORMULA_WHOLE_CASE_RE.search(formula) or _FORMULA_BARE_SPAN_RE.search(formula)):
+        return "Average Cycle Time", "end-to-end formula spans the whole case"
+    is_waiting = bool(_WAITING_NAME_RE.search(name))
+    if is_waiting:
+        waiting = _waiting_activity_from_formula(formula)
+        if waiting is not None and _FORMULA_PREDECESSOR_END_RE.match(formula, waiting[1]):
+            activity = log_activities.get(waiting[0].lower())
+            if activity is not None:
+                return f"{activity} Waiting Time", "start of activity minus end of predecessor"
+    if scope == "end_to_end" and _FORMULA_SUM_OF_WAITS_RE.search(formula):
+        return "Average Waiting Time", "end-to-end sum of waits"
+    if not is_waiting and _is_activity_duration_formula(formula, scope):
+        return "Average Processing Time", "activity duration"
+    return None
+
+
+def normalise_measurable_as(
+    kpi_payload: dict[str, Any],
+    log_activities: dict[str, str],
+) -> dict[str, Any] | None:
+    """Set a KPI payload's measurable_as from its content (category, scope, name, formula).
+
+    Overrides the LLM's value, including internal metric labels such as
+    activity_wait_time_hours, and fills nulls when one of these rules applies:
+      - utilization                                          -> Resource Utilization
+      - time, end_to_end, formula spans the whole case       -> Average Cycle Time
+      - time, name contains wait/delay, formula is
+        start_time('X') - end of predecessor, X in the log   -> {X} Waiting Time
+      - time, end_to_end, formula is a sum of waits          -> Average Waiting Time
+      - time, activity-duration formula                      -> Average Processing Time
+    Anything else keeps its value. When the value changes, the previous one is recorded in
+    measurable_as_raw unless a value is already recorded there (first value wins, so a KPI
+    carried over from an earlier round keeps its original); measurable_as_raw stays null when
+    measurable_as is left as generated. Returns a measurable_as_normalised warning when the
+    value changes.
+    """
+    original = kpi_payload.get("measurable_as")
+    derived = _measurable_as_from_content(kpi_payload, log_activities)
+    if derived is None or derived[0] == original:
+        return None
+    value, rule = derived
+    if kpi_payload.get("measurable_as_raw") is None:
+        kpi_payload["measurable_as_raw"] = original
+    kpi_payload["measurable_as"] = value
+    return {
+        "severity": "warning",
+        "code": "measurable_as_normalised",
+        "message": (
+            f"measurable_as of KPI '{kpi_payload.get('name')}' set from {original!r} to {value!r} "
+            f"({rule})."
+        ),
+        "kpi_names": [kpi_payload.get("name")],
+        "details": {
+            "measurable_as_raw": original,
+            "measurable_as": value,
+            "rule": rule,
+            "replaced_internal_label": original in _INTERNAL_METRIC_LABELS,
+        },
+    }
+
+
+def _normalise_result_measurable_as(
+    result: KPIGenerationResult,
+    *,
+    log_profile: dict[str, Any] | None,
+) -> tuple[KPIGenerationResult, list[dict[str, Any]]]:
+    """Apply normalise_measurable_as to every KPI of a generation result."""
+    payload = result.model_dump()
+    log_activities = _log_activity_names(log_profile)
+    warnings = [
+        warning
+        for kpi_payload in payload.get("kpis", [])
+        if (warning := normalise_measurable_as(kpi_payload, log_activities)) is not None
+    ]
     return KPIGenerationResult.model_validate(payload), warnings
 
 
@@ -1074,6 +1243,7 @@ def _finalize_generated_result(
         log_profile=log_profile,
         context_evidence=context_evidence,
     )
+    result, normalise_warnings = _normalise_result_measurable_as(result, log_profile=log_profile)
     result, infer_warnings = _fill_missing_activity_measurable_as(result)
     semantic_validation = validate_kpi_generation_semantics(
         result,
@@ -1081,9 +1251,9 @@ def _finalize_generated_result(
         log_profile=log_profile,
         context_evidence=context_evidence,
     ).to_dict()
-    semantic_validation["issues"].extend(sanitation_warnings + infer_warnings)
+    semantic_validation["issues"].extend(sanitation_warnings + normalise_warnings + infer_warnings)
     semantic_validation["has_warnings"] = bool(
-        semantic_validation.get("has_warnings") or sanitation_warnings or infer_warnings
+        semantic_validation.get("has_warnings") or sanitation_warnings or normalise_warnings or infer_warnings
     )
     return result, semantic_validation
 

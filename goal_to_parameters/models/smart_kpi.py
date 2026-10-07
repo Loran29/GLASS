@@ -125,6 +125,10 @@ class SMARTKpi(BaseModel):
         default=None,
         description="Exact name of the computed KPI this maps to for simulation evaluation, or null if not computable from a Prosimos event log",
     )
+    measurable_as_raw: str | None = Field(
+        default=None,
+        description="measurable_as as generated, before GLASS's deterministic normalisation",
+    )
 
     @model_validator(mode="before")
     @classmethod

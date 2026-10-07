@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 
 from pydantic import ValidationError
 
 from models import EvidenceBasis, KPIGenerationResult
+
+logger = logging.getLogger(__name__)
+
+# Metric status labels used in GLASS's own log-evidence prompt that the model sometimes
+# copies into evidence_basis; mapped to the closest valid EvidenceBasis value.
+_EVIDENCE_BASIS_ALIASES = {
+    "derived_from_log": EvidenceBasis.EVENT_LOG_ONLY.value,
+    "approximated": EvidenceBasis.PROXY_FROM_LOG.value,
+}
 
 CODE_FENCE_PATTERN = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE | re.MULTILINE)
 JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
@@ -23,6 +33,14 @@ def _normalize_kpi_payload(kpi_payload: object) -> object:
         normalized["category"] = "throughput"
 
     evidence_basis = normalized.get("evidence_basis")
+    alias = _EVIDENCE_BASIS_ALIASES.get(
+        evidence_basis.strip().lower().replace("-", "_").replace(" ", "_")
+    ) if isinstance(evidence_basis, str) else None
+    if alias is not None:
+        logger.warning(
+            "evidence_basis %r normalised to %r for KPI %r", evidence_basis, alias, normalized.get("name")
+        )
+        normalized["evidence_basis"] = evidence_basis = alias
     if evidence_basis in (None, ""):
         normalized["evidence_basis"] = (
             EvidenceBasis.BOTH.value if normalized.get("supported_by_log") is True

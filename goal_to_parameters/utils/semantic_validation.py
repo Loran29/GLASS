@@ -638,11 +638,13 @@ def validate_kpi_generation_semantics(
                     details={"unsupported_segments": unsupported_evidence_segments},
                 )
             if unsupported_conditions:
+                # Drop the unsupported segmentation instead of failing; the KPI keeps its plain target.
+                kpi.context_segmentation = []
                 _make_issue(
                     issues,
-                    severity="error",
-                    code="unsupported_context_condition",
-                    message="The KPI uses segmented targets whose context conditions do not match accepted evidence-supported relationships.",
+                    severity="warning",
+                    code="unsupported_context_condition_dropped",
+                    message="The KPI used segmented targets whose context conditions do not match accepted evidence-supported relationships; its context segmentation was removed and the KPI keeps its plain target.",
                     kpi_names=[kpi.name],
                     details={"unsupported_conditions": unsupported_conditions},
                 )
