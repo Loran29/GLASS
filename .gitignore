@@ -55,3 +55,7 @@ goal_to_kpi/
 
 # Earlier partial Stage-1 run of the LoanApp/Procure2Pay evaluation (kept locally, not part of the repo)
 evaluation/stage1_results_prefix_v1/
+
+# Local transfer archives (not part of the repo)
+missing_for_repo.zip
+evaluation/refinement_pilot.zip

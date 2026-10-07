@@ -21,7 +21,7 @@ evaluation/loanapp_p2p/
     pilot_config.json       the 9 refinement-pilot cases: accept/reject decisions and fixed feedback
     process_descriptions.md the two process descriptions, copied verbatim from stage1_config.json
   input_logs/          16 event logs (CSV): 14 given to GLASS, 2 baseline logs
-  bps_models/          12 BPS models (BPMN): 2 baselines + 10 models of the combined/resource cases
+  bps_models/          16 BPS models (BPMN): 2 baselines, 4 paper models (G1/G2 cases), 10 combined/resource cases
   results/
     GLASS_Stage1_results.xlsx           scored results per configuration and per returned KPI
     GLASS_Stage1_refinement_pilot.xlsx  scored refinement pilot
@@ -216,15 +216,15 @@ workbook. The exact system prompt, few-shot messages and user prompt of every ru
 
 | ID | Process description | Goal sentence | Event log | BPS model of the case (not given to GLASS) |
 |---|---|---|---|---|
-| LoanApp_G1 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_durations_0.csv` | `LoanApp_durations.bpmn` (paper's Zenodo package; not in this repo) |
-| LoanApp_G2 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_extraneous_0.csv` | `LoanApp_extraneous.bpmn` (paper's Zenodo package; not in this repo) |
+| LoanApp_G1 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_durations_0.csv` | `bps_models/LoanApp_durations.bpmn` |
+| LoanApp_G2 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_extraneous_0.csv` | `bps_models/LoanApp_extraneous.bpmn` |
 | LoanApp_G3 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_resource_target_bimp.csv` | `bps_models/LoanApp_resource_target.bpmn` |
 | LoanApp_G1G2 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_G1G2_bimp.csv` | `bps_models/LoanApp_G1G2.bpmn` |
 | LoanApp_G1G3 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_G1G3_bimp.csv` | `bps_models/LoanApp_G1G3.bpmn` |
 | LoanApp_G2G3 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_G2G3_bimp.csv` | `bps_models/LoanApp_G2G3.bpmn` |
 | LoanApp_G1G2G3 | `setup/process_descriptions.md` § LoanApp | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/LoanApp_G1G2G3_bimp.csv` | `bps_models/LoanApp_G1G2G3.bpmn` |
-| Procure2Pay_G1 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_durations_0.csv` | `Procure2Pay_durations.bpmn` (paper's Zenodo package; not in this repo) |
-| Procure2Pay_G2 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_extraneous_0.csv` | `Procure2Pay_extraneous.bpmn` (paper's Zenodo package; not in this repo) |
+| Procure2Pay_G1 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_durations_0.csv` | `bps_models/Procure2Pay_durations.bpmn` |
+| Procure2Pay_G2 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_extraneous_0.csv` | `bps_models/Procure2Pay_extraneous.bpmn` |
 | Procure2Pay_G3 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_resource_target_bimp.csv` | `bps_models/Procure2Pay_resource_target.bpmn` |
 | Procure2Pay_G1G2 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_G1G2_bimp.csv` | `bps_models/Procure2Pay_G1G2.bpmn` |
 | Procure2Pay_G1G3 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_G1G3_bimp.csv` | `bps_models/Procure2Pay_G1G3.bpmn` |
@@ -232,9 +232,12 @@ workbook. The exact system prompt, few-shot messages and user prompt of every ru
 | Procure2Pay_G1G2G3 | `setup/process_descriptions.md` § Procure2Pay | `setup/stage1_config.json` (`configurations[].simulation_goal`) | `input_logs/Procure2Pay_G1G2G3_bimp.csv` | `bps_models/Procure2Pay_G1G2G3.bpmn` |
 
 The BPS model column comes from sheet "Evaluation cases" of
-`setup/GLASS_expected_KPIs_and_evaluation_cases.xlsx`. The models of the G1 and G2 cases come from the
-paper's Zenodo package and are not part of this repository: `LoanApp_durations.bpmn`, `LoanApp_extraneous.bpmn`, `Procure2Pay_durations.bpmn`, `Procure2Pay_extraneous.bpmn`. Their logs
-(`*_durations_0.csv`, `*_extraneous_0.csv`) are in `input_logs/`. The workbook also lists the
+`setup/GLASS_expected_KPIs_and_evaluation_cases.xlsx`. The four models of the G1 and G2 cases
+(`LoanApp_durations.bpmn`, `LoanApp_extraneous.bpmn`, `Procure2Pay_durations.bpmn`,
+`Procure2Pay_extraneous.bpmn`) are the unmodified files from the paper's Zenodo package; their logs
+(`*_durations_0.csv`, `*_extraneous_0.csv`) are in `input_logs/`.
+The two Procure2Pay paper models still carry the paper's original `byTimetable` arrival block, unlike `Procure2Pay_original.bpmn`, which was rewritten to the plain arrival format for BIMP.
+The workbook also lists the
 modification behind each case and the average cycle time of each log.
 
 - LoanApp baseline (healthy, no modification): `bps_models/LoanApp_original.bpmn` with log `input_logs/LoanApp_ground_truth_0.csv`. Not used as input to GLASS; kept as the reference for baseline comparisons.
