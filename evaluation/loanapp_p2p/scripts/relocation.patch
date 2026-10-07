@@ -1,0 +1,704 @@
+diff --git a/evaluation/run_stage1_batch.py b/evaluation/loanapp_p2p/scripts/run_stage1_batch.py
+index 211ec52..070c907 100644
+--- a/evaluation/run_stage1_batch.py
++++ b/evaluation/loanapp_p2p/scripts/run_stage1_batch.py
+@@ -1,7 +1,7 @@
+ """
+ Stage-1 batch evaluation (natural-language goal -> SMART KPIs), as delivered by the GLASS app.
+ 
+-Every configuration in evaluation/stage1_config.json is run N times through the app's own Stage-1
++Every configuration in setup/stage1_config.json is run N times through the app's own Stage-1
+ path (goal_to_parameters/app.py, handle_generation): validate_generation_scope ->
+ extract_log_artifacts -> build_smart_kpi_prompt(sanitize_user_input(...)) -> parse_with_retries
+ (json_mode=True; parse + semantic repair retries; _finalize_generated_result = grounding sanitize +
+@@ -9,7 +9,7 @@ _fill_missing_activity_measurable_as + semantic validation). Those functions are
+ app.py's own source (see load_app_stage1), so they cannot drift from the app; nothing under
+ goal_to_parameters/ is modified. LLM answers are stored as returned; scoring is analysis-only.
+ 
+-Usage (repo root):  python evaluation/run_stage1_batch.py [--smoke | --only ID] [--reps N]
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_stage1_batch.py [--smoke | --only ID] [--reps N]
+ Re-running resumes: reps with a final status are skipped, llm_error reps are retried.
+ 
+ SCORING RULES (analysis only; recording is never changed by scoring)
+@@ -53,10 +53,11 @@ from importlib.metadata import version
+ from pathlib import Path
+ from statistics import mean
+ 
+-REPO_ROOT = Path(__file__).resolve().parent.parent
+-EVAL_DIR = REPO_ROOT / "evaluation"
++BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
++REPO_ROOT = BASE.parent.parent
++SETUP_DIR, LOGS_DIR, RESULTS_DIR = BASE / "setup", BASE / "input_logs", BASE / "results"
+ APP_PATH = REPO_ROOT / "goal_to_parameters" / "app.py"
+-CONFIG_PATH = EVAL_DIR / "stage1_config.json"
++CONFIG_PATH = SETUP_DIR / "stage1_config.json"
+ sys.path.insert(0, str(REPO_ROOT / "goal_to_parameters"))
+ 
+ from dotenv import load_dotenv
+@@ -324,28 +325,36 @@ def write_summaries(out: Path, configs: list[dict]) -> list[dict]:
+     return summary
+ 
+ 
++def rel(path) -> str:
++    """Path relative to the repository root, with forward slashes (as written in READMEs)."""
++    return Path(path).resolve().relative_to(REPO_ROOT).as_posix()
++
++
+ def write_readme(out, args, settings, configs, provider, temperature, app_sources, started, ended, patch) -> None:
+     git = lambda *a: subprocess.run(["git", *a], cwd=REPO_ROOT, capture_output=True, text=True).stdout.strip()
+     stamps = [load_json(p)["timestamp"] for p in (out / "raw").glob("*/rep_*.json")]
+     logs = sorted({c["event_log"] for c in configs})
+     rules = __doc__.split("SCORING RULES", 1)[1].split("END SCORING RULES")[0]
++    # command line as typed, with paths inside the repository written relative to it
++    argv = [rel(a) if Path(a).is_absolute() and Path(a).resolve().is_relative_to(REPO_ROOT) else a
++            for a in [rel(sys.argv[0])] + sys.argv[1:]]
+     gated = [c["id"] for c in configs if (r := load_json(out / "raw" / c["id"] / "rep_1.json"))
+              and not r.get("scope_gate_passed")]
+     lines = [
+         "# GLASS Stage-1 batch evaluation — replication record", "",
+-        "Generated automatically by `evaluation/run_stage1_batch.py` at the end of the run.", "",
++        f"Generated automatically by `{rel(__file__)}` at the end of the run.", "",
+         "## Reproduce", "", "```", "pip install -r requirements.txt",
+         "# put OPENROUTER_API_KEY (or OPENAI_API_KEY) in goal_to_parameters/.env",
+         f"git checkout {git('rev-parse', 'HEAD')}",
+-        *([f"git apply evaluation/stage1_results/{PATCH_NAME}"] if patch else []),
++        *([f"git apply {rel(out / PATCH_NAME)}"] if patch else []),
+         "# plus run_stage1_batch.py, stage1_config.json and input_logs/ matching the SHA-256 below",
+-        "python " + " ".join(sys.argv),
+-        "python evaluation/verify_stage1_results.py", "```", "",
++        "python " + " ".join(argv),
++        f"python {rel(Path(__file__).with_name('verify_stage1_results.py'))}", "```", "",
+         "## Run", "",
+         f"- Repository commit: `{git('rev-parse', 'HEAD')}`",
+-        "- Uncommitted changes in evaluation/ and goal_to_parameters/ at run time: "
+-        + (", ".join(f"`{l}`" for l in git("status", "--porcelain", "--", "evaluation", "goal_to_parameters").splitlines()) or "none"),
+-        f"- Command line: `{Path(sys.executable).name} {' '.join(sys.argv)}`",
++        f"- Uncommitted changes in {rel(BASE)}/ and goal_to_parameters/ at run time: "
++        + (", ".join(f"`{l}`" for l in git("status", "--porcelain", "--", rel(BASE), "goal_to_parameters").splitlines()) or "none"),
++        f"- Command line: `{Path(sys.executable).name} {' '.join(argv)}`",
+         f"- Provider / model string: `{type(provider).__name__}` / `{provider.get_model_name()}`",
+         f"- Temperature: {temperature} (app.py {APP_PAGE_FN}: `temperature = {app_temperature()}`), json_mode: {APP_JSON_MODE}",
+         f"- num_kpis: {settings['num_kpis']}, use_log_evidence: {settings['use_log_evidence']}",
+@@ -355,7 +364,7 @@ def write_readme(out, args, settings, configs, provider, temperature, app_source
+         f"- Python {platform.python_version()}; openai {version('openai')}; pydantic {version('pydantic')}", "",
+         "## GLASS code: base commit + local patch", "",
+         f"- Base commit: `{git('rev-parse', 'HEAD')}`",
+-        (f"- Local patch: `evaluation/stage1_results/{PATCH_NAME}` (= `git diff -- goal_to_parameters`), "
++        (f"- Local patch: `{rel(out / PATCH_NAME)}` (= `git diff -- goal_to_parameters`), "
+          f"SHA-256 `{sha256(patch)}`" if patch else "- Local patch: none (goal_to_parameters/ equals the base commit)"),
+         f"- Parallel workers: {args.workers} (thread pool; one provider instance per worker)", "",
+         "## Deviation from the UI: scope gate", "",
+@@ -364,10 +373,10 @@ def write_readme(out, args, settings, configs, provider, temperature, app_source
+         "`scope_gate_message`) but always runs the Stage-1 LLM path. Configurations whose goal fails",
+         f"the gate ({', '.join(gated) or 'none'}) would get an error and no KPIs in the UI.", "",
+         "## Files (SHA-256)", "",
+-        f"- `evaluation/stage1_config.json`: `{sha256(CONFIG_PATH.read_bytes())}`",
+-        f"- `evaluation/run_stage1_batch.py`: `{sha256(Path(__file__).read_bytes())}`",
++        f"- `{rel(CONFIG_PATH)}`: `{sha256(CONFIG_PATH.read_bytes())}`",
++        f"- `{rel(__file__)}`: `{sha256(Path(__file__).read_bytes())}`",
+         f"- `goal_to_parameters/app.py`: `{sha256(APP_PATH.read_bytes())}`",
+-        *[f"- `evaluation/input_logs/{name}`: `{sha256((args.logs / name).read_bytes())}`" for name in logs], "",
++        *[f"- `{rel(args.logs / name)}`: `{sha256((args.logs / name).read_bytes())}`" for name in logs], "",
+         "## app.py Stage-1 code executed (compiled from app.py source; SHA-256 of each source text)", "",
+         *[f"- `{name}`: `{sha256(text)}`" for name, text in app_sources.items()], "",
+         "## Scoring rules (copied from the script header)", "", "```" + rules.rstrip(), "```", "",
+@@ -482,8 +491,8 @@ def main() -> None:
+     ap.add_argument("--reps", type=int, default=settings["repetitions"])
+     ap.add_argument("--only", help="run a single configuration id")
+     ap.add_argument("--smoke", action="store_true", help="= --reps 1 --only LoanApp_G1")
+-    ap.add_argument("--out", type=Path, default=EVAL_DIR / "stage1_results")
+-    ap.add_argument("--logs", type=Path, default=EVAL_DIR / "input_logs")
++    ap.add_argument("--out", type=Path, default=RESULTS_DIR / "stage1_results")
++    ap.add_argument("--logs", type=Path, default=LOGS_DIR)
+     ap.add_argument("--workers", type=int, default=1, help="parallel worker threads (one provider each)")
+     args = ap.parse_args()
+     if args.smoke:
+diff --git a/evaluation/verify_stage1_results.py b/evaluation/loanapp_p2p/scripts/verify_stage1_results.py
+index 96e3d40..09fc260 100644
+--- a/evaluation/verify_stage1_results.py
++++ b/evaluation/loanapp_p2p/scripts/verify_stage1_results.py
+@@ -1,18 +1,22 @@
+ ﻿"""
+-Independent verification of the Stage-1 batch results (evaluation/stage1_results/).
++Independent verification of the Stage-1 batch results (results/stage1_results/).
+ 
+ Re-derives everything it can from the raw JSON files with its own code, and only reports:
+-it never edits or reruns results. Writes evaluation/stage1_results/verification_report.md.
++it never edits or reruns results. Writes <results folder>/verification_report.md.
++
++The GLASS code a folder was produced with is rebuilt from the base commit and the folder's
++glass_local_fixes.patch (both recorded in the folder), so a folder can be verified after later
++GLASS changes were committed; the working tree is not required to equal that code.
+ 
+ Checks
+   1. files     : 14 configs x reps 1..N raw files exist; status ok|parse_error; one model string,
+                  one temperature (= config), one script SHA-256 across all files.
+-  2b. patch    : goal_to_parameters/ == recorded commit + glass_local_fixes.patch; patch SHA-256 in
+-                 every raw file and in README.md.
+-  2. app code  : app.py on disk == app.py in the recorded git commit; every Stage-1 function the
+-                 batch executed has inspect.getsource() == the function's text in app.py (sliced
+-                 from the committed file by AST line range) and identical bytecode to the same
+-                 function compiled from the committed app.py.
++  2b. patch    : glass_local_fixes.patch applies cleanly to the recorded commit; patch SHA-256 in
++                 every raw file and in README.md (whether HEAD contains that code is reported).
++  2. app code  : app.py rebuilt from the recorded commit + patch has the app.py SHA-256 recorded in
++                 the raw files (LF or CRLF checkout); the batch's loader, applied to that app.py,
++                 yields every Stage-1 function with inspect.getsource() == its text (sliced by AST
++                 line range), the per-function SHA-256 in README.md and identical bytecode.
+   3. fill      : for every KPI, measurable_as == fill(measurable_as_raw), re-running
+                  _fill_missing_activity_measurable_as extracted here from app.py; result_parsed
+                  == parse_kpi_generation_payload(raw).
+@@ -37,7 +41,7 @@ Normalised folder (records carry a "normalisation" block, written by reprocess_s
+                  delivered KPI == result_parsed's measurable_as; warning counts match.
+   6. summary   : adds n_measurable_as_normalised = KPIs changed from measurable_as_raw minus fills.
+ 
+-Usage (repo root):  python evaluation/verify_stage1_results.py [--reps 5] [--results DIR] [--source DIR]
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/verify_stage1_results.py [--reps 5] [--results DIR] [--source DIR]
+ """
+ 
+ from __future__ import annotations
+@@ -57,12 +61,14 @@ import tempfile
+ from pathlib import Path
+ from typing import Any
+ 
+-REPO = Path(__file__).resolve().parent.parent
+-RESULTS = REPO / "evaluation" / "stage1_results"
+-LOGS = REPO / "evaluation" / "input_logs"
++BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
++REPO = BASE.parent.parent
++RESULTS = BASE / "results" / "stage1_results"
++LOGS = BASE / "input_logs"
++CONFIG = BASE / "setup" / "stage1_config.json"
+ APP = REPO / "goal_to_parameters" / "app.py"
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+-sys.path.insert(0, str(REPO / "evaluation"))
++sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+ from models import KPIGenerationResult  # noqa: E402
+ from utils import (KPIParsingError, build_context_evidence_prompt, build_log_evidence_prompt,  # noqa: E402
+@@ -237,7 +243,7 @@ def main() -> None:
+                     help="for a normalised folder: the folder whose LLM outputs it re-processed")
+     args = ap.parse_args()
+     results_dir = args.results
+-    config = json.loads((REPO / "evaluation" / "stage1_config.json").read_text(encoding="utf-8"))
++    config = json.loads(CONFIG.read_text(encoding="utf-8"))
+     configs, reps = config["configurations"], args.reps or config["settings"]["repetitions"]
+     report = Report()
+ 
+@@ -306,65 +312,81 @@ def main() -> None:
+     patch_file = results_dir / "glass_local_fixes.patch"
+     reference = patched_app_source(commit, patch_file) if patch_file.exists() else committed_app_source(commit)
+     ref_label = f"app.py@{commit[:7]}" + (" + glass_local_fixes.patch" if patch_file.exists() else "")
+-    disk = APP.read_text(encoding="utf-8").replace("\r\n", "\n")
+-    checked += 2
+-    if reference != disk:
+-        fails.append(f"goal_to_parameters/app.py on disk differs from {ref_label}")
+     first = next(iter(records.values()))
+     rec_app_sha = first["normalisation"]["app_py_sha256"] if normalised else first["app_py_sha256"]
+-    if digest(APP.read_bytes()) != rec_app_sha:
+-        fails.append("app.py SHA-256 differs from the one recorded in the raw files")
++    checked += 1
++    if rec_app_sha not in (digest(reference), digest(reference.replace("\n", "\r\n"))):
++        fails.append(f"app.py SHA-256 recorded in the raw files != {ref_label} (LF or CRLF)")
+     import run_stage1_batch as batch  # only to check what the batch executes, not to score
+-    namespace, sources = batch.load_app_stage1()
+-    texts = top_level_text(reference)
+-    compiled = compile(reference, str(APP), "exec", flags=__future__.annotations.compiler_flag, dont_inherit=True)
+-    committed_code = {c.co_name: c for c in compiled.co_consts if hasattr(c, "co_code")}
+-    for name, text in sources.items():
+-        checked += 2
+-        if text != texts.get(name):
+-            fails.append(f"{name}: executed source differs from {ref_label}")
+-        if f"`{name}`: `{digest(texts.get(name, ''))}`" not in readme:
+-            fails.append(f"{name}: SHA-256 in README.md does not match {ref_label}")
+-        obj = namespace[name]
+-        if inspect.isfunction(obj):
++    with tempfile.TemporaryDirectory() as tmp:
++        rebuilt = Path(tmp) / "app.py"
++        rebuilt.write_text(reference, encoding="utf-8", newline="\n")
++        live_app, batch.APP_PATH = batch.APP_PATH, rebuilt   # the batch's loader, applied to the rebuilt app.py
++        try:
++            namespace, sources = batch.load_app_stage1()
++        finally:
++            batch.APP_PATH = live_app
++        texts = top_level_text(reference)
++        compiled = compile(reference, str(rebuilt), "exec", flags=__future__.annotations.compiler_flag, dont_inherit=True)
++        committed_code = {c.co_name: c for c in compiled.co_consts if hasattr(c, "co_code")}
++        for name, text in sources.items():
+             checked += 2
+-            if inspect.getsource(obj).rstrip("\n") != texts[name]:
+-                fails.append(f"{name}: inspect.getsource differs from app.py text")
+-            if obj.__code__ != committed_code[name]:   # compares bytecode, consts, names, line table
+-                fails.append(f"{name}: bytecode differs from function compiled from {ref_label}")
++            if text != texts.get(name):
++                fails.append(f"{name}: executed source differs from {ref_label}")
++            if f"`{name}`: `{digest(texts.get(name, ''))}`" not in readme:
++                fails.append(f"{name}: SHA-256 in README.md does not match {ref_label}")
++            obj = namespace[name]
++            if inspect.isfunction(obj):
++                checked += 2
++                if inspect.getsource(obj).rstrip("\n") != texts[name]:
++                    fails.append(f"{name}: inspect.getsource differs from app.py text")
++                if obj.__code__ != committed_code[name]:   # compares bytecode, consts, names, line table
++                    fails.append(f"{name}: bytecode differs from function compiled from {ref_label}")
+     report.add(f"2. app.py Stage-1 code identical ({len(sources)} definitions, {ref_label})", checked, fails)
+ 
+     # 2b. GLASS local patch -----------------------------------------------------
+-    fails, checked = [], 4
+-    current = subprocess.run(["git", "diff", commit, "--", "goal_to_parameters"], cwd=REPO,
+-                             capture_output=True, check=True).stdout
++    fails, checked = [], 3
+     recorded = {(r["normalisation"] if normalised else r).get("glass_patch_sha256") for r in records.values()}
++    in_head = ""
+     if not patch_file.exists():
+-        fails.append("glass_local_fixes.patch missing" + (" although goal_to_parameters/ differs from the commit" if current else ""))
++        if recorded != {None}:   # a run without local GLASS changes records no patch
++            fails.append(f"glass_local_fixes.patch missing, but raw files record patch SHA-256 {sorted(map(str, recorded))}")
++        head_diff = subprocess.run(["git", "diff", commit, "HEAD", "--", "goal_to_parameters"], cwd=REPO,
++                                   capture_output=True, check=True).stdout
++        in_head = " (no local patch); HEAD contains this code" if not head_diff else " (no local patch); HEAD has later GLASS changes"
+     else:
+-        patch_sha = digest(patch_file.read_bytes())
+-        if patch_file.read_bytes() != current:
+-            fails.append(f"goal_to_parameters/ now differs from commit {commit[:7]} + glass_local_fixes.patch")
++        patch = patch_file.read_bytes()
++        patch_sha = digest(patch)
+         if recorded != {patch_sha}:
+             fails.append(f"raw files record patch SHA-256 {sorted(map(str, recorded))}, patch file is {patch_sha}")
+         if patch_sha not in readme or commit not in readme:
+             fails.append("README.md does not state the base commit and the patch SHA-256")
+-        check = subprocess.run(["git", "apply", "--check", "--reverse", str(patch_file)], cwd=REPO, capture_output=True)
++        with tempfile.TemporaryDirectory() as tmp:
++            env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmp) / "index")}
++            subprocess.run(["git", "read-tree", commit], cwd=REPO, env=env, check=True, capture_output=True)
++            check = subprocess.run(["git", "apply", "--cached", "--check", str(patch_file)], cwd=REPO, env=env,
++                                   capture_output=True)
+         if check.returncode != 0:
+-            fails.append(f"patch does not reverse-apply cleanly: {check.stderr.decode().strip()}")
++            fails.append(f"patch does not apply cleanly to {commit[:7]}: {check.stderr.decode().strip()}")
++        head_diff = subprocess.run(["git", "diff", commit, "HEAD", "--", "goal_to_parameters"], cwd=REPO,
++                                   capture_output=True, check=True).stdout
++        in_head = "; HEAD contains this code" if head_diff == patch else "; HEAD has later GLASS changes"
+         if normalised:
+             checked += 2
+             source_patch = (args.source / "glass_local_fixes.patch").read_bytes()
+             if {r.get("glass_patch_sha256") for r in records.values()} != {digest(source_patch)}:
+                 fails.append("records' glass_patch_sha256 (LLM run) != SHA-256 of the source folder's patch")
+-            missing = [d.split(b"\n", 1)[0].decode() for d in file_diffs(source_patch) if d not in file_diffs(patch_file.read_bytes())]
++            missing = [d.split(b"\n", 1)[0].decode() for d in file_diffs(source_patch) if d not in file_diffs(patch)]
+             if missing:
+                 fails.append(f"source run's patch sections not contained unchanged in this patch: {missing}")
+-    report.add(f"2b. GLASS = commit {commit[:7]} + glass_local_fixes.patch", checked, fails)
++    report.add(f"2b. GLASS = commit {commit[:7]} + glass_local_fixes.patch{in_head}", checked, fails)
+ 
+     # 3. fill -------------------------------------------------------------------
+     fill_ns: dict[str, Any] = {"re": re, "Any": Any, "KPIGenerationResult": KPIGenerationResult}
+-    roots = ["_fill_missing_activity_measurable_as"] + (["_normalise_result_measurable_as"] if normalised else [])
++    # A run whose own GLASS code already normalises measurable_as (inside _finalize_generated_result) is
++    # replayed with that step too; a normalised folder adds it afterwards (checked against its warnings).
++    inline_norm = not normalised and "_normalise_result_measurable_as" in top_level_text(reference)
++    roots = ["_fill_missing_activity_measurable_as"] + (["_normalise_result_measurable_as"] if normalised or inline_norm else [])
+     exec(compile(needed_definitions(reference, roots), "app_fill",
+                  "exec", flags=__future__.annotations.compiler_flag, dont_inherit=True), fill_ns)
+     fill = fill_ns["_fill_missing_activity_measurable_as"]
+@@ -377,12 +399,15 @@ def main() -> None:
+         if parse_kpi_generation_payload(rec["raw"]).model_dump(mode="json") != parsed.model_dump(mode="json"):
+             fails.append(f"{cid} rep {rep}: result_parsed != parse(raw)")
+         stored = [k["measurable_as"] for k in rec["result"]["kpis"]]
+-        if normalised:
++        if normalised or inline_norm:
+             event_log = rec["event_log"]
+             if event_log not in profiles:
+                 with open(LOGS / event_log, "rb") as fh:
+                     profiles[event_log] = profile_event_log(fh)
+             parsed, norm_warnings = fill_ns["_normalise_result_measurable_as"](parsed, log_profile=profiles[event_log])
++        if inline_norm:
++            n_normalised += len(norm_warnings)
++        if normalised:
+             n_normalised += len(norm_warnings)
+             if len(norm_warnings) != len(rec["normalisation_warnings"]):
+                 fails.append(f"{cid} rep {rep}: {len(norm_warnings)} normalisations re-derived, "
+@@ -411,8 +436,8 @@ def main() -> None:
+                 checked += 1
+                 if any(final_by_name.get(n, {}).get("context_segmentation") for n in issue["kpi_names"]):
+                     fails.append(f"{cid} rep {rep}: segmentation reported dropped but still present for {issue['kpi_names']}")
+-    report.add(f"3. {'normalisation + ' if normalised else ''}fill step re-run ({checked} checks, "
+-               + (f"{n_normalised} measurable_as normalised, " if normalised else "")
++    report.add(f"3. {'normalisation + ' if normalised or inline_norm else ''}fill step re-run ({checked} checks, "
++               + (f"{n_normalised} measurable_as normalised, " if normalised or inline_norm else "")
+                + f"{n_filled} measurable_as filled by the app)", checked, fails)
+ 
+     # 4. attempts ---------------------------------------------------------------
+@@ -478,7 +503,7 @@ def main() -> None:
+     # report ----------------------------------------------------------------------
+     verdict = "PASS" if report.passed else "FAIL"
+     md = [f"# Stage-1 results verification: {verdict}", "",
+-          "Produced by `evaluation/verify_stage1_results.py`; findings are reported, never patched.", "",
++          f"Produced by `{Path(__file__).resolve().relative_to(REPO).as_posix()}`; findings are reported, never patched.", "",
+           "| check | checks | failures | result |", "|---|---|---|---|"]
+     md += [f"| {t} | {n} | {len(f)} | {'PASS' if not f else 'FAIL'} |" for t, n, f in report.sections]
+     for title, _, f in report.sections:
+diff --git a/evaluation/reprocess_stage1_normalised.py b/evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py
+index e19888e..4faff6a 100644
+--- a/evaluation/reprocess_stage1_normalised.py
++++ b/evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py
+@@ -1,6 +1,6 @@
+ """
+ Re-applies GLASS's deterministic Stage-1 post-processing to the recorded LLM outputs of
+-evaluation/stage1_results/ and writes evaluation/stage1_results_normalised/. No LLM is called.
++results/stage1_results/ and writes results/stage1_results_normalised/. No LLM is called.
+ 
+ For every raw/<id>/rep_<k>.json with a result, the stored result_parsed
+ (= parse_kpi_generation_payload(raw)) goes through app.py's current _finalize_generated_result
+@@ -13,9 +13,11 @@ Each output record is the source record with result, measurable_as_trace, fill_w
+ normalisation_warnings and semantic_validation replaced and a "normalisation" block added; raw,
+ attempts, result_parsed, prompts and run metadata are copied unchanged. The script aborts if anything
+ other than measurable_as / measurable_as_raw would differ from the source result, or if the semantic
+-validation issues (other than the measurable_as warnings) differ. evaluation/stage1_results/ is only read.
++validation issues (other than the measurable_as warnings) differ. results/stage1_results/ is only read.
+ 
+-Usage (repo root):  python evaluation/reprocess_stage1_normalised.py
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py
++Run it in a checkout of the base commit with this folder's glass_local_fixes.patch applied
++(see evaluation/loanapp_p2p/README.md); it refuses to run on any other commit.
+ """
+ 
+ from __future__ import annotations
+@@ -35,8 +37,8 @@ import run_stage1_batch as batch  # noqa: E402  (also puts goal_to_parameters/ o
+ 
+ from models import KPIGenerationResult  # noqa: E402
+ 
+-SOURCE = batch.EVAL_DIR / "stage1_results"
+-OUT = batch.EVAL_DIR / "stage1_results_normalised"
++SOURCE = batch.RESULTS_DIR / "stage1_results"
++OUT = batch.RESULTS_DIR / "stage1_results_normalised"
+ MEASURABLE_AS_CODES = {"inferred_measurable_as", "measurable_as_normalised"}
+ REPLACED_FIELDS = ("result", "measurable_as_trace", "fill_warnings", "normalisation_warnings",
+                    "semantic_validation", "normalisation")
+@@ -112,8 +114,8 @@ def write_readme(configs, app_sources, patch, source_patch_sha, meta, records, s
+     logs = sorted({c["event_log"] for c in configs})
+     lines = [
+         "# GLASS Stage-1 evaluation — measurable_as normalised", "",
+-        "Generated by `evaluation/reprocess_stage1_normalised.py`.", "",
+-        "**Same raw LLM outputs as `evaluation/stage1_results/`; the normalisation was applied afterwards.**",
++        f"Generated by `{batch.rel(__file__)}`.", "",
++        f"**Same raw LLM outputs as `{batch.rel(SOURCE)}/`; the normalisation was applied afterwards.**",
+         "No LLM was called. Every record's `raw`, `attempts`, `result_parsed`, prompts and run metadata are",
+         "copied unchanged from `stage1_results/raw/` (each record stores the SHA-256 of its source file in",
+         "`normalisation.source_file_sha256`). Only the deterministic post-processing was re-run on",
+@@ -125,14 +127,14 @@ def write_readme(configs, app_sources, patch, source_patch_sha, meta, records, s
+         "have been the same.", "",
+         "## Reproduce", "", "```",
+         f"git checkout {git('rev-parse', 'HEAD')}",
+-        "git apply evaluation/stage1_results_normalised/glass_local_fixes.patch",
++        f"git apply {batch.rel(OUT / batch.PATCH_NAME)}",
+         "# plus run_stage1_batch.py, reprocess_stage1_normalised.py, stage1_config.json, input_logs/ and",
+         "# stage1_results/raw/ matching the SHA-256 below",
+-        "python evaluation/reprocess_stage1_normalised.py",
+-        "python evaluation/verify_stage1_results.py --results evaluation/stage1_results_normalised", "```", "",
++        f"python {batch.rel(__file__)}",
++        f"python {batch.rel(Path(__file__).with_name('verify_stage1_results.py'))} --results {batch.rel(OUT)}", "```", "",
+         "## Provenance", "",
+         f"- Repository commit: `{git('rev-parse', 'HEAD')}`",
+-        f"- Local patch: `evaluation/stage1_results_normalised/glass_local_fixes.patch` (= `git diff -- goal_to_parameters`), "
++        f"- Local patch: `{batch.rel(OUT / batch.PATCH_NAME)}` (= `git diff -- goal_to_parameters`), "
+         f"SHA-256 `{batch.sha256(patch)}`",
+         f"- It extends the patch the LLM run used (`stage1_results/glass_local_fixes.patch`, SHA-256 `{source_patch_sha}`):",
+         "  the `utils/parsing.py` and `utils/semantic_validation.py` hunks are identical; new are `app.py`",
+@@ -153,11 +155,11 @@ def write_readme(configs, app_sources, patch, source_patch_sha, meta, records, s
+         *[f"| {cid} | {before[cid]['strict_reps_all_expected_found']} -> {after[cid]['strict_reps_all_expected_found']} | "
+           f"{before[cid]['strict_found_counts']} -> {after[cid]['strict_found_counts']} |" for cid in after], "",
+         "## Files (SHA-256)", "",
+-        f"- `evaluation/reprocess_stage1_normalised.py`: `{meta['script_sha256']}`",
+-        f"- `evaluation/run_stage1_batch.py`: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
+-        f"- `evaluation/stage1_config.json`: `{batch.sha256(batch.CONFIG_PATH.read_bytes())}`",
++        f"- `{batch.rel(__file__)}`: `{meta['script_sha256']}`",
++        f"- `{batch.rel(batch.__file__)}`: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
++        f"- `{batch.rel(batch.CONFIG_PATH)}`: `{batch.sha256(batch.CONFIG_PATH.read_bytes())}`",
+         f"- `goal_to_parameters/app.py`: `{meta['app_py_sha256']}`",
+-        *[f"- `evaluation/input_logs/{name}`: `{batch.sha256((batch.EVAL_DIR / 'input_logs' / name).read_bytes())}`"
++        *[f"- `{batch.rel(batch.LOGS_DIR / name)}`: `{batch.sha256((batch.LOGS_DIR / name).read_bytes())}`"
+           for name in logs], "",
+         "## app.py Stage-1 code executed (compiled from app.py source; SHA-256 of each source text)", "",
+         *[f"- `{name}`: `{batch.sha256(text)}`" for name, text in app_sources.items()], "",
+@@ -195,7 +197,7 @@ def main() -> None:
+     records, artifacts = {}, {}
+     for cfg in configs:
+         if cfg["event_log"] not in artifacts:
+-            with open(batch.EVAL_DIR / "input_logs" / cfg["event_log"], "rb") as fh:
++            with open(batch.LOGS_DIR / cfg["event_log"], "rb") as fh:
+                 artifacts[cfg["event_log"]] = app["extract_log_artifacts"](fh)
+         for path in sorted((SOURCE / "raw" / cfg["id"]).glob("rep_*.json"), key=lambda p: int(p.stem.split("_")[1])):
+             source_bytes = path.read_bytes()
+diff --git a/evaluation/run_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
+index 21342ec..b1a2b21 100644
+--- a/evaluation/run_refinement_pilot.py
++++ b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
+@@ -1,7 +1,7 @@
+ """
+ Refinement pilot: one round of GLASS's KPI refinement on stored Stage-1 first proposals.
+ 
+-For every case in evaluation/pilot_config.json the stored first proposal is refined once through the
++For every case in setup/pilot_config.json the stored first proposal is refined once through the
+ app's own refinement path (goal_to_parameters/app.py, handle_refinement): build_refinement_prompt(
+ sanitize_user_input(...), previous_kpis_json = current_result.model_dump_json(indent=2), accepted /
+ rejected names in KPI order, total_kpis = len(kpis), log / context evidence) -> parse_with_retries(
+@@ -10,15 +10,15 @@ _finalize_generated_result post-processing as Stage 1. The app.py functions are
+ own source (run_stage1_batch.load_app_stage1); nothing under goal_to_parameters/ is modified, no stored
+ answer is altered and no new first proposal is generated.
+ 
+-First proposal: evaluation/stage1_results/raw/<id>/rep_<k>.json is the source file (its SHA-256 is
++First proposal: results/stage1_results/raw/<id>/rep_<k>.json is the source file (its SHA-256 is
+ recorded); its result as post-processed by today's GLASS is taken from the matching
+-evaluation/stage1_results_normalised/ record, which must cite that SHA-256. That is the KPI set today's
++results/stage1_results_normalised/ record, which must cite that SHA-256. That is the KPI set today's
+ app would show the user and send back as previous_kpis_json.
+ 
+ Decisions: KPIs named in `accept` are accepted, those in `reject` rejected. The UI only enables
+ "Refine KPIs" once no KPI is pending, so every other (undecided) KPI is treated as accepted.
+ 
+-Usage (repo root):  python evaluation/run_refinement_pilot.py
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
+ """
+ 
+ from __future__ import annotations
+@@ -41,10 +41,10 @@ import run_stage1_batch as batch  # noqa: E402  (also puts goal_to_parameters/ o
+ 
+ from models import KPIGenerationResult  # noqa: E402
+ 
+-PILOT_CONFIG = batch.EVAL_DIR / "pilot_config.json"
+-SOURCE = batch.EVAL_DIR / "stage1_results"
+-NORMALISED = batch.EVAL_DIR / "stage1_results_normalised"
+-OUT = batch.EVAL_DIR / "refinement_pilot"
++PILOT_CONFIG = batch.SETUP_DIR / "pilot_config.json"
++SOURCE = batch.RESULTS_DIR / "stage1_results"
++NORMALISED = batch.RESULTS_DIR / "stage1_results_normalised"
++OUT = batch.RESULTS_DIR / "refinement_pilot"
+ ROUND = 1
+ 
+ 
+@@ -135,7 +135,7 @@ def run_case(case: dict, ctx: dict) -> dict:
+     rejected = [n for n in names if decision[n] == "rejected"]
+     undecided = [n for n in names if n not in case["accept"] + case["reject"]]
+ 
+-    log_path = batch.EVAL_DIR / "input_logs" / cfg["event_log"]
++    log_path = batch.LOGS_DIR / cfg["event_log"]
+     log_profile, log_evidence, context_evidence = ctx["artifacts"][cfg["event_log"]]
+     description, goal = ctx["descriptions"][cfg["process"]], cfg["simulation_goal"]
+     feedback = case["feedback_text"].strip()            # the UI passes feedback_text.strip()
+@@ -222,24 +222,24 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+     post = {rec.get("postprocessing", {}).get("reprocessed_at") for rec in recs.values()} - {None}
+     lines = [
+         "# GLASS refinement pilot — round 1", "",
+-        "Generated by `evaluation/run_refinement_pilot.py`. One refinement round per case through app.py's",
++        f"Generated by `{batch.rel(__file__)}`. One refinement round per case through app.py's",
+         "`handle_refinement` path (build_refinement_prompt -> parse_with_retries -> _finalize_generated_result).", "",
+         "## Reproduce", "", "```",
+         f"git checkout {git('rev-parse', 'HEAD')}",
+-        f"git apply evaluation/refinement_pilot/{batch.PATCH_NAME}",
++        f"git apply {batch.rel(OUT / batch.PATCH_NAME)}",
+         "# plus run_stage1_batch.py, run_refinement_pilot.py, pilot_config.json, stage1_config.json, input_logs/,",
+         "# stage1_results/raw/ and stage1_results_normalised/raw/ matching the SHA-256 recorded per case",
+-        "python evaluation/run_refinement_pilot.py              # 9 LLM calls, one round",
+-        "python evaluation/verify_refinement_pilot.py", "```", "",
++        f"python {batch.rel(__file__)}              # 9 LLM calls, one round",
++        f"python {batch.rel(Path(__file__).with_name('verify_refinement_pilot.py'))}", "```", "",
+         "To replay this exact run: apply `glass_local_fixes_llm_run.patch` instead, run the pilot (the LLM",
+         "calls), then switch goal_to_parameters/ to `glass_local_fixes.patch` and run",
+-        "`python evaluation/run_refinement_pilot.py --reprocess` (no LLM call).", "",
++        f"`python {batch.rel(__file__)} --reprocess` (no LLM call).", "",
+         "## Run", "",
+         f"- Base commit: `{git('rev-parse', 'HEAD')}`",
+-        f"- GLASS patch during the LLM calls: `evaluation/refinement_pilot/{llm_patch.name}`, SHA-256 "
++        f"- GLASS patch during the LLM calls: `{batch.rel(llm_patch)}`, SHA-256 "
+         f"`{first['glass_patch_sha256']}` (= `stage1_results_normalised/{batch.PATCH_NAME}`: "
+         f"{first['glass_patch_sha256'] == ctx['normalised_patch_sha']})",
+-        f"- GLASS patch of the stored post-processing: `evaluation/refinement_pilot/{batch.PATCH_NAME}`, SHA-256 "
++        f"- GLASS patch of the stored post-processing: `{batch.rel(OUT / batch.PATCH_NAME)}`, SHA-256 "
+         f"`{ctx['patch_sha']}`. It extends the LLM-run patch only in `normalise_measurable_as`: "
+         "measurable_as_raw is written only when the value changes and never overwritten (first value wins).",
+         "  The refinement prompts do not depend on that function, so the LLM inputs are the same under both patches.",
+@@ -248,11 +248,11 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+         f"- Provider / model: `{first['provider']}` / `{first['model']}`",
+         f"- Temperature: {first['temperature']}, json_mode: {first['json_mode']} (keyword constants of",
+         "  handle_refinement's parse_with_retries call, read from app.py); no few-shot messages",
+-        f"- `evaluation/pilot_config.json` SHA-256: `{ctx['pilot_sha']}`",
+-        f"- `evaluation/stage1_config.json` SHA-256: `{batch.sha256(batch.CONFIG_PATH.read_bytes())}`",
+-        f"- `evaluation/run_refinement_pilot.py` SHA-256 now: `{ctx['script_sha']}`; during the LLM calls: "
++        f"- `{batch.rel(PILOT_CONFIG)}` SHA-256: `{ctx['pilot_sha']}`",
++        f"- `{batch.rel(batch.CONFIG_PATH)}` SHA-256: `{batch.sha256(batch.CONFIG_PATH.read_bytes())}`",
++        f"- `{batch.rel(__file__)}` SHA-256 now: `{ctx['script_sha']}`; during the LLM calls: "
+         f"`{first['script_sha256']}`",
+-        f"- `evaluation/run_stage1_batch.py` SHA-256: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
++        f"- `{batch.rel(batch.__file__)}` SHA-256: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
+         f"- Cases: {len(rows)}; rounds: {ROUND}; LLM calls {stamps[0]} .. {stamps[-1]}; "
+         f"this invocation {started} .. {ended}",
+         f"- Python {platform.python_version()}; openai {version('openai')}; pydantic {version('pydantic')}", "",
+@@ -323,15 +323,20 @@ def reprocess_record(rec: dict, ctx: dict, now: str) -> dict:
+ 
+ 
+ def main() -> None:
++    global OUT
+     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
+     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
++    ap.add_argument("--out", type=Path, default=OUT, help="pilot folder (resumes: stored cases are skipped)")
+     ap.add_argument("--reprocess", action="store_true",
+                     help="re-run only the deterministic post-processing on the stored raw answers (no LLM call)")
+     args = ap.parse_args()
++    OUT = args.out
+     pilot = json.loads(PILOT_CONFIG.read_text(encoding="utf-8"))
+     stage1 = json.loads(batch.CONFIG_PATH.read_text(encoding="utf-8"))
+     patch, patch_file = batch.glass_patch(), OUT / batch.PATCH_NAME
+-    if not patch_file.exists() or patch_file.read_bytes() != patch:
++    if not patch and patch_file.exists():
++        sys.exit(f"{patch_file} exists but goal_to_parameters/ has no local changes")
++    if patch and (not patch_file.exists() or patch_file.read_bytes() != patch):
+         sys.exit(f"goal_to_parameters/ local changes differ from {patch_file}; save them with\n"
+                  f"  git diff --output={patch_file.relative_to(batch.REPO_ROOT).as_posix()} -- goal_to_parameters")
+ 
+@@ -344,12 +349,12 @@ def main() -> None:
+     for case in pilot["cases"]:
+         log_name = configs[case["config_id"]]["event_log"]
+         if log_name not in artifacts:
+-            with open(batch.EVAL_DIR / "input_logs" / log_name, "rb") as fh:
++            with open(batch.LOGS_DIR / log_name, "rb") as fh:
+                 artifacts[log_name] = app["extract_log_artifacts"](fh)
+     ctx = {"app": app, "configs": configs, "descriptions": stage1["process_descriptions"], "artifacts": artifacts,
+            "call": app_refinement_call(),
+            "script_sha": batch.sha256(Path(__file__).read_bytes()), "app_sha": batch.sha256(batch.APP_PATH.read_bytes()),
+-           "patch_sha": batch.sha256(patch), "pilot_sha": batch.sha256(PILOT_CONFIG.read_bytes()),
++           "patch_sha": batch.sha256(patch) if patch else None, "pilot_sha": batch.sha256(PILOT_CONFIG.read_bytes()),
+            "normalised_patch_sha": batch.sha256((NORMALISED / batch.PATCH_NAME).read_bytes())}
+     if not args.reprocess:   # no provider at all in --reprocess mode: it cannot call the LLM
+         ctx["provider"] = batch.make_provider(stage1["settings"]["model"])
+diff --git a/evaluation/verify_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
+index f344d36..656b4f0 100644
+--- a/evaluation/verify_refinement_pilot.py
++++ b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
+@@ -1,5 +1,5 @@
+ """
+-Independent verification of evaluation/refinement_pilot/ (report only: never edits or reruns anything).
++Independent verification of results/refinement_pilot/ (report only: never edits or reruns anything).
+ 
+ Checks
+   1. files     : one raw file per pilot case, status ok; one model / temperature / json_mode / patch /
+@@ -13,14 +13,17 @@ Checks
+                  previous_kpis_json it was shown, (b) delivered result vs first proposal. Differences are
+                  listed per field.
+   5. summary   : pilot_summary.csv rebuilt from the raw files with fresh code and diffed cell by cell.
+-  6. patch     : goal_to_parameters/ == base commit + refinement_pilot/glass_local_fixes.patch (the
+-                 post-processing patch); glass_local_fixes_llm_run.patch (used during the LLM calls) ==
++  6. patch     : goal_to_parameters/ == base commit (from README.md) + refinement_pilot/
++                 glass_local_fixes.patch (the post-processing patch, which check 7 re-executes); glass_local_fixes_llm_run.patch (used during the LLM calls) ==
+                  stage1_results_normalised/glass_local_fixes.patch.
+   7. post-proc : re-running today's parse + _finalize_generated_result on every stored raw answer
+                  reproduces the stored result; re-processing changed nothing but measurable_as_raw.
+ 
+-Writes evaluation/refinement_pilot/verification_report.md.
+-Usage (repo root):  python evaluation/verify_refinement_pilot.py
++Raw records store the paths of their source files in the pre-move layout (evaluation/stage1_results/...);
++they are resolved to results/... here, so the records stay byte-identical.
++
++Writes results/refinement_pilot/verification_report.md.
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
+ """
+ 
+ from __future__ import annotations
+@@ -34,16 +37,30 @@ import subprocess
+ import sys
+ from pathlib import Path
+ 
+-REPO = Path(__file__).resolve().parent.parent
+-EVAL = REPO / "evaluation"
+-PILOT = EVAL / "refinement_pilot"
++BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
++REPO = BASE.parent.parent
++RESULTS = BASE / "results"
++PILOT = RESULTS / "refinement_pilot"
++SETUP = BASE / "setup"
++LOGS = BASE / "input_logs"
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+-sys.path.insert(0, str(EVAL))
++sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+ from models import KPIGenerationResult  # noqa: E402
+ from verify_stage1_results import Report, lenient_rule, raw_kpis  # noqa: E402  (fresh rule set, not the batch's)
+ 
+ 
++def stored_path(path: str) -> Path:
++    """A path stored in a raw record. Records written before the move use evaluation/<folder>/...;
++    those folders now live in results/<folder>/."""
++    p = Path(path)
++    if (REPO / p).exists():
++        return REPO / p
++    if p.parts[:1] == ("evaluation",) and len(p.parts) > 2:
++        return RESULTS / Path(*p.parts[1:])
++    return REPO / p
++
++
+ def digest(data: bytes) -> str:
+     return hashlib.sha256(data).hexdigest()
+ 
+@@ -116,7 +133,7 @@ def fresh_row(rec: dict) -> dict[str, str]:
+ 
+ 
+ def main() -> None:
+-    pilot = json.loads((EVAL / "pilot_config.json").read_text(encoding="utf-8"))
++    pilot = json.loads((SETUP / "pilot_config.json").read_text(encoding="utf-8"))
+     report = Report()
+     records, fails = {}, []
+     for case in pilot["cases"]:
+@@ -146,8 +163,8 @@ def main() -> None:
+     fails, checked = [], 0
+     for name, rec in records.items():
+         checked += 5
+-        src_bytes = (REPO / rec["source_file"]).read_bytes()
+-        norm_bytes = (REPO / rec["first_proposal_file"]).read_bytes()
++        src_bytes = stored_path(rec["source_file"]).read_bytes()
++        norm_bytes = stored_path(rec["first_proposal_file"]).read_bytes()
+         norm = json.loads(norm_bytes)
+         if digest(src_bytes) != rec["source_sha256"]:
+             fails.append(f"{name}: {rec['source_file']} no longer has the recorded SHA-256")
+@@ -219,11 +236,12 @@ def main() -> None:
+     fails = []
+     patch = (PILOT / "glass_local_fixes.patch").read_bytes()
+     llm_patch = (PILOT / "glass_local_fixes_llm_run.patch").read_bytes()
+-    current = subprocess.run(["git", "diff", "HEAD", "--", "goal_to_parameters"], cwd=REPO, capture_output=True,
++    base = re.search(r"Base commit: `([0-9a-f]{40})`", (PILOT / "README.md").read_text(encoding="utf-8")).group(1)
++    current = subprocess.run(["git", "diff", base, "--", "goal_to_parameters"], cwd=REPO, capture_output=True,
+                              check=True).stdout
+     if patch != current:
+-        fails.append("goal_to_parameters/ differs from HEAD + refinement_pilot/glass_local_fixes.patch")
+-    if llm_patch != (EVAL / "stage1_results_normalised" / "glass_local_fixes.patch").read_bytes():
++        fails.append(f"goal_to_parameters/ differs from {base[:7]} + refinement_pilot/glass_local_fixes.patch")
++    if llm_patch != (RESULTS / "stage1_results_normalised" / "glass_local_fixes.patch").read_bytes():
+         fails.append("LLM-run patch differs from stage1_results_normalised/glass_local_fixes.patch")
+     if {r["glass_patch_sha256"] for r in records.values()} != {digest(llm_patch)}:
+         fails.append("raw files record a different LLM-run patch SHA-256")
+@@ -237,7 +255,7 @@ def main() -> None:
+     import run_stage1_batch as batch   # only to load the app.py functions the pilot executes, not to score
+     batch.APP_ROOTS = batch.APP_ROOTS + ("validate_refinement_scope",)
+     app, _ = batch.load_app_stage1()
+-    config = json.loads((EVAL / "stage1_config.json").read_text(encoding="utf-8"))
++    config = json.loads((SETUP / "stage1_config.json").read_text(encoding="utf-8"))
+     logs = {c["id"]: c["event_log"] for c in config["configurations"]}
+     fails, checked, artifacts = [], 0, {}
+     strip_raw = lambda r: canon({**r, "kpis": [{k: v for k, v in kpi.items() if k != "measurable_as_raw"} for kpi in r["kpis"]]})
+@@ -247,7 +265,7 @@ def main() -> None:
+         checked += 2
+         log_name = logs[rec["case"]["config_id"]]
+         if log_name not in artifacts:
+-            with open(EVAL / "input_logs" / log_name, "rb") as fh:
++            with open(LOGS / log_name, "rb") as fh:
+                 artifacts[log_name] = app["extract_log_artifacts"](fh)
+         log_profile, _, context_evidence = artifacts[log_name]
+         result, _ = app["_finalize_generated_result"](app["parse_kpi_generation_payload"](rec["raw"]),
+@@ -262,7 +280,7 @@ def main() -> None:
+ 
+     verdict = "PASS" if report.passed else "FAIL"
+     md = [f"# Refinement pilot verification: {verdict}", "",
+-          "Produced by `evaluation/verify_refinement_pilot.py`; findings are reported, never patched.", "",
++          f"Produced by `{Path(__file__).resolve().relative_to(REPO).as_posix()}`; findings are reported, never patched.", "",
+           "| check | checks | failures | result |", "|---|---|---|---|"]
+     md += [f"| {t} | {n} | {len(f)} | {'PASS' if not f else 'FAIL'} |" for t, n, f in report.sections]
+     for title, _, f in report.sections:

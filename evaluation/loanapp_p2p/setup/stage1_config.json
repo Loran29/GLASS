@@ -1,0 +1,218 @@
+{
+  "experiment": "GLASS Stage 1 evaluation (goal -> KPIs)",
+  "settings": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.2,
+    "repetitions": 5,
+    "num_kpis": null,
+    "use_log_evidence": true
+  },
+  "process_descriptions": {
+    "LoanApp": "The loan assessment process takes place between an applicant and a loan provider, with the purpose of approving home loan applications. This process is executed by five roles within the loan provider: a clerk takes care of the application form and the administrative steps; an appraiser is responsible for appraising the property; an AML investigator performs the anti-money-laundering check; a loan officer assesses the loan risk and prepares the loan offer; and a senior officer approves the loan offer. The loan assessment process starts upon the receipt of a loan application from an applicant. Once a loan application is received by the loan provider, a clerk checks it for completeness. If the application is incomplete, it is returned to the applicant, so that they can fill out the missing information and send it back to the loan provider. This is repeated until the application is found complete. Once the application has been deemed complete, it must pass three checks, which are carried out in parallel: a clerk checks the applicant's credit history, an appraiser appraises the property for which the loan has been asked, and an AML investigator performs the anti-money-laundering check on the applicant. Once all three checks have been performed, a loan officer assesses the loan risk. If the risk is too high, the application is rejected. Otherwise, the loan officer designs a loan offer, which a senior officer must approve. If the senior officer approves the offer, the application is approved; if not, it is cancelled. In either case, the process completes. All staff of the loan provider work Monday to Friday, 09:00 to 17:00.",
+    "Procure2Pay": "The procure-to-pay process covers purchases from requisition to payment. In the first stage, purchasing agents create, analyze and, if needed, amend the purchase requisition and create requests for quotation on behalf of the requester manager; requesters create and amend their own requests for quotation, and requester managers amend requests for quotation on their side. The order of these steps is flexible and steps can be repeated. In the second stage, purchasing agents analyze the returned quotations and the supplier provides the quotation comparison map; requests for quotation may be amended again. In the final stage, the supplier releases the invoice, the financial manager authorizes the invoice payment, settles any dispute with the supplier, and pays the invoice; some of these steps may be skipped or revisited. Every case ends with the invoice being paid. All staff work Monday to Friday, 09:00 to 17:00."
+  },
+  "configurations": [
+    {
+      "id": "LoanApp_G1",
+      "process": "LoanApp",
+      "goal_config": "G1",
+      "simulation_goal": "I want customers to receive a final decision on their loan application sooner.",
+      "event_log": "LoanApp_durations_0.csv",
+      "expected_kpis": [
+        "Average Cycle Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "id": "LoanApp_G2",
+      "process": "LoanApp",
+      "goal_config": "G2",
+      "simulation_goal": "Once all the background checks on an application are done, it should not sit around waiting before someone assesses it.",
+      "event_log": "LoanApp_extraneous_0.csv",
+      "expected_kpis": [
+        "Assess loan risk Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Assess loan risk Waiting Time"
+      ]
+    },
+    {
+      "id": "LoanApp_G3",
+      "process": "LoanApp",
+      "goal_config": "G3",
+      "simulation_goal": "We want to make better use of our loan officers without overloading them.",
+      "event_log": "LoanApp_resource_target_bimp.csv",
+      "expected_kpis": [
+        "Loan Officer Utilization"
+      ],
+      "expected_measurable_as": [
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "LoanApp_G1G2",
+      "process": "LoanApp",
+      "goal_config": "G1+G2",
+      "simulation_goal": "We want customers to receive a final decision sooner, and applications should not sit around after their background checks are completed.",
+      "event_log": "LoanApp_G1G2_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Assess loan risk Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Assess loan risk Waiting Time",
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "id": "LoanApp_G1G3",
+      "process": "LoanApp",
+      "goal_config": "G1+G3",
+      "simulation_goal": "We want customers to receive a final decision sooner while making better use of our loan officers without overloading them.",
+      "event_log": "LoanApp_G1G3_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Loan Officer Utilization"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "LoanApp_G2G3",
+      "process": "LoanApp",
+      "goal_config": "G2+G3",
+      "simulation_goal": "Applications should not sit around after their background checks are completed, while our loan officers should be used effectively without being overloaded.",
+      "event_log": "LoanApp_G2G3_bimp.csv",
+      "expected_kpis": [
+        "Assess loan risk Waiting Time",
+        "Loan Officer Utilization"
+      ],
+      "expected_measurable_as": [
+        "Assess loan risk Waiting Time",
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "LoanApp_G1G2G3",
+      "process": "LoanApp",
+      "goal_config": "G1+G2+G3",
+      "simulation_goal": "We want customers to receive a final decision sooner, avoid unnecessary delays after background checks are completed, and make better use of our loan officers without overloading them.",
+      "event_log": "LoanApp_G1G2G3_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Assess loan risk Waiting Time",
+        "Loan Officer Utilization"
+      ],
+      "expected_measurable_as": [
+        "Assess loan risk Waiting Time",
+        "Average Cycle Time",
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G1",
+      "process": "Procure2Pay",
+      "goal_config": "G1",
+      "simulation_goal": "We want to pay our suppliers sooner after a purchase is requested.",
+      "event_log": "Procure2Pay_durations_0.csv",
+      "expected_kpis": [
+        "Average Cycle Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G2",
+      "process": "Procure2Pay",
+      "goal_config": "G2",
+      "simulation_goal": "Supplier invoices should not stay unattended before someone processes them.",
+      "event_log": "Procure2Pay_extraneous_0.csv",
+      "expected_kpis": [
+        "Release Supplier's Invoice Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Release Supplier's Invoice Waiting Time"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G3",
+      "process": "Procure2Pay",
+      "goal_config": "G3",
+      "simulation_goal": "We want to make better use of our purchasing agents without overloading them.",
+      "event_log": "Procure2Pay_resource_target_bimp.csv",
+      "expected_kpis": [
+        "Purchasing Agent Utilization"
+      ],
+      "expected_measurable_as": [
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G1G2",
+      "process": "Procure2Pay",
+      "goal_config": "G1+G2",
+      "simulation_goal": "We want to pay our suppliers sooner, and supplier invoices should not stay unattended before someone processes them.",
+      "event_log": "Procure2Pay_G1G2_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G1G3",
+      "process": "Procure2Pay",
+      "goal_config": "G1+G3",
+      "simulation_goal": "We want to pay our suppliers sooner while making better use of our purchasing agents without overloading them.",
+      "event_log": "Procure2Pay_G1G3_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Purchasing Agent Utilization"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G2G3",
+      "process": "Procure2Pay",
+      "goal_config": "G2+G3",
+      "simulation_goal": "Supplier invoices should not stay unattended before processing, while our purchasing agents should be used effectively without being overloaded.",
+      "event_log": "Procure2Pay_G2G3_bimp.csv",
+      "expected_kpis": [
+        "Release Supplier's Invoice Waiting Time",
+        "Purchasing Agent Utilization"
+      ],
+      "expected_measurable_as": [
+        "Release Supplier's Invoice Waiting Time",
+        "Resource Utilization"
+      ]
+    },
+    {
+      "id": "Procure2Pay_G1G2G3",
+      "process": "Procure2Pay",
+      "goal_config": "G1+G2+G3",
+      "simulation_goal": "We want to pay our suppliers sooner, avoid unnecessary delays in processing supplier invoices, and make better use of our purchasing agents without overloading them.",
+      "event_log": "Procure2Pay_G1G2G3_bimp.csv",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time",
+        "Purchasing Agent Utilization"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time",
+        "Resource Utilization"
+      ]
+    }
+  ]
+}

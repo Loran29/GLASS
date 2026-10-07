@@ -2,6 +2,9 @@
 
 Reproducibility harness for the thesis evaluation on three public event logs: **BPIC 2017**, **BPIC 2012**, and **Sepsis Cases**.
 
+The separate Stage 1 evaluation on the simulated LoanApp and Procure2Pay processes (14 goal configurations, refinement pilot)
+lives in [`loanapp_p2p/`](loanapp_p2p/README.md), with its own setup, inputs, scripts, results and README.
+
 The pipeline is split into two evaluated stages, matching the two LLM stages of the main application:
 
 - **Stage 1** measures KPI generation quality (Goal → SMART KPIs) with four metrics: coverage against frozen reference categories, computability, SMART completeness, and set stability across runs.
