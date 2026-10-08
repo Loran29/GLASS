@@ -40,6 +40,97 @@ evaluation/loanapp_p2p/
     relocation.patch               how these scripts differ from the versions used at run time (see Notes)
 ```
 
+## Files
+
+One line per file or folder of this directory (each `raw/` folder is one line; its record count is given).
+
+### This folder
+
+- `.gitattributes`: Turns off end-of-line conversion for this folder so that every file keeps the exact bytes its recorded SHA-256 refers to.
+- `README.md`: This README: purpose, layout, configurations, how to run and verify, scoring and GLASS code versions.
+
+### setup/
+
+- `setup/GLASS_expected_KPIs_and_evaluation_cases.xlsx`: The lead author's evaluation design: sheet "Expected KPIs" gives the goal sentence and expected KPIs per configuration, sheet "Evaluation cases" the BPS model, input log, log source and modification per case.
+- `setup/pilot_config.json`: Run configuration of refinement round 1: the 9 pilot cases with expected KPIs, accepted and rejected KPI names and the fixed feedback text.
+- `setup/pilot_rounds.json`: Run configuration of the later refinement rounds with concrete feedback: rejected KPIs and fixed feedback per case and round, max_rounds and the recorded manual outcomes.
+- `setup/process_descriptions.md`: The two process descriptions GLASS received, copied verbatim from stage1_config.json.
+- `setup/stage1_config.json`: Run configuration of the Stage 1 batch, used for all stored runs: the 14 configurations (goal, event log, expected KPIs and measurable_as), the two process descriptions and the settings (gpt-4o-mini, temperature 0.2, 5 repetitions).
+
+### input_logs/
+
+- `input_logs/LoanApp_G1G2G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/LoanApp_G1G2G3.bpmn`; used by LoanApp_G1G2G3.
+- `input_logs/LoanApp_G1G2_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/LoanApp_G1G2.bpmn`; used by LoanApp_G1G2.
+- `input_logs/LoanApp_G1G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/LoanApp_G1G3.bpmn`; used by LoanApp_G1G3.
+- `input_logs/LoanApp_G2G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/LoanApp_G2G3.bpmn`; used by LoanApp_G2G3.
+- `input_logs/LoanApp_durations_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/LoanApp_durations.bpmn`); used by LoanApp_G1.
+- `input_logs/LoanApp_extraneous_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/LoanApp_extraneous.bpmn`); used by LoanApp_G2.
+- `input_logs/LoanApp_ground_truth_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/LoanApp_original.bpmn`); used by no configuration (baseline log of the unmodified model).
+- `input_logs/LoanApp_resource_target_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/LoanApp_resource_target.bpmn`; used by LoanApp_G3.
+- `input_logs/Procure2Pay_G1G2G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/Procure2Pay_G1G2G3.bpmn`; used by Procure2Pay_G1G2G3.
+- `input_logs/Procure2Pay_G1G2_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/Procure2Pay_G1G2.bpmn`; used by Procure2Pay_G1G2.
+- `input_logs/Procure2Pay_G1G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/Procure2Pay_G1G3.bpmn`; used by Procure2Pay_G1G3.
+- `input_logs/Procure2Pay_G2G3_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/Procure2Pay_G2G3.bpmn`; used by Procure2Pay_G2G3.
+- `input_logs/Procure2Pay_durations_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/Procure2Pay_durations.bpmn`); used by Procure2Pay_G1.
+- `input_logs/Procure2Pay_extraneous_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/Procure2Pay_extraneous.bpmn`); used by Procure2Pay_G2.
+- `input_logs/Procure2Pay_ground_truth_0.csv`: Event log (1000 cases) from the paper's Zenodo package (simulated from `bps_models/Procure2Pay_original.bpmn`); used by no configuration (baseline log of the unmodified model).
+- `input_logs/Procure2Pay_resource_target_bimp.csv`: Event log (1000 cases) simulated here with BIMP from `bps_models/Procure2Pay_resource_target.bpmn`; used by Procure2Pay_G3.
+
+### bps_models/
+
+- `bps_models/LoanApp_G1G2.bpmn`: New version combining the increased durations of G1 with the extraneous timers of G2, Loan Officer pool kept at 4; model of LoanApp_G1G2.
+- `bps_models/LoanApp_G1G2G3.bpmn`: New version combining increased durations, extraneous timers and the Loan Officer pool reduced from 4 to 1; model of LoanApp_G1G2G3.
+- `bps_models/LoanApp_G1G3.bpmn`: New version combining the increased durations of G1 with the Loan Officer pool reduced from 4 to 1; model of LoanApp_G1G3.
+- `bps_models/LoanApp_G2G3.bpmn`: New version combining the extraneous timers of G2 with the Loan Officer pool reduced from 4 to 1; model of LoanApp_G2G3.
+- `bps_models/LoanApp_durations.bpmn`: Paper version from the Zenodo package with activity durations increased for 10 of 12 activities (e.g. Assess loan risk 20 → 60 min); model of LoanApp_G1.
+- `bps_models/LoanApp_extraneous.bpmn`: Paper version from the Zenodo package with four timer events adding extraneous waiting (2 h before Assess loan risk, 12 h before Applicant completes form, 1 h before Design loan offer, 2 h before Approve loan offer); model of LoanApp_G2.
+- `bps_models/LoanApp_original.bpmn`: Baseline loan-application model with no modification; not given to GLASS, reference for baseline comparisons.
+- `bps_models/LoanApp_resource_target.bpmn`: New version with only the Loan Officer pool reduced from 4 to 1; model of LoanApp_G3.
+- `bps_models/Procure2Pay_G1G2.bpmn`: New version combining the increased durations of G1 with the extraneous timers of G2, Purchasing Agent pool kept at 6; model of Procure2Pay_G1G2.
+- `bps_models/Procure2Pay_G1G2G3.bpmn`: New version combining increased durations, extraneous timers and the Purchasing Agent pool reduced from 6 to 3; model of Procure2Pay_G1G2G3.
+- `bps_models/Procure2Pay_G1G3.bpmn`: New version combining the increased durations of G1 with the Purchasing Agent pool reduced from 6 to 3; model of Procure2Pay_G1G3.
+- `bps_models/Procure2Pay_G2G3.bpmn`: New version combining the extraneous timers of G2 with the Purchasing Agent pool reduced from 6 to 3; model of Procure2Pay_G2G3.
+- `bps_models/Procure2Pay_durations.bpmn`: Paper version from the Zenodo package with activity durations increased for 12 of 13 activities (e.g. Analyze Request for Quotation 10 → 70 min), still with the paper's byTimetable arrival block; model of Procure2Pay_G1.
+- `bps_models/Procure2Pay_extraneous.bpmn`: Paper version from the Zenodo package with seven timer events of 10–45 min (e.g. 45 min before Release Supplier's Invoice), still with the paper's byTimetable arrival block; model of Procure2Pay_G2.
+- `bps_models/Procure2Pay_original.bpmn`: Baseline procure-to-pay model with no process modification, its arrival block rewritten to the plain format for BIMP; not given to GLASS, reference for baseline comparisons.
+- `bps_models/Procure2Pay_resource_target.bpmn`: New version with only the Purchasing Agent pool reduced from 6 to 3; model of Procure2Pay_G3.
+
+### results/
+
+- `results/GLASS_Stage1_results.xlsx`: Manually scored Stage 1 results in sheets "Results per configuration", "All KPIs returned by GLASS" (every returned KPI with its assessment) and "Settings and scoring" (settings and scoring rules).
+- `results/GLASS_Stage1_refinement_pilot.xlsx`: Manually scored refinement pilot in sheets "Refinement pilot (9 cases)" and "Overview (14 configurations)".
+- `results/stage1_results/README.md`: Replication record of the batch run: commit, patch, settings, file SHA-256 values and scoring rules.
+- `results/stage1_results/glass_local_fixes.patch`: The local GLASS changes the batch ran with (base commit c787694 plus this patch).
+- `results/stage1_results/stage1_per_config.csv`: One row per configuration summarising its 5 runs (expected KPIs found, extra KPIs, distinct measurable_as values).
+- `results/stage1_results/stage1_summary.csv`: One row per run with the returned KPIs and the automatic strict and lenient scoring.
+- `results/stage1_results/verification_report.md`: Latest report of verify_stage1_results.py for this folder (PASS).
+- `results/stage1_results/raw/`: The 70 raw records of the Stage 1 batch, one per configuration and repetition (`raw/<id>/rep_<k>.json`), with prompts, every LLM answer, the parsed and post-processed KPIs and the run metadata.
+- `results/stage1_results_normalised/README.md`: Record of the re-processing: source run, GLASS code, effect of the normalisation per configuration and file SHA-256 values.
+- `results/stage1_results_normalised/glass_local_fixes.patch`: The GLASS code of the re-processing (base commit c787694 plus this patch, which adds normalise_measurable_as).
+- `results/stage1_results_normalised/stage1_per_config.csv`: One row per configuration summarising its 5 runs after the normalisation.
+- `results/stage1_results_normalised/stage1_summary.csv`: One row per run, scored as in stage1_results after the normalisation, with the added column n_measurable_as_normalised.
+- `results/stage1_results_normalised/verification_report.md`: Latest report of verify_stage1_results.py for this folder (PASS).
+- `results/stage1_results_normalised/raw/`: The same 70 LLM answers with GLASS's later measurable_as normalisation applied and no new LLM call, each record citing its stage1_results source file by SHA-256.
+- `results/refinement_pilot/README.md`: Record of the pilot: GLASS code per round, settings, protocol, findings, further rounds and method notes.
+- `results/refinement_pilot/glass_local_fixes.patch`: The GLASS code of the later rounds and of all stored post-processing (base commit c787694 plus this patch, identical to commit 4c8dbaf).
+- `results/refinement_pilot/glass_local_fixes_llm_run.patch`: The GLASS code of the round-1 LLM calls (base commit c787694 plus this patch).
+- `results/refinement_pilot/pilot_summary.csv`: One row per case and round with decisions, feedback text, automatic strict and lenient scoring, outcome and manual_outcome.
+- `results/refinement_pilot/verification_report.md`: Latest report of verify_refinement_pilot.py (PASS except checks 4a/4b: two accepted KPIs dropped by the model in round 1).
+- `results/refinement_pilot/raw/`: The 12 records of the refinement pilot (`<case>_rep1_round<n>.json`): round 1 for the 9 cases and the concrete-feedback rounds for Procure2Pay_G1G2 (rounds 2 and 3) and Procure2Pay_G2G3 (round 2).
+- `results/refinement_pilot/superseded_general_feedback/README.md`: Explains this folder: the earlier general-feedback protocol of rounds 2–3, replaced by the concrete-feedback protocol and not part of the main results.
+- `results/refinement_pilot/superseded_general_feedback/pilot_rounds_general.json`: The rounds file of the general-feedback protocol with its general clarification sentences.
+- `results/refinement_pilot/superseded_general_feedback/pilot_summary_general.csv`: The summary rows of the 4 general-feedback records.
+- `results/refinement_pilot/superseded_general_feedback/raw/`: The 4 records of rounds 2–3 with general feedback for Procure2Pay_G1G2 and Procure2Pay_G2G3, kept for completeness.
+
+### scripts/
+
+- `scripts/relocation.patch`: Every difference between these scripts and their run-time versions; `git apply -R` in a scratch checkout restores the versions whose SHA-256 the result READMEs list.
+- `scripts/reprocess_stage1_normalised.py`: Re-applies GLASS's post-processing to the stored Stage 1 answers to build stage1_results_normalised, only at the base commit with that folder's patch: `python evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py`.
+- `scripts/run_refinement_pilot.py`: Runs one refinement round of the pilot through GLASS's handle_refinement path: `python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py [--round N] [--out <folder>]`.
+- `scripts/run_stage1_batch.py`: Runs the 14 configurations through GLASS's own Stage 1 code and writes a result folder: `python evaluation/loanapp_p2p/scripts/run_stage1_batch.py --workers 4 --out <folder>`.
+- `scripts/verify_refinement_pilot.py`: Checks the stored pilot folder independently, without LLM calls, and writes its verification report: `python evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py`.
+- `scripts/verify_stage1_results.py`: Checks a Stage 1 result folder independently, without LLM calls, and writes its verification report: `python evaluation/loanapp_p2p/scripts/verify_stage1_results.py [--results <folder>]`.
+
 ## The 14 configurations
 
 Each configuration gives GLASS one process description, one goal sentence and one event log. The
