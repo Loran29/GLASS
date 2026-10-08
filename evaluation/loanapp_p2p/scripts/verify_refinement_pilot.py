@@ -1,6 +1,9 @@
 """
 Independent verification of results/refinement_pilot/ (report only: never edits or reruns anything).
 
+Records: round 1 for every case of setup/pilot_config.json, plus one record per entry of
+setup/pilot_rounds.json (round n refines round n-1's delivered result).
+
 Checks
   1. files     : one raw file per pilot case, status ok; one model / temperature / json_mode / patch /
                  script SHA-256; temperature and json_mode equal handle_refinement's constants in app.py.
@@ -87,8 +90,8 @@ def key_for(expected: str) -> str:
     return "Resource Utilization" if re.search(r" Utilization$", expected) else expected
 
 
-def fresh_row(rec: dict) -> dict[str, str]:
-    case = rec["case"]
+def fresh_row(rec: dict, max_rounds: int, manual: dict) -> dict[str, str]:
+    case, rnd = rec["case"], rec["round"]
     before, after = rec["first_proposal"]["kpis"], (rec.get("result") or {}).get("kpis") or []
     exp = case["expected"]
 
@@ -107,22 +110,31 @@ def fresh_row(rec: dict) -> dict[str, str]:
     changed = [n for n in rec["decisions"]["accepted"]
                if n not in after_formula or after_formula[n] != before_formula[n]]
     row = {"case": f"{case['config_id']}_rep{case['rep']}", "config_id": case["config_id"], "rep": case["rep"],
-           "status": rec["status"], "attempts": len(rec["attempts"]),
+           "round": rnd, "protocol": case.get("protocol") or "", "status": rec["status"], "attempts": len(rec["attempts"]),
            "accepted": "|".join(rec["decisions"]["accepted"]),
-           "accepted_from_undecided": "|".join(n for n in rec["decisions"]["accepted"] if n not in case["accept"]),
-           "rejected": "|".join(rec["decisions"]["rejected"]), "expected": "|".join(exp)}
+           # round 1: KPIs left undecided in pilot_config.json; rounds >= 2 accept every non-rejected KPI by rule
+           "accepted_from_undecided": "|".join(n for n in rec["decisions"]["accepted"] if n not in case["accept"])
+           if rnd == 1 else "",
+           "rejected": "|".join(rec["decisions"]["rejected"]), "feedback_text": rec["feedback_text"],
+           "expected": "|".join(exp)}
     for mode, fn, extra in (("strict", strict, s_extra), ("lenient", lenient, l_extra)):
         row[f"{mode}_present_before"] = "|".join(fn(before))
         row[f"{mode}_present_after"] = "|".join(fn(after))
         row[f"{mode}_still_missing"] = "|".join(e for e in exp if e not in fn(after))
         row[f"{mode}_n_extras_after"] = len(extra)
         row[f"{mode}_extras_after"] = "|".join(extra)
-    if set(lenient(before)) == set(exp):
+    reached_after = bool(after) and set(lenient(after)) == set(exp)
+    if rnd == 1 and set(lenient(before)) == set(exp):
         row["outcome"] = "reached_without_refinement"
-    elif after and set(lenient(after)) == set(exp):
-        row["outcome"] = "reached_after_1_round"
+    elif rnd == 1:
+        row["outcome"] = "reached_after_1_round" if reached_after else "not_reached_after_1_round"
+    elif reached_after:
+        row["outcome"] = f"reached_after_{rnd}_rounds"
+    elif rnd >= max_rounds:
+        row["outcome"] = f"not_converged_after_{rnd}_rounds"
     else:
-        row["outcome"] = "not_reached_after_1_round"
+        row["outcome"] = f"not_reached_after_{rnd}_rounds"
+    row["manual_outcome"] = manual.get(f"{row['case']}_round{rnd}", {}).get("outcome", "")
     row["accepted_unchanged"] = ("no" if changed else "yes") if after else ""
     row["accepted_changed"] = "|".join(changed) if after else ""
     row["rejected_names_still_present"] = "|".join(n for n in rec["decisions"]["rejected"] if n in after_formula)
@@ -135,33 +147,61 @@ def fresh_row(rec: dict) -> dict[str, str]:
 def main() -> None:
     pilot = json.loads((SETUP / "pilot_config.json").read_text(encoding="utf-8"))
     report = Report()
-    records, fails = {}, []
+    rounds_path = SETUP / "pilot_rounds.json"
+    rounds = json.loads(rounds_path.read_text(encoding="utf-8")) if rounds_path.exists() else {"max_rounds": 1, "rounds": []}
+    base_cases = {(c["config_id"], c["rep"]): c for c in pilot["cases"]}
+    expected_cases = {}   # label -> the case each record must store
     for case in pilot["cases"]:
-        name = f"{case['config_id']}_rep{case['rep']}"
-        path = PILOT / "raw" / f"{name}_round1.json"
+        expected_cases[f"{case['config_id']}_rep{case['rep']}_round1"] = case
+    for e in rounds["rounds"]:
+        base = base_cases[(e["config_id"], e["rep"])]
+        expected_cases[f"{e['config_id']}_rep{e['rep']}_round{e['round']}"] = {
+            "config_id": e["config_id"], "rep": e["rep"], "round": e["round"], "protocol": e.get("protocol"),
+            "expected": base["expected"], "accept": [], "reject": e["reject"], "feedback_text": e["feedback_text"]}
+    records, fails = {}, []
+    for name, case in expected_cases.items():
+        path = PILOT / "raw" / f"{name}.json"
         if not path.exists():
             fails.append(f"missing raw/{path.name}")
             continue
         rec = records[name] = json.loads(path.read_text(encoding="utf-8"))
         if rec["status"] != "ok":
             fails.append(f"{name}: status {rec['status']}")
-        if rec["case"] != case:
-            fails.append(f"{name}: stored case differs from pilot_config.json")
-    extra = sorted(p.name for p in (PILOT / "raw").glob("*.json") if p.name[: -len("_round1.json")] not in records)
+        if rec["case"] != case or rec["round"] != case.get("round", 1):
+            fails.append(f"{name}: stored case / round differs from pilot_config.json / pilot_rounds.json")
+        if case.get("round", 1) > rounds["max_rounds"]:
+            fails.append(f"{name}: round beyond max_rounds {rounds['max_rounds']}")
+    extra = sorted(p.name for p in (PILOT / "raw").glob("*.json") if p.stem not in records)
     fails += [f"unexpected file raw/{n}" for n in extra]
     constants = handle_refinement_constants()
-    for field in ("model", "temperature", "json_mode", "glass_patch_sha256", "script_sha256", "app_py_sha256"):
+    for field in ("model", "temperature", "json_mode"):
         values = {canon(r.get(field)) for r in records.values()}
         if len(values) != 1:
             fails.append(f"{field}: {sorted(values)}")
+    for rnd in sorted({r["round"] for r in records.values()}):   # code and script are fixed within a round
+        for field in ("glass_patch_sha256", "script_sha256", "app_py_sha256"):
+            values = {canon(r.get(field)) for r in records.values() if r["round"] == rnd}
+            if len(values) != 1:
+                fails.append(f"round {rnd} {field}: {sorted(values)}")
     for field in ("temperature", "json_mode"):
         if {r.get(field) for r in records.values()} != {constants.get(field)}:
             fails.append(f"{field} != handle_refinement's {constants.get(field)!r}")
-    report.add(f"1. raw files ({len(records)}/{len(pilot['cases'])}; handle_refinement {constants})",
-               len(pilot["cases"]) + 8, fails)
+    report.add(f"1. raw files ({len(records)}/{len(expected_cases)} records, max {rounds['max_rounds']} rounds; "
+               f"handle_refinement {constants})", len(expected_cases) + 8, fails)
 
     fails, checked = [], 0
     for name, rec in records.items():
+        if rec["round"] > 1:
+            checked += 3
+            prev_bytes = stored_path(rec["previous_round_file"]).read_bytes()
+            if digest(prev_bytes) != rec["previous_round_sha256"]:
+                fails.append(f"{name}: {rec['previous_round_file']} no longer has the recorded SHA-256")
+            if Path(rec["previous_round_file"]).name != f"{name.rsplit('_round', 1)[0]}_round{rec['round'] - 1}.json" or \
+                    canon(rec["first_proposal"]) != canon(json.loads(prev_bytes)["result"]):
+                fails.append(f"{name}: first_proposal is not round {rec['round'] - 1}'s delivered result")
+            if rec["previous_kpis_json"] != KPIGenerationResult.model_validate(rec["first_proposal"]).model_dump_json(indent=2):
+                fails.append(f"{name}: previous_kpis_json is not the first proposal's model_dump_json(indent=2)")
+            continue
         checked += 5
         src_bytes = stored_path(rec["source_file"]).read_bytes()
         norm_bytes = stored_path(rec["first_proposal_file"]).read_bytes()
@@ -177,7 +217,8 @@ def main() -> None:
             fails.append(f"{name}: first_proposal != normalised record's result")
         if rec["previous_kpis_json"] != KPIGenerationResult.model_validate(rec["first_proposal"]).model_dump_json(indent=2):
             fails.append(f"{name}: previous_kpis_json is not the first proposal's model_dump_json(indent=2)")
-    report.add("2. source files byte-identical, first proposal = normalised result of the same answer", checked, fails)
+    report.add("2. first proposals: round 1 = normalised result of the stored answer (source files byte-identical); "
+               "round n = round n-1's delivered result", checked, fails)
 
     fails, checked = [], 0
     for name, rec in records.items():
@@ -186,7 +227,11 @@ def main() -> None:
         if sorted(d["accepted"] + d["rejected"]) != sorted(names):
             fails.append(f"{name}: accepted + rejected != first-proposal KPIs")
         if d["rejected"] != [n for n in names if n in rec["case"]["reject"]] or not set(rec["case"]["accept"]) <= set(d["accepted"]):
-            fails.append(f"{name}: decisions do not follow pilot_config.json")
+            fails.append(f"{name}: decisions do not follow pilot_config.json / pilot_rounds.json")
+        if rec["round"] > 1 and (d["accepted"] != [n for n in names if n not in rec["case"]["reject"]]
+                                 or set(rec["case"]["reject"]) - set(names)):
+            checked += 1
+            fails.append(f"{name}: round {rec['round']} must reject exactly the listed KPIs and accept all others")
         u = rec["user_prompt"]
         if f"Accepted KPIs (keep exactly unchanged): {', '.join(d['accepted']) or 'None'}\n" not in u or \
                 f"Rejected KPIs (replace one-for-one): {', '.join(d['rejected']) or 'None'}\n" not in u:
@@ -222,8 +267,8 @@ def main() -> None:
 
     fails = []
     with open(PILOT / "pilot_summary.csv", newline="", encoding="utf-8") as f:
-        csv_rows = {r["case"]: r for r in csv.DictReader(f)}
-    fresh = {name: fresh_row(rec) for name, rec in records.items()}
+        csv_rows = {f"{r['case']}_round{r['round']}": r for r in csv.DictReader(f)}
+    fresh = {name: fresh_row(rec, rounds["max_rounds"], rounds.get("manual_outcomes", {})) for name, rec in records.items()}
     for name in sorted(set(csv_rows) | set(fresh)):
         if name not in csv_rows or name not in fresh:
             fails.append(f"{name}: row only in {'rebuild' if name in fresh else 'pilot_summary.csv'}")
@@ -243,13 +288,16 @@ def main() -> None:
         fails.append(f"goal_to_parameters/ differs from {base[:7]} + refinement_pilot/glass_local_fixes.patch")
     if llm_patch != (RESULTS / "stage1_results_normalised" / "glass_local_fixes.patch").read_bytes():
         fails.append("LLM-run patch differs from stage1_results_normalised/glass_local_fixes.patch")
-    if {r["glass_patch_sha256"] for r in records.values()} != {digest(llm_patch)}:
-        fails.append("raw files record a different LLM-run patch SHA-256")
-    post = {(r.get("postprocessing") or {}).get("glass_patch_sha256") for r in records.values() if r["status"] == "ok"}
+    if {r["glass_patch_sha256"] for r in records.values() if r["round"] == 1} != {digest(llm_patch)}:
+        fails.append("round-1 records record a different LLM-run patch SHA-256")
+    if {r["glass_patch_sha256"] for r in records.values() if r["round"] > 1} - {digest(patch)}:
+        fails.append("records of rounds >= 2 were not produced with base + glass_local_fixes.patch")
+    post = {(r.get("postprocessing") or {}).get("glass_patch_sha256") for r in records.values()
+            if r["status"] == "ok" and r["round"] == 1}
     if post != {digest(patch)}:
         fails.append(f"stored post-processing patch SHA-256 {sorted(map(str, post))} != {digest(patch)}")
-    report.add("6. GLASS = commit + patch (LLM run: stage1_results_normalised patch; post-processing: current patch)",
-               4, fails)
+    report.add("6. GLASS = commit + patch (round-1 LLM calls: stage1_results_normalised patch; later rounds and "
+               "all post-processing: current patch)", 5, fails)
 
     # 7. stored result = today's post-processing of the stored raw answer ------------------------
     import run_stage1_batch as batch   # only to load the app.py functions the pilot executes, not to score

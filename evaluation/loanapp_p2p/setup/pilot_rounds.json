@@ -1,0 +1,49 @@
+{
+  "description": "Further refinement rounds of the pilot: from round 2 on, the manager gives concrete feedback. Each round refines the previous round's delivered result; every KPI not listed under reject is accepted. Feedback is fixed per rejected KPI.",
+  "max_rounds": 3,
+  "after_max_rounds": "round max_rounds is the last round: a case is recorded as reached_after_<max_rounds>_rounds or not_converged_after_<max_rounds>_rounds",
+  "feedback_sentences": {
+    "P2P_INVOICE_CONCRETE": "Concretely: I want the time between the moment the step right before 'Release Supplier's Invoice' is finished — whatever that step happens to be in each case — and the moment the release itself starts. Not the time since any quotation or dispute step.",
+    "P2P_CYCLE_CONCRETE": "Concretely: count from the moment 'Create Purchase Requisition' happens until 'Pay invoice' is done. Not from the request for quotation.",
+    "P2P_INVOICE_CONCRETE_R3": "Almost. I don't want how long the previous step takes. I want the gap after it: from the moment that previous step is finished until the moment 'Release Supplier's Invoice' starts — like you did for the cycle time, just between those two moments."
+  },
+  "rounds": [
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "rep": 1,
+      "round": 2,
+      "protocol": "concrete",
+      "reject": [
+        "Invoice Release Wait Time",
+        "Total Cycle Time from Requisition to Invoice Payment"
+      ],
+      "feedback_text": "About \"Invoice Release Wait Time\": Concretely: I want the time between the moment the step right before 'Release Supplier's Invoice' is finished — whatever that step happens to be in each case — and the moment the release itself starts. Not the time since any quotation or dispute step.\nAbout \"Total Cycle Time from Requisition to Invoice Payment\": Concretely: count from the moment 'Create Purchase Requisition' happens until 'Pay invoice' is done. Not from the request for quotation."
+    },
+    {
+      "config_id": "Procure2Pay_G2G3",
+      "rep": 1,
+      "round": 2,
+      "protocol": "concrete",
+      "reject": [
+        "Average Invoice Wait Time Before Release by Hour of Day"
+      ],
+      "feedback_text": "About \"Average Invoice Wait Time Before Release by Hour of Day\": Concretely: I want the time between the moment the step right before 'Release Supplier's Invoice' is finished — whatever that step happens to be in each case — and the moment the release itself starts. Not the time since any quotation or dispute step."
+    },
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "rep": 1,
+      "round": 3,
+      "protocol": "concrete",
+      "reject": [
+        "Invoice Release Wait Time from Previous Step"
+      ],
+      "feedback_text": "About \"Invoice Release Wait Time from Previous Step\": Almost. I don't want how long the previous step takes. I want the gap after it: from the moment that previous step is finished until the moment 'Release Supplier's Invoice' starts — like you did for the cycle time, just between those two moments."
+    }
+  ],
+  "manual_outcomes": {
+    "Procure2Pay_G2G3_rep1_round2": {
+      "outcome": "reached_after_2_rounds",
+      "note": "reached by formula in round 2 (lead author's assessment); no round 3"
+    }
+  }
+}

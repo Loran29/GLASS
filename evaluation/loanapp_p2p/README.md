@@ -4,8 +4,9 @@ This folder holds everything needed to rerun and check the GLASS Stage 1 evaluat
 processes, a loan application (LoanApp) and procure-to-pay (Procure2Pay). Stage 1 is the step from a
 natural-language goal to SMART KPIs. The question is whether GLASS proposes the KPIs a process analyst
 would expect for a goal. There are 14 goal configurations (goals G1, G2, G3 and their combinations,
-per process), each run 5 times. A small refinement pilot then gives feedback once on 9 of the first
-proposals.
+per process), each run 5 times. A small refinement pilot then gives feedback on 9 of the first
+proposals: one round for all 9, then further rounds with concrete feedback for the two Procure2Pay cases
+that were still open after round 1 (at most 3 rounds in total).
 
 The thesis evaluation on BPIC 2012/2017 and Sepsis is separate: see `evaluation/README.md`.
 
@@ -18,7 +19,8 @@ evaluation/loanapp_p2p/
   setup/
     GLASS_expected_KPIs_and_evaluation_cases.xlsx   expected KPIs per goal; which model/log each case uses
     stage1_config.json      the 14 configurations, process descriptions and run settings (used by the scripts)
-    pilot_config.json       the 9 refinement-pilot cases: accept/reject decisions and fixed feedback
+    pilot_config.json       the 9 refinement-pilot cases: round-1 accept/reject decisions and fixed feedback
+    pilot_rounds.json       further rounds (concrete feedback): rejected KPIs and fixed feedback, max_rounds = 3
     process_descriptions.md the two process descriptions, copied verbatim from stage1_config.json
   input_logs/          16 event logs (CSV): 14 given to GLASS, 2 baseline logs
   bps_models/          16 BPS models (BPMN): 2 baselines, 4 paper models (G1/G2 cases), 10 combined/resource cases
@@ -27,12 +29,12 @@ evaluation/loanapp_p2p/
     GLASS_Stage1_refinement_pilot.xlsx  scored refinement pilot
     stage1_results/              raw outputs of the 70 Stage 1 runs (+ README, patch, verification report)
     stage1_results_normalised/   the same 70 outputs with GLASS's later measurable_as normalisation applied
-    refinement_pilot/            the 9 round-1 refinement outputs
+    refinement_pilot/            the refinement outputs, one record per case and round (9 round-1 + 2 round-2 + 1 round-3)
   scripts/
     run_stage1_batch.py            runs the 14 configurations x N repetitions through GLASS's Stage 1
     verify_stage1_results.py       independent check of a Stage 1 result folder
     reprocess_stage1_normalised.py re-applies the post-processing that produced stage1_results_normalised/
-    run_refinement_pilot.py        runs one refinement round for the pilot cases
+    run_refinement_pilot.py        runs one refinement round (--round N) for the pilot cases
     verify_refinement_pilot.py     independent check of the pilot folder
     relocation.patch               how these scripts differ from the versions used at run time (see Notes)
 ```
@@ -113,15 +115,36 @@ do so.
 ### Refinement pilot
 
 ```bash
-python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py --out evaluation/loanapp_p2p/results/my_pilot
+python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py --out evaluation/loanapp_p2p/results/my_pilot             # round 1: 9 LLM calls
+python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py --round 2 --out evaluation/loanapp_p2p/results/my_pilot   # 2 LLM calls
+python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py --round 3 --out evaluation/loanapp_p2p/results/my_pilot   # only if round 3 is defined
 ```
 
-That is 9 LLM calls, one refinement round each. The first proposals are read from
-`results/stage1_results/` and `results/stage1_results_normalised/`; decisions and feedback come from
-`setup/pilot_config.json`. Undecided KPIs are treated as accepted, as the UI requires a decision on
-every KPI before refining. `--reprocess` re-applies only the deterministic post-processing to the
-stored answers, with no LLM call. `verify_refinement_pilot.py` checks the stored pilot folder
-`results/refinement_pilot/`.
+**Round 1** refines the first proposals, read from `results/stage1_results/` and
+`results/stage1_results_normalised/`. Decisions and feedback come from `setup/pilot_config.json`.
+Undecided KPIs are treated as accepted, as the UI requires a decision on every KPI before refining.
+
+**Further rounds** are defined in `setup/pilot_rounds.json`, for Procure2Pay_G1G2 and Procure2Pay_G2G3.
+From round 2 on, the manager gives concrete feedback (`"protocol": "concrete"`).
+Round n refines round n-1's delivered result and rejects the KPIs listed for that round, each with a
+fixed feedback sentence; every other KPI is accepted. The model, temperature and GLASS code are the same
+in every round. `max_rounds` is 3, so round 3 is the last.
+
+Each record is stored as `raw/<case>_rep1_round<n>.json`. `pilot_summary.csv` has one row per (case,
+round), including the feedback text. Its `outcome` column uses the automatic lenient scoring:
+
+- `reached_without_refinement`: all expected KPIs were already in the first proposal (round 1 only).
+- `reached_after_<n>_round(s)`: all expected KPIs present after round n.
+- `not_reached_after_<n>_round(s)`: not yet all present after round n, with another round to come.
+- `not_converged_after_3_rounds`: still not all present after the last round.
+
+The `manual_outcome` column holds the lead author's assessment where one is recorded (`manual_outcomes` in
+`setup/pilot_rounds.json`). Procure2Pay_G2G3 was closed as `reached_after_2_rounds`, because its round-2
+formula measures the expected waiting time, so it has no round 3. Procure2Pay_G1G2 had a round 3.
+
+`--reprocess` re-applies only the deterministic post-processing to the stored answers of a round, with
+no LLM call. `verify_refinement_pilot.py` checks the stored pilot folder `results/refinement_pilot/`:
+every record of `pilot_config.json` and `pilot_rounds.json`, and the chain from each round to the next.
 
 ### Checking the stored results
 
@@ -162,7 +185,9 @@ python evaluation/loanapp_p2p/scripts/run_stage1_batch.py --workers 4 --out eval
 - **`stage1_results_normalised/`:** apply its own patch instead and run
   `scripts/reprocess_stage1_normalised.py`. It re-processes the stored outputs (no LLM call) and refuses
   to run on any commit other than the base commit.
-- **Pilot LLM calls:** use `results/refinement_pilot/glass_local_fixes_llm_run.patch`.
+- **Pilot LLM calls, round 1:** use `results/refinement_pilot/glass_local_fixes_llm_run.patch`.
+- **Pilot LLM calls, later rounds:** these ran on base + `results/refinement_pilot/glass_local_fixes.patch`,
+  which is commit `4c8dbaf`, so a normal checkout of this commit reproduces their code.
 - **Pilot post-processing:** this equals the current HEAD (table below), so
   `run_refinement_pilot.py --reprocess` reproduces it in a normal checkout.
 
@@ -197,8 +222,8 @@ KPIs with unsupported segmentation, canonical measurable_as").
 |---|---|---|---|
 | `results/stage1_results/` | base + `glass_local_fixes.patch` | `73166a37c3c430c0b015f154e496363f725c2d133f9b82cfd39c91ac46508ba5` | Both file changes unchanged in `4c8dbaf`; `4c8dbaf` adds later changes to `app.py` and `models/smart_kpi.py`. |
 | `results/stage1_results_normalised/` | base + `glass_local_fixes.patch` | `d43ca746c1cfe464ceb3a8860b325bcbbfc19fa4842e5941cf75c736031232dc` | `utils/` and `models/smart_kpi.py` unchanged in `4c8dbaf`. `app.py` in `4c8dbaf` also has the `measurable_as_raw` fix (written only on change, first value wins). |
-| `results/refinement_pilot/`, LLM calls | base + `glass_local_fixes_llm_run.patch` | `d43ca746c1cfe464ceb3a8860b325bcbbfc19fa4842e5941cf75c736031232dc` | As the row above. |
-| `results/refinement_pilot/`, stored post-processing | base + `glass_local_fixes.patch` | `f45ac72c281282ac6c4016f431b6f0886893042444eb6a9a84f15726966827be` | Exactly commit `4c8dbaf`: `git diff c787694 4c8dbaf -- goal_to_parameters` is byte-identical to this patch. |
+| `results/refinement_pilot/`, round-1 LLM calls | base + `glass_local_fixes_llm_run.patch` | `d43ca746c1cfe464ceb3a8860b325bcbbfc19fa4842e5941cf75c736031232dc` | As the row above. |
+| `results/refinement_pilot/`, later-round LLM calls and all stored post-processing | base + `glass_local_fixes.patch` | `f45ac72c281282ac6c4016f431b6f0886893042444eb6a9a84f15726966827be` | Exactly commit `4c8dbaf`: `git diff c787694 4c8dbaf -- goal_to_parameters` is byte-identical to this patch. |
 
 ## Inputs for baseline comparison
 

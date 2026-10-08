@@ -431,7 +431,7 @@ index e19888e..4faff6a 100644
          for path in sorted((SOURCE / "raw" / cfg["id"]).glob("rep_*.json"), key=lambda p: int(p.stem.split("_")[1])):
              source_bytes = path.read_bytes()
 diff --git a/evaluation/run_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
-index 21342ec..b1a2b21 100644
+index 21342ec..1d2120f 100644
 --- a/evaluation/run_refinement_pilot.py
 +++ b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
 @@ -1,7 +1,7 @@
@@ -443,7 +443,7 @@ index 21342ec..b1a2b21 100644
  app's own refinement path (goal_to_parameters/app.py, handle_refinement): build_refinement_prompt(
  sanitize_user_input(...), previous_kpis_json = current_result.model_dump_json(indent=2), accepted /
  rejected names in KPI order, total_kpis = len(kpis), log / context evidence) -> parse_with_retries(
-@@ -10,15 +10,15 @@ _finalize_generated_result post-processing as Stage 1. The app.py functions are
+@@ -10,15 +10,18 @@ _finalize_generated_result post-processing as Stage 1. The app.py functions are
  own source (run_stage1_batch.load_app_stage1); nothing under goal_to_parameters/ is modified, no stored
  answer is altered and no new first proposal is generated.
  
@@ -458,11 +458,22 @@ index 21342ec..b1a2b21 100644
  "Refine KPIs" once no KPI is pending, so every other (undecided) KPI is treated as accepted.
  
 -Usage (repo root):  python evaluation/run_refinement_pilot.py
-+Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
++Further rounds (setup/pilot_rounds.json): round n refines round n-1's delivered result; every KPI not
++rejected in that round is accepted; feedback is fixed per rejected KPI; at most max_rounds rounds.
++
++Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py [--round N]
  """
  
  from __future__ import annotations
-@@ -41,10 +41,10 @@ import run_stage1_batch as batch  # noqa: E402  (also puts goal_to_parameters/ o
+@@ -29,6 +32,7 @@ import csv
+ import json
+ import logging
+ import platform
++import re
+ import sys
+ import time
+ import traceback
+@@ -41,11 +45,22 @@ import run_stage1_batch as batch  # noqa: E402  (also puts goal_to_parameters/ o
  
  from models import KPIGenerationResult  # noqa: E402
  
@@ -470,55 +481,214 @@ index 21342ec..b1a2b21 100644
 -SOURCE = batch.EVAL_DIR / "stage1_results"
 -NORMALISED = batch.EVAL_DIR / "stage1_results_normalised"
 -OUT = batch.EVAL_DIR / "refinement_pilot"
+-ROUND = 1
 +PILOT_CONFIG = batch.SETUP_DIR / "pilot_config.json"
 +SOURCE = batch.RESULTS_DIR / "stage1_results"
 +NORMALISED = batch.RESULTS_DIR / "stage1_results_normalised"
 +OUT = batch.RESULTS_DIR / "refinement_pilot"
- ROUND = 1
++ROUNDS_CONFIG = batch.SETUP_DIR / "pilot_rounds.json"
++
++
++def rounds_config() -> dict:
++    """Further rounds (round >= 2); none when setup/pilot_rounds.json does not exist."""
++    if ROUNDS_CONFIG.exists():
++        return json.loads(ROUNDS_CONFIG.read_text(encoding="utf-8"))
++    return {"max_rounds": 1, "rounds": []}
++
++
++def raw_path(config_id: str, rep: int, rnd: int) -> Path:
++    return OUT / "raw" / f"{config_id}_rep{rep}_round{rnd}.json"
  
  
-@@ -135,7 +135,7 @@ def run_case(case: dict, ctx: dict) -> dict:
+ def expected_key(expected_name: str, cfg: dict) -> str:
+@@ -89,11 +104,13 @@ def summary_row(rec: dict) -> dict:
+                if n not in by_name or by_name[n].get("suggested_formula") != next(
+                    k for k in before if k["name"] == n).get("suggested_formula")]
+     pb, pa, ex = present(case["expected"], keys, before), present(case["expected"], keys, after), extras(keys, after)
++    rnd = rec.get("round", 1)
+     row = {"case": f"{case['config_id']}_rep{case['rep']}", "config_id": case["config_id"], "rep": case["rep"],
+-           "status": rec["status"], "attempts": len(rec["attempts"]),
++           "round": rnd, "protocol": case.get("protocol") or "", "status": rec["status"], "attempts": len(rec["attempts"]),
+            "accepted": "|".join(rec["decisions"]["accepted"]),
+            "accepted_from_undecided": "|".join(rec["decisions"]["undecided_treated_as_accepted"]),
+-           "rejected": "|".join(rec["decisions"]["rejected"]), "expected": "|".join(case["expected"])}
++           "rejected": "|".join(rec["decisions"]["rejected"]), "feedback_text": rec["feedback_text"],
++           "expected": "|".join(case["expected"])}
+     for mode in ("strict", "lenient"):
+         row[f"{mode}_present_before"] = "|".join(pb[mode])
+         row[f"{mode}_present_after"] = "|".join(pa[mode])
+@@ -101,8 +118,16 @@ def summary_row(rec: dict) -> dict:
+         row[f"{mode}_n_extras_after"] = len(ex[mode])
+         row[f"{mode}_extras_after"] = "|".join(ex[mode])
+     all_found = lambda p: len(p["lenient"]) == len(case["expected"])   # outcome uses lenient scoring
+-    row["outcome"] = ("reached_without_refinement" if all_found(pb) else
+-                      "reached_after_1_round" if after and all_found(pa) else "not_reached_after_1_round")
++    if rnd == 1:
++        row["outcome"] = ("reached_without_refinement" if all_found(pb) else
++                          "reached_after_1_round" if after and all_found(pa) else "not_reached_after_1_round")
++    elif after and all_found(pa):
++        row["outcome"] = f"reached_after_{rnd}_rounds"
++    else:
++        row["outcome"] = (f"not_converged_after_{rnd}_rounds" if rnd >= rounds_config()["max_rounds"]
++                          else f"not_reached_after_{rnd}_rounds")
++    # manual assessment recorded in setup/pilot_rounds.json (manual_outcomes), empty where none is recorded
++    row["manual_outcome"] = (rounds_config().get("manual_outcomes", {}).get(f"{row['case']}_round{rnd}") or {}).get("outcome", "")
+     row.update({
+         "accepted_unchanged": ("yes" if not changed else "no") if after else "",
+         "accepted_changed": "|".join(changed) if after else "",
+@@ -114,8 +139,9 @@ def summary_row(rec: dict) -> dict:
+     return row
+ 
+ 
+-def run_case(case: dict, ctx: dict) -> dict:
+-    app, cfg = ctx["app"], ctx["configs"][case["config_id"]]
++def plan_round1(case: dict, ctx: dict) -> dict:
++    """Round 1: the first proposal is the stage1_results_normalised result of the source run."""
++    cfg = ctx["configs"][case["config_id"]]
+     src_path = SOURCE / "raw" / cfg["id"] / f"rep_{case['rep']}.json"
+     norm_path = NORMALISED / "raw" / cfg["id"] / f"rep_{case['rep']}.json"
+     src_bytes = src_path.read_bytes()
+@@ -134,8 +160,49 @@ def run_case(case: dict, ctx: dict) -> dict:
+     accepted = [n for n in names if decision[n] == "accepted"]   # KPI order, as handle_refinement builds them
      rejected = [n for n in names if decision[n] == "rejected"]
      undecided = [n for n in names if n not in case["accept"] + case["reject"]]
- 
+-
 -    log_path = batch.EVAL_DIR / "input_logs" / cfg["event_log"]
++    return {"case": case, "round": 1, "first": first, "first_dict": norm["result"], "cfg": cfg,
++            "accepted": accepted, "rejected": rejected, "undecided": undecided,
++            "configured_accept": case["accept"], "configured_reject": case["reject"],
++            "provenance": {"source_file": src_path.relative_to(batch.REPO_ROOT).as_posix(),
++                           "source_sha256": batch.sha256(src_bytes),
++                           "first_proposal_file": norm_path.relative_to(batch.REPO_ROOT).as_posix(),
++                           "first_proposal_file_sha256": batch.sha256(norm_path.read_bytes())}}
++
++
++def plan_next_round(entry: dict, base_case: dict, ctx: dict) -> dict:
++    """Round n >= 2: the first proposal is round n-1's delivered result; every KPI not rejected is accepted."""
++    cfg, rnd = ctx["configs"][entry["config_id"]], entry["round"]
++    prev_path = raw_path(entry["config_id"], entry["rep"], rnd - 1)
++    if not prev_path.exists():
++        sys.exit(f"{entry['config_id']} round {rnd}: previous round {prev_path.name} not found")
++    prev_bytes = prev_path.read_bytes()
++    prev = json.loads(prev_bytes)
++    if prev["status"] != "ok" or not prev.get("result"):
++        sys.exit(f"{prev_path.name}: the previous round has no delivered result")
++    first = KPIGenerationResult.model_validate(prev["result"])
++    names = [k.name for k in first.kpis]
++    unknown = [n for n in entry["reject"] if n not in names]
++    if unknown or len(set(names)) != len(names):
++        sys.exit(f"{cfg['id']} round {rnd}: rejected names not in round {rnd - 1}'s result (exact match): "
++                 f"{unknown} or duplicate KPI names; KPIs are {names}")
++    rejected = [n for n in names if n in entry["reject"]]       # KPI order, as handle_refinement builds them
++    accepted = [n for n in names if n not in entry["reject"]]
++    case = {"config_id": entry["config_id"], "rep": entry["rep"], "round": rnd, "protocol": entry.get("protocol"),
++            "expected": base_case["expected"], "accept": [], "reject": entry["reject"],
++            "feedback_text": entry["feedback_text"]}
++    return {"case": case, "round": rnd, "first": first, "first_dict": prev["result"], "cfg": cfg,
++            "accepted": accepted, "rejected": rejected, "undecided": [],
++            "configured_accept": accepted, "configured_reject": entry["reject"],
++            "provenance": {"previous_round_file": prev_path.relative_to(batch.REPO_ROOT).as_posix(),
++                           "previous_round_sha256": batch.sha256(prev_bytes)}}
++
++
++def refine(plan: dict, ctx: dict) -> dict:
++    """One refinement round through handle_refinement's path; everything is recorded verbatim."""
++    app, cfg, case, first = ctx["app"], plan["cfg"], plan["case"], plan["first"]
++    accepted, rejected = plan["accepted"], plan["rejected"]
++
 +    log_path = batch.LOGS_DIR / cfg["event_log"]
      log_profile, log_evidence, context_evidence = ctx["artifacts"][cfg["event_log"]]
      description, goal = ctx["descriptions"][cfg["process"]], cfg["simulation_goal"]
      feedback = case["feedback_text"].strip()            # the UI passes feedback_text.strip()
-@@ -222,24 +222,24 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+@@ -178,14 +245,12 @@ def run_case(case: dict, ctx: dict) -> dict:
+                          "raw": call["raw"]})
+     issues = (validation or {}).get("issues", [])
+     rec = {
+-        "case": case, "round": ROUND, "status": status, "error": error,
+-        "source_file": src_path.relative_to(batch.REPO_ROOT).as_posix(), "source_sha256": batch.sha256(src_bytes),
+-        "first_proposal_file": norm_path.relative_to(batch.REPO_ROOT).as_posix(),
+-        "first_proposal_file_sha256": batch.sha256(norm_path.read_bytes()),
+-        "first_proposal": norm["result"],
++        "case": case, "round": plan["round"], "status": status, "error": error,
++        **plan["provenance"],
++        "first_proposal": plan["first_dict"],
+         "expected_keys": {e: expected_key(e, cfg) for e in case["expected"]},
+-        "decisions": {"accepted": accepted, "rejected": rejected, "undecided_treated_as_accepted": undecided,
+-                      "configured_accept": case["accept"], "configured_reject": case["reject"]},
++        "decisions": {"accepted": accepted, "rejected": rejected, "undecided_treated_as_accepted": plan["undecided"],
++                      "configured_accept": plan["configured_accept"], "configured_reject": plan["configured_reject"]},
+         "feedback_text": case["feedback_text"], "human_feedback_sent": feedback,
+         "feedback_scope_gate_passed": feedback_gate is None, "feedback_scope_gate_message": feedback_gate,
+         "provider": type(ctx["provider"]).__name__, "model": ctx["provider"].get_model_name(),
+@@ -193,7 +258,7 @@ def run_case(case: dict, ctx: dict) -> dict:
+         "process": cfg["process"], "simulation_goal": goal,
+         "event_log": cfg["event_log"], "event_log_sha256": batch.sha256(log_path.read_bytes()),
+         "script_sha256": ctx["script_sha"], "app_py_sha256": ctx["app_sha"], "glass_patch_sha256": ctx["patch_sha"],
+-        "pilot_config_sha256": ctx["pilot_sha"], "timestamp": started, "elapsed_s": elapsed,
++        "head_commit": ctx["head"], "pilot_config_sha256": ctx["pilot_sha"], "timestamp": started, "elapsed_s": elapsed,
+         "previous_kpis_json": previous_kpis_json, "system_prompt": system_prompt, "user_prompt": user_prompt,
+         "raw": raw_output, "attempts": attempts, "parse_warnings": parse_warnings,
+         "result_parsed": app["parse_kpi_generation_payload"](raw_output).model_dump(mode="python") if result else None,
+@@ -210,7 +275,11 @@ SOFT_CREDIT_KPI = "Purchasing Agent Workload by Time of Day"
+ 
+ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+     git = lambda *a: batch.subprocess.run(["git", *a], cwd=batch.REPO_ROOT, capture_output=True, text=True).stdout.strip()
+-    recs = {r["case"]: json.loads((OUT / "raw" / f"{r['case']}_round1.json").read_text(encoding="utf-8")) for r in rows}
++    recs = {r["case"]: json.loads(raw_path(r["config_id"], r["rep"], 1).read_text(encoding="utf-8"))
++            for r in rows if int(r["round"]) == 1}
++    later = [(r, json.loads(raw_path(r["config_id"], r["rep"], int(r["round"])).read_text(encoding="utf-8")))
++             for r in rows if int(r["round"]) > 1]
++    rc = rounds_config()
+     first = next(iter(recs.values()))
+     gated = [c for c, rec in recs.items() if not rec["feedback_scope_gate_passed"]]
+     dropped = [(c, n) for c, rec in recs.items() if rec.get("result")
+@@ -218,29 +287,33 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+     soft = [(c, k) for c, rec in recs.items() for k in (rec.get("result") or {}).get("kpis", [])
+             if k["name"] == SOFT_CREDIT_KPI]
+     llm_patch = OUT / "glass_local_fixes_llm_run.patch"
+-    stamps = sorted(rec["timestamp"] for rec in recs.values())
++    stamps = sorted([rec["timestamp"] for rec in recs.values()] + [rec["timestamp"] for _, rec in later])
      post = {rec.get("postprocessing", {}).get("reprocessed_at") for rec in recs.values()} - {None}
      lines = [
-         "# GLASS refinement pilot — round 1", "",
+-        "# GLASS refinement pilot — round 1", "",
 -        "Generated by `evaluation/run_refinement_pilot.py`. One refinement round per case through app.py's",
-+        f"Generated by `{batch.rel(__file__)}`. One refinement round per case through app.py's",
++        "# GLASS refinement pilot", "",
++        f"Generated by `{batch.rel(__file__)}`. Round 1 for every case, further rounds as listed below, through app.py's",
          "`handle_refinement` path (build_refinement_prompt -> parse_with_retries -> _finalize_generated_result).", "",
          "## Reproduce", "", "```",
-         f"git checkout {git('rev-parse', 'HEAD')}",
+-        f"git checkout {git('rev-parse', 'HEAD')}",
 -        f"git apply evaluation/refinement_pilot/{batch.PATCH_NAME}",
++        f"git checkout {ctx['base']}",
 +        f"git apply {batch.rel(OUT / batch.PATCH_NAME)}",
          "# plus run_stage1_batch.py, run_refinement_pilot.py, pilot_config.json, stage1_config.json, input_logs/,",
          "# stage1_results/raw/ and stage1_results_normalised/raw/ matching the SHA-256 recorded per case",
 -        "python evaluation/run_refinement_pilot.py              # 9 LLM calls, one round",
 -        "python evaluation/verify_refinement_pilot.py", "```", "",
-+        f"python {batch.rel(__file__)}              # 9 LLM calls, one round",
++        f"python {batch.rel(__file__)}              # round 1: 9 LLM calls",
++        *[f"python {batch.rel(__file__)} --round {n}    # round {n}: "
++          f"{sum(e['round'] == n for e in rc['rounds'])} LLM calls (setup/pilot_rounds.json)"
++          for n in sorted({e["round"] for e in rc["rounds"]})],
 +        f"python {batch.rel(Path(__file__).with_name('verify_refinement_pilot.py'))}", "```", "",
          "To replay this exact run: apply `glass_local_fixes_llm_run.patch` instead, run the pilot (the LLM",
          "calls), then switch goal_to_parameters/ to `glass_local_fixes.patch` and run",
 -        "`python evaluation/run_refinement_pilot.py --reprocess` (no LLM call).", "",
 +        f"`python {batch.rel(__file__)} --reprocess` (no LLM call).", "",
          "## Run", "",
-         f"- Base commit: `{git('rev-parse', 'HEAD')}`",
+-        f"- Base commit: `{git('rev-parse', 'HEAD')}`",
 -        f"- GLASS patch during the LLM calls: `evaluation/refinement_pilot/{llm_patch.name}`, SHA-256 "
-+        f"- GLASS patch during the LLM calls: `{batch.rel(llm_patch)}`, SHA-256 "
++        f"- Base commit: `{ctx['base']}`",
++        f"- GLASS patch during the round-1 LLM calls: `{batch.rel(llm_patch)}`, SHA-256 "
          f"`{first['glass_patch_sha256']}` (= `stage1_results_normalised/{batch.PATCH_NAME}`: "
          f"{first['glass_patch_sha256'] == ctx['normalised_patch_sha']})",
 -        f"- GLASS patch of the stored post-processing: `evaluation/refinement_pilot/{batch.PATCH_NAME}`, SHA-256 "
+-        f"`{ctx['patch_sha']}`. It extends the LLM-run patch only in `normalise_measurable_as`: "
 +        f"- GLASS patch of the stored post-processing: `{batch.rel(OUT / batch.PATCH_NAME)}`, SHA-256 "
-         f"`{ctx['patch_sha']}`. It extends the LLM-run patch only in `normalise_measurable_as`: "
++        f"`{ctx['patch_sha']}`; the LLM calls of rounds >= 2 ran on this code too. It extends the round-1 "
++        "LLM-run patch only in `normalise_measurable_as`: "
          "measurable_as_raw is written only when the value changes and never overwritten (first value wins).",
          "  The refinement prompts do not depend on that function, so the LLM inputs are the same under both patches.",
-@@ -248,11 +248,11 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+         f"- Records re-processed with it (deterministic post-processing only, no LLM call): {', '.join(sorted(post)) or 'no'}",
+@@ -248,12 +321,13 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
          f"- Provider / model: `{first['provider']}` / `{first['model']}`",
          f"- Temperature: {first['temperature']}, json_mode: {first['json_mode']} (keyword constants of",
          "  handle_refinement's parse_with_retries call, read from app.py); no few-shot messages",
@@ -530,11 +700,47 @@ index 21342ec..b1a2b21 100644
 +        f"- `{batch.rel(__file__)}` SHA-256 now: `{ctx['script_sha']}`; during the LLM calls: "
          f"`{first['script_sha256']}`",
 -        f"- `evaluation/run_stage1_batch.py` SHA-256: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
+-        f"- Cases: {len(rows)}; rounds: {ROUND}; LLM calls {stamps[0]} .. {stamps[-1]}; "
 +        f"- `{batch.rel(batch.__file__)}` SHA-256: `{batch.sha256(Path(batch.__file__).read_bytes())}`",
-         f"- Cases: {len(rows)}; rounds: {ROUND}; LLM calls {stamps[0]} .. {stamps[-1]}; "
++        f"- Cases: {len(recs)}; records (case x round): {len(rows)}; max rounds: {rc['max_rounds']}; "
++        f"LLM calls {stamps[0]} .. {stamps[-1]}; "
          f"this invocation {started} .. {ended}",
          f"- Python {platform.python_version()}; openai {version('openai')}; pydantic {version('pydantic')}", "",
-@@ -323,15 +323,20 @@ def reprocess_record(rec: dict, ctx: dict, now: str) -> dict:
+         "## Findings to keep in mind", "",
+@@ -267,7 +341,20 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+           f"formula `{k['suggested_formula']}` counts activity occurrences per hour; it is not a utilization measure."
+           for c, k in soft],
+         "- `outcome` (lenient scoring): reached_without_refinement = all expected KPIs already in the first "
+-        "proposal; reached_after_1_round = all present after round 1; not_reached_after_1_round otherwise.", "",
++        "proposal; reached_after_N_round(s) = all present after round N; not_reached_after_N_round(s) otherwise; "
++        f"not_converged_after_{rc['max_rounds']}_rounds = still not reached after the last round "
++        f"({rc['max_rounds']}).",
++        "- `manual_outcome`: the lead author's assessment where one is recorded (`manual_outcomes` in "
++        "`setup/pilot_rounds.json`), e.g. a case closed after reaching the expected KPI by its formula; empty "
++        "otherwise.", "",
++        "## Further rounds", "",
++        "From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`). "
++        "Decisions and fixed feedback: `setup/pilot_rounds.json`. Round n refines round n-1's delivered result; "
++        "every KPI not rejected in that round is accepted. The feedback text of every record is in "
++        "`pilot_summary.csv` (column `feedback_text`).", "",
++        *([f"- {r['case']} round {r['round']} ({r['protocol']} feedback): rejected {r['rejected'].replace('|', '; ')}; outcome "
++           f"`{r['outcome']}`; LLM call {rec['timestamp']}, GLASS patch SHA-256 `{rec['glass_patch_sha256']}` "
++           f"(HEAD `{rec.get('head_commit')}`)" for r, rec in later] or ["- none yet"]), "",
+         "## Method notes", "",
+         "- First proposal = `result` of the `stage1_results_normalised/` record whose",
+         "  `normalisation.source_file_sha256` equals the SHA-256 of the `stage1_results/` source file (same LLM",
+@@ -279,7 +366,9 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+         f"  it would block: {', '.join(gated) or 'none'}.",
+         "- Expected KPIs are scored with the batch's rule sets; `<role> Utilization` is scored as",
+         "  `Resource Utilization` (the lenient rule does not check the role).",
+-        "- `accepted_unchanged`: every accepted KPI is still present with identical name and suggested_formula.", "",
++        "- `accepted_unchanged`: every accepted KPI is still present with identical name and suggested_formula.",
++        "- Script SHA-256 values recorded before the scripts moved to `evaluation/loanapp_p2p/scripts/` refer to "
++        "the run-time versions; `scripts/relocation.patch` restores them.", "",
+     ]
+     (OUT / "README.md").write_text("\n".join(lines), encoding="utf-8")
+ 
+@@ -323,17 +412,33 @@ def reprocess_record(rec: dict, ctx: dict, now: str) -> dict:
  
  
  def main() -> None:
@@ -542,21 +748,37 @@ index 21342ec..b1a2b21 100644
      started = datetime.now(timezone.utc).isoformat(timespec="seconds")
      ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
 +    ap.add_argument("--out", type=Path, default=OUT, help="pilot folder (resumes: stored cases are skipped)")
++    ap.add_argument("--round", type=int, default=1,
++                    help="round to run: 1 = all pilot cases, N >= 2 = the round-N entries of setup/pilot_rounds.json")
      ap.add_argument("--reprocess", action="store_true",
                      help="re-run only the deterministic post-processing on the stored raw answers (no LLM call)")
      args = ap.parse_args()
 +    OUT = args.out
      pilot = json.loads(PILOT_CONFIG.read_text(encoding="utf-8"))
      stage1 = json.loads(batch.CONFIG_PATH.read_text(encoding="utf-8"))
-     patch, patch_file = batch.glass_patch(), OUT / batch.PATCH_NAME
+-    patch, patch_file = batch.glass_patch(), OUT / batch.PATCH_NAME
 -    if not patch_file.exists() or patch_file.read_bytes() != patch:
+-        sys.exit(f"goal_to_parameters/ local changes differ from {patch_file}; save them with\n"
+-                 f"  git diff --output={patch_file.relative_to(batch.REPO_ROOT).as_posix()} -- goal_to_parameters")
++    git = lambda *a: batch.subprocess.run(["git", *a], cwd=batch.REPO_ROOT, capture_output=True, check=True).stdout
++    head = git("rev-parse", "HEAD").decode().strip()
++    readme = OUT / "README.md"
++    found = re.search(r"Base commit: `([0-9a-f]{40})`", readme.read_text(encoding="utf-8")) if readme.exists() else None
++    base = found.group(1) if found else head
++    # GLASS code in use = base commit + this folder's glass_local_fixes.patch (nothing else)
++    patch, patch_file = git("diff", base, "--", "goal_to_parameters"), OUT / batch.PATCH_NAME
 +    if not patch and patch_file.exists():
-+        sys.exit(f"{patch_file} exists but goal_to_parameters/ has no local changes")
++        sys.exit(f"{patch_file} exists but goal_to_parameters/ equals the base commit {base[:7]}")
 +    if patch and (not patch_file.exists() or patch_file.read_bytes() != patch):
-         sys.exit(f"goal_to_parameters/ local changes differ from {patch_file}; save them with\n"
-                  f"  git diff --output={patch_file.relative_to(batch.REPO_ROOT).as_posix()} -- goal_to_parameters")
++        sys.exit(f"goal_to_parameters/ differs from base commit {base[:7]} + {patch_file}; save the difference with\n"
++                 f"  git diff --output={patch_file.relative_to(batch.REPO_ROOT).as_posix()} {base} -- goal_to_parameters")
++    rc = rounds_config()
++    if not 1 <= args.round <= rc["max_rounds"]:
++        sys.exit(f"--round {args.round}: allowed 1..{rc['max_rounds']} (max_rounds in {ROUNDS_CONFIG.name})")
  
-@@ -344,12 +349,12 @@ def main() -> None:
+     sys.stdout = batch._MuteCostTracker(sys.stdout)
+     logging.getLogger("utils.parsing").addHandler(batch._ParseWarnings())
+@@ -344,21 +449,30 @@ def main() -> None:
      for case in pilot["cases"]:
          log_name = configs[case["config_id"]]["event_log"]
          if log_name not in artifacts:
@@ -567,22 +789,68 @@ index 21342ec..b1a2b21 100644
             "call": app_refinement_call(),
             "script_sha": batch.sha256(Path(__file__).read_bytes()), "app_sha": batch.sha256(batch.APP_PATH.read_bytes()),
 -           "patch_sha": batch.sha256(patch), "pilot_sha": batch.sha256(PILOT_CONFIG.read_bytes()),
+-           "normalised_patch_sha": batch.sha256((NORMALISED / batch.PATCH_NAME).read_bytes())}
 +           "patch_sha": batch.sha256(patch) if patch else None, "pilot_sha": batch.sha256(PILOT_CONFIG.read_bytes()),
-            "normalised_patch_sha": batch.sha256((NORMALISED / batch.PATCH_NAME).read_bytes())}
++           "normalised_patch_sha": batch.sha256((NORMALISED / batch.PATCH_NAME).read_bytes()),
++           "head": head, "base": base}
      if not args.reprocess:   # no provider at all in --reprocess mode: it cannot call the LLM
          ctx["provider"] = batch.make_provider(stage1["settings"]["model"])
+         batch.log(f"Provider: {ctx['provider'].get_model_name()}  call: {ctx['call']}  GLASS patch: {ctx['patch_sha']}")
+ 
+-    rows = []
+-    for n, case in enumerate(pilot["cases"], 1):
+-        path = OUT / "raw" / f"{case['config_id']}_rep{case['rep']}_round{ROUND}.json"
+-        prefix = f"[{n}/{len(pilot['cases'])}] {case['config_id']} rep {case['rep']} round {ROUND} ..."
++    base_cases = {(c["config_id"], c["rep"]): c for c in pilot["cases"]}
++    if args.round == 1:
++        jobs = [(c["config_id"], c["rep"], 1, lambda c=c: plan_round1(c, ctx)) for c in pilot["cases"]]
++    else:
++        entries = [e for e in rc["rounds"] if e["round"] == args.round]
++        if not entries:
++            sys.exit(f"no round-{args.round} entries in {ROUNDS_CONFIG.name}")
++        jobs = [(e["config_id"], e["rep"], e["round"],
++                 lambda e=e: plan_next_round(e, base_cases[(e["config_id"], e["rep"])], ctx)) for e in entries]
++    for n, (cid, rep, rnd, plan) in enumerate(jobs, 1):
++        path = raw_path(cid, rep, rnd)
++        prefix = f"[{n}/{len(jobs)}] {cid} rep {rep} round {rnd} ..."
+         rec = batch.load_json(path)
+         if args.reprocess:
+             if rec is None:
+@@ -372,11 +486,17 @@ def main() -> None:
+         else:
+             if n > 1:
+                 time.sleep(batch.PAUSE_S)
+-            batch.write_json(path, run_case(case, ctx))
++            batch.write_json(path, refine(plan(), ctx))
+             rec = batch.load_json(path)   # score what is stored (enums as their JSON values)
+             kpis = (rec["result"] or {}).get("kpis") or []
+             batch.log(f"{prefix} {rec['status']} ({len(kpis)} KPIs, {len(rec['attempts'])} attempt(s), {rec['elapsed_s']:.1f} s)")
+-        rows.append(summary_row(rec))
++
++    rows = []   # every stored record, one row per (case, round)
++    for c in pilot["cases"]:
++        for rnd in range(1, rc["max_rounds"] + 1):
++            rec = batch.load_json(raw_path(c["config_id"], c["rep"], rnd))
++            if rec:
++                rows.append(summary_row(rec))
+     batch.write_csv(OUT / "pilot_summary.csv", rows)
+     write_readme(ctx, rows, started, datetime.now(timezone.utc).isoformat(timespec="seconds"))
+     batch.log(f"\nWrote pilot_summary.csv and README.md in {OUT}")
 diff --git a/evaluation/verify_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
-index f344d36..656b4f0 100644
+index f344d36..9ed1bc1 100644
 --- a/evaluation/verify_refinement_pilot.py
 +++ b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
-@@ -1,5 +1,5 @@
+@@ -1,5 +1,8 @@
  """
 -Independent verification of evaluation/refinement_pilot/ (report only: never edits or reruns anything).
 +Independent verification of results/refinement_pilot/ (report only: never edits or reruns anything).
++
++Records: round 1 for every case of setup/pilot_config.json, plus one record per entry of
++setup/pilot_rounds.json (round n refines round n-1's delivered result).
  
  Checks
    1. files     : one raw file per pilot case, status ok; one model / temperature / json_mode / patch /
-@@ -13,14 +13,17 @@ Checks
+@@ -13,14 +16,17 @@ Checks
                   previous_kpis_json it was shown, (b) delivered result vs first proposal. Differences are
                   listed per field.
    5. summary   : pilot_summary.csv rebuilt from the raw files with fresh code and diffed cell by cell.
@@ -604,7 +872,7 @@ index f344d36..656b4f0 100644
  """
  
  from __future__ import annotations
-@@ -34,16 +37,30 @@ import subprocess
+@@ -34,16 +40,30 @@ import subprocess
  import sys
  from pathlib import Path
  
@@ -639,18 +907,127 @@ index f344d36..656b4f0 100644
  def digest(data: bytes) -> str:
      return hashlib.sha256(data).hexdigest()
  
-@@ -116,7 +133,7 @@ def fresh_row(rec: dict) -> dict[str, str]:
+@@ -70,8 +90,8 @@ def key_for(expected: str) -> str:
+     return "Resource Utilization" if re.search(r" Utilization$", expected) else expected
+ 
+ 
+-def fresh_row(rec: dict) -> dict[str, str]:
+-    case = rec["case"]
++def fresh_row(rec: dict, max_rounds: int, manual: dict) -> dict[str, str]:
++    case, rnd = rec["case"], rec["round"]
+     before, after = rec["first_proposal"]["kpis"], (rec.get("result") or {}).get("kpis") or []
+     exp = case["expected"]
+ 
+@@ -90,22 +110,31 @@ def fresh_row(rec: dict) -> dict[str, str]:
+     changed = [n for n in rec["decisions"]["accepted"]
+                if n not in after_formula or after_formula[n] != before_formula[n]]
+     row = {"case": f"{case['config_id']}_rep{case['rep']}", "config_id": case["config_id"], "rep": case["rep"],
+-           "status": rec["status"], "attempts": len(rec["attempts"]),
++           "round": rnd, "protocol": case.get("protocol") or "", "status": rec["status"], "attempts": len(rec["attempts"]),
+            "accepted": "|".join(rec["decisions"]["accepted"]),
+-           "accepted_from_undecided": "|".join(n for n in rec["decisions"]["accepted"] if n not in case["accept"]),
+-           "rejected": "|".join(rec["decisions"]["rejected"]), "expected": "|".join(exp)}
++           # round 1: KPIs left undecided in pilot_config.json; rounds >= 2 accept every non-rejected KPI by rule
++           "accepted_from_undecided": "|".join(n for n in rec["decisions"]["accepted"] if n not in case["accept"])
++           if rnd == 1 else "",
++           "rejected": "|".join(rec["decisions"]["rejected"]), "feedback_text": rec["feedback_text"],
++           "expected": "|".join(exp)}
+     for mode, fn, extra in (("strict", strict, s_extra), ("lenient", lenient, l_extra)):
+         row[f"{mode}_present_before"] = "|".join(fn(before))
+         row[f"{mode}_present_after"] = "|".join(fn(after))
+         row[f"{mode}_still_missing"] = "|".join(e for e in exp if e not in fn(after))
+         row[f"{mode}_n_extras_after"] = len(extra)
+         row[f"{mode}_extras_after"] = "|".join(extra)
+-    if set(lenient(before)) == set(exp):
++    reached_after = bool(after) and set(lenient(after)) == set(exp)
++    if rnd == 1 and set(lenient(before)) == set(exp):
+         row["outcome"] = "reached_without_refinement"
+-    elif after and set(lenient(after)) == set(exp):
+-        row["outcome"] = "reached_after_1_round"
++    elif rnd == 1:
++        row["outcome"] = "reached_after_1_round" if reached_after else "not_reached_after_1_round"
++    elif reached_after:
++        row["outcome"] = f"reached_after_{rnd}_rounds"
++    elif rnd >= max_rounds:
++        row["outcome"] = f"not_converged_after_{rnd}_rounds"
+     else:
+-        row["outcome"] = "not_reached_after_1_round"
++        row["outcome"] = f"not_reached_after_{rnd}_rounds"
++    row["manual_outcome"] = manual.get(f"{row['case']}_round{rnd}", {}).get("outcome", "")
+     row["accepted_unchanged"] = ("no" if changed else "yes") if after else ""
+     row["accepted_changed"] = "|".join(changed) if after else ""
+     row["rejected_names_still_present"] = "|".join(n for n in rec["decisions"]["rejected"] if n in after_formula)
+@@ -116,38 +145,66 @@ def fresh_row(rec: dict) -> dict[str, str]:
  
  
  def main() -> None:
 -    pilot = json.loads((EVAL / "pilot_config.json").read_text(encoding="utf-8"))
 +    pilot = json.loads((SETUP / "pilot_config.json").read_text(encoding="utf-8"))
      report = Report()
-     records, fails = {}, []
+-    records, fails = {}, []
++    rounds_path = SETUP / "pilot_rounds.json"
++    rounds = json.loads(rounds_path.read_text(encoding="utf-8")) if rounds_path.exists() else {"max_rounds": 1, "rounds": []}
++    base_cases = {(c["config_id"], c["rep"]): c for c in pilot["cases"]}
++    expected_cases = {}   # label -> the case each record must store
      for case in pilot["cases"]:
-@@ -146,8 +163,8 @@ def main() -> None:
+-        name = f"{case['config_id']}_rep{case['rep']}"
+-        path = PILOT / "raw" / f"{name}_round1.json"
++        expected_cases[f"{case['config_id']}_rep{case['rep']}_round1"] = case
++    for e in rounds["rounds"]:
++        base = base_cases[(e["config_id"], e["rep"])]
++        expected_cases[f"{e['config_id']}_rep{e['rep']}_round{e['round']}"] = {
++            "config_id": e["config_id"], "rep": e["rep"], "round": e["round"], "protocol": e.get("protocol"),
++            "expected": base["expected"], "accept": [], "reject": e["reject"], "feedback_text": e["feedback_text"]}
++    records, fails = {}, []
++    for name, case in expected_cases.items():
++        path = PILOT / "raw" / f"{name}.json"
+         if not path.exists():
+             fails.append(f"missing raw/{path.name}")
+             continue
+         rec = records[name] = json.loads(path.read_text(encoding="utf-8"))
+         if rec["status"] != "ok":
+             fails.append(f"{name}: status {rec['status']}")
+-        if rec["case"] != case:
+-            fails.append(f"{name}: stored case differs from pilot_config.json")
+-    extra = sorted(p.name for p in (PILOT / "raw").glob("*.json") if p.name[: -len("_round1.json")] not in records)
++        if rec["case"] != case or rec["round"] != case.get("round", 1):
++            fails.append(f"{name}: stored case / round differs from pilot_config.json / pilot_rounds.json")
++        if case.get("round", 1) > rounds["max_rounds"]:
++            fails.append(f"{name}: round beyond max_rounds {rounds['max_rounds']}")
++    extra = sorted(p.name for p in (PILOT / "raw").glob("*.json") if p.stem not in records)
+     fails += [f"unexpected file raw/{n}" for n in extra]
+     constants = handle_refinement_constants()
+-    for field in ("model", "temperature", "json_mode", "glass_patch_sha256", "script_sha256", "app_py_sha256"):
++    for field in ("model", "temperature", "json_mode"):
+         values = {canon(r.get(field)) for r in records.values()}
+         if len(values) != 1:
+             fails.append(f"{field}: {sorted(values)}")
++    for rnd in sorted({r["round"] for r in records.values()}):   # code and script are fixed within a round
++        for field in ("glass_patch_sha256", "script_sha256", "app_py_sha256"):
++            values = {canon(r.get(field)) for r in records.values() if r["round"] == rnd}
++            if len(values) != 1:
++                fails.append(f"round {rnd} {field}: {sorted(values)}")
+     for field in ("temperature", "json_mode"):
+         if {r.get(field) for r in records.values()} != {constants.get(field)}:
+             fails.append(f"{field} != handle_refinement's {constants.get(field)!r}")
+-    report.add(f"1. raw files ({len(records)}/{len(pilot['cases'])}; handle_refinement {constants})",
+-               len(pilot["cases"]) + 8, fails)
++    report.add(f"1. raw files ({len(records)}/{len(expected_cases)} records, max {rounds['max_rounds']} rounds; "
++               f"handle_refinement {constants})", len(expected_cases) + 8, fails)
+ 
      fails, checked = [], 0
      for name, rec in records.items():
++        if rec["round"] > 1:
++            checked += 3
++            prev_bytes = stored_path(rec["previous_round_file"]).read_bytes()
++            if digest(prev_bytes) != rec["previous_round_sha256"]:
++                fails.append(f"{name}: {rec['previous_round_file']} no longer has the recorded SHA-256")
++            if Path(rec["previous_round_file"]).name != f"{name.rsplit('_round', 1)[0]}_round{rec['round'] - 1}.json" or \
++                    canon(rec["first_proposal"]) != canon(json.loads(prev_bytes)["result"]):
++                fails.append(f"{name}: first_proposal is not round {rec['round'] - 1}'s delivered result")
++            if rec["previous_kpis_json"] != KPIGenerationResult.model_validate(rec["first_proposal"]).model_dump_json(indent=2):
++                fails.append(f"{name}: previous_kpis_json is not the first proposal's model_dump_json(indent=2)")
++            continue
          checked += 5
 -        src_bytes = (REPO / rec["source_file"]).read_bytes()
 -        norm_bytes = (REPO / rec["first_proposal_file"]).read_bytes()
@@ -659,7 +1036,41 @@ index f344d36..656b4f0 100644
          norm = json.loads(norm_bytes)
          if digest(src_bytes) != rec["source_sha256"]:
              fails.append(f"{name}: {rec['source_file']} no longer has the recorded SHA-256")
-@@ -219,11 +236,12 @@ def main() -> None:
+@@ -160,7 +217,8 @@ def main() -> None:
+             fails.append(f"{name}: first_proposal != normalised record's result")
+         if rec["previous_kpis_json"] != KPIGenerationResult.model_validate(rec["first_proposal"]).model_dump_json(indent=2):
+             fails.append(f"{name}: previous_kpis_json is not the first proposal's model_dump_json(indent=2)")
+-    report.add("2. source files byte-identical, first proposal = normalised result of the same answer", checked, fails)
++    report.add("2. first proposals: round 1 = normalised result of the stored answer (source files byte-identical); "
++               "round n = round n-1's delivered result", checked, fails)
+ 
+     fails, checked = [], 0
+     for name, rec in records.items():
+@@ -169,7 +227,11 @@ def main() -> None:
+         if sorted(d["accepted"] + d["rejected"]) != sorted(names):
+             fails.append(f"{name}: accepted + rejected != first-proposal KPIs")
+         if d["rejected"] != [n for n in names if n in rec["case"]["reject"]] or not set(rec["case"]["accept"]) <= set(d["accepted"]):
+-            fails.append(f"{name}: decisions do not follow pilot_config.json")
++            fails.append(f"{name}: decisions do not follow pilot_config.json / pilot_rounds.json")
++        if rec["round"] > 1 and (d["accepted"] != [n for n in names if n not in rec["case"]["reject"]]
++                                 or set(rec["case"]["reject"]) - set(names)):
++            checked += 1
++            fails.append(f"{name}: round {rec['round']} must reject exactly the listed KPIs and accept all others")
+         u = rec["user_prompt"]
+         if f"Accepted KPIs (keep exactly unchanged): {', '.join(d['accepted']) or 'None'}\n" not in u or \
+                 f"Rejected KPIs (replace one-for-one): {', '.join(d['rejected']) or 'None'}\n" not in u:
+@@ -205,8 +267,8 @@ def main() -> None:
+ 
+     fails = []
+     with open(PILOT / "pilot_summary.csv", newline="", encoding="utf-8") as f:
+-        csv_rows = {r["case"]: r for r in csv.DictReader(f)}
+-    fresh = {name: fresh_row(rec) for name, rec in records.items()}
++        csv_rows = {f"{r['case']}_round{r['round']}": r for r in csv.DictReader(f)}
++    fresh = {name: fresh_row(rec, rounds["max_rounds"], rounds.get("manual_outcomes", {})) for name, rec in records.items()}
+     for name in sorted(set(csv_rows) | set(fresh)):
+         if name not in csv_rows or name not in fresh:
+             fails.append(f"{name}: row only in {'rebuild' if name in fresh else 'pilot_summary.csv'}")
+@@ -219,25 +281,29 @@ def main() -> None:
      fails = []
      patch = (PILOT / "glass_local_fixes.patch").read_bytes()
      llm_patch = (PILOT / "glass_local_fixes_llm_run.patch").read_bytes()
@@ -673,9 +1084,23 @@ index f344d36..656b4f0 100644
 +        fails.append(f"goal_to_parameters/ differs from {base[:7]} + refinement_pilot/glass_local_fixes.patch")
 +    if llm_patch != (RESULTS / "stage1_results_normalised" / "glass_local_fixes.patch").read_bytes():
          fails.append("LLM-run patch differs from stage1_results_normalised/glass_local_fixes.patch")
-     if {r["glass_patch_sha256"] for r in records.values()} != {digest(llm_patch)}:
-         fails.append("raw files record a different LLM-run patch SHA-256")
-@@ -237,7 +255,7 @@ def main() -> None:
+-    if {r["glass_patch_sha256"] for r in records.values()} != {digest(llm_patch)}:
+-        fails.append("raw files record a different LLM-run patch SHA-256")
+-    post = {(r.get("postprocessing") or {}).get("glass_patch_sha256") for r in records.values() if r["status"] == "ok"}
++    if {r["glass_patch_sha256"] for r in records.values() if r["round"] == 1} != {digest(llm_patch)}:
++        fails.append("round-1 records record a different LLM-run patch SHA-256")
++    if {r["glass_patch_sha256"] for r in records.values() if r["round"] > 1} - {digest(patch)}:
++        fails.append("records of rounds >= 2 were not produced with base + glass_local_fixes.patch")
++    post = {(r.get("postprocessing") or {}).get("glass_patch_sha256") for r in records.values()
++            if r["status"] == "ok" and r["round"] == 1}
+     if post != {digest(patch)}:
+         fails.append(f"stored post-processing patch SHA-256 {sorted(map(str, post))} != {digest(patch)}")
+-    report.add("6. GLASS = commit + patch (LLM run: stage1_results_normalised patch; post-processing: current patch)",
+-               4, fails)
++    report.add("6. GLASS = commit + patch (round-1 LLM calls: stage1_results_normalised patch; later rounds and "
++               "all post-processing: current patch)", 5, fails)
+ 
+     # 7. stored result = today's post-processing of the stored raw answer ------------------------
      import run_stage1_batch as batch   # only to load the app.py functions the pilot executes, not to score
      batch.APP_ROOTS = batch.APP_ROOTS + ("validate_refinement_scope",)
      app, _ = batch.load_app_stage1()
@@ -684,7 +1109,7 @@ index f344d36..656b4f0 100644
      logs = {c["id"]: c["event_log"] for c in config["configurations"]}
      fails, checked, artifacts = [], 0, {}
      strip_raw = lambda r: canon({**r, "kpis": [{k: v for k, v in kpi.items() if k != "measurable_as_raw"} for kpi in r["kpis"]]})
-@@ -247,7 +265,7 @@ def main() -> None:
+@@ -247,7 +313,7 @@ def main() -> None:
          checked += 2
          log_name = logs[rec["case"]["config_id"]]
          if log_name not in artifacts:
@@ -693,7 +1118,7 @@ index f344d36..656b4f0 100644
                  artifacts[log_name] = app["extract_log_artifacts"](fh)
          log_profile, _, context_evidence = artifacts[log_name]
          result, _ = app["_finalize_generated_result"](app["parse_kpi_generation_payload"](rec["raw"]),
-@@ -262,7 +280,7 @@ def main() -> None:
+@@ -262,7 +328,7 @@ def main() -> None:
  
      verdict = "PASS" if report.passed else "FAIL"
      md = [f"# Refinement pilot verification: {verdict}", "",
