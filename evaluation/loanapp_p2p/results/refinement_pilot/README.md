@@ -33,9 +33,9 @@ calls), then switch goal_to_parameters/ to `glass_local_fixes.patch` and run
   handle_refinement's parse_with_retries call, read from app.py); no few-shot messages
 - `evaluation/loanapp_p2p/setup/pilot_config.json` SHA-256: `931e0c4e66bf3b241ad9d1fa2b86c8bd9f6129a95df25e55449ec4c0be9dd2ba`
 - `evaluation/loanapp_p2p/setup/stage1_config.json` SHA-256: `31eae7b67543d7485f2e31558888c332767c5f6c18e2a5f0017d05ed56586e88`
-- `evaluation/loanapp_p2p/scripts/run_refinement_pilot.py` SHA-256 now: `5f27345a9456ea21ddd6b9ee55eb07dd7fd8c0aeb0f98928325cbb9def559163`; during the LLM calls: `cd54ebf1ea3218cb79cf1cb697b281e40f19df891b34acae8afb62ef1c758e88`
+- `evaluation/loanapp_p2p/scripts/run_refinement_pilot.py` SHA-256 now: `8739c57515122e55f0f5b9fcb869e4028554a218239f9965d18a3dbb7a18eb9d`; during the LLM calls: `cd54ebf1ea3218cb79cf1cb697b281e40f19df891b34acae8afb62ef1c758e88`
 - `evaluation/loanapp_p2p/scripts/run_stage1_batch.py` SHA-256: `2a1bf33ba753d85137396a227c3763c71acfbb8ff2bf5643eefdf57c625c7b07`
-- Cases: 9; records (case x round): 12; max rounds: 3; LLM calls 2026-10-05T08:44:38+00:00 .. 2026-10-07T14:05:10+00:00; this invocation 2026-10-08T10:35:23+00:00 .. 2026-10-08T10:36:16+00:00
+- Cases: 9; records (case x round): 12; max rounds: 3; LLM calls 2026-10-05T08:44:38+00:00 .. 2026-10-07T14:05:10+00:00; this invocation 2026-10-08T13:00:03+00:00 .. 2026-10-08T13:00:12+00:00
 - Python 3.13.14; openai 3.22.1; pydantic 2.13.2
 
 ## Findings to keep in mind
@@ -48,9 +48,14 @@ calls), then switch goal_to_parameters/ to `glass_local_fixes.patch` and run
 - `outcome` (lenient scoring): reached_without_refinement = all expected KPIs already in the first proposal; reached_after_N_round(s) = all present after round N; not_reached_after_N_round(s) otherwise; not_converged_after_3_rounds = still not reached after the last round (3).
 - `manual_outcome`: the lead author's assessment where one is recorded (`manual_outcomes` in `setup/pilot_rounds.json`), e.g. a case closed after reaching the expected KPI by its formula; empty otherwise.
 
+## Protocol
+
+From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`).
+An earlier protocol with general clarifications in rounds 2–3 was run first and replaced by the concrete-feedback protocol on the lead author's decision; its records are kept in superseded_general_feedback/ for completeness and are not part of the main results.
+
 ## Further rounds
 
-From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`). Decisions and fixed feedback: `setup/pilot_rounds.json`. Round n refines round n-1's delivered result; every KPI not rejected in that round is accepted. The feedback text of every record is in `pilot_summary.csv` (column `feedback_text`).
+Decisions and fixed feedback: `setup/pilot_rounds.json`. Round n refines round n-1's delivered result; every KPI not rejected in that round is accepted. The feedback text of every record is in `pilot_summary.csv` (column `feedback_text`).
 
 - Procure2Pay_G1G2_rep1 round 2 (concrete feedback): rejected Total Cycle Time from Requisition to Invoice Payment; Invoice Release Wait Time; outcome `not_reached_after_2_rounds`; LLM call 2026-10-07T14:00:07+00:00, GLASS patch SHA-256 `f45ac72c281282ac6c4016f431b6f0886893042444eb6a9a84f15726966827be` (HEAD `af9c76392a91d250b3ac5738985c3f302e408fc4`)
 - Procure2Pay_G1G2_rep1 round 3 (concrete feedback): rejected Invoice Release Wait Time from Previous Step; outcome `not_converged_after_3_rounds`; LLM call 2026-10-07T14:05:10+00:00, GLASS patch SHA-256 `f45ac72c281282ac6c4016f431b6f0886893042444eb6a9a84f15726966827be` (HEAD `e3964271d4532f848d565772ae7578dc3e804866`)

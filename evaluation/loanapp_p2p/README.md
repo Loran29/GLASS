@@ -30,6 +30,7 @@ evaluation/loanapp_p2p/
     stage1_results/              raw outputs of the 70 Stage 1 runs (+ README, patch, verification report)
     stage1_results_normalised/   the same 70 outputs with GLASS's later measurable_as normalisation applied
     refinement_pilot/            the refinement outputs, one record per case and round (9 round-1 + 2 round-2 + 1 round-3)
+      superseded_general_feedback/  earlier protocol (general clarifications, rounds 2-3); kept, not part of the main results
   scripts/
     run_stage1_batch.py            runs the 14 configurations x N repetitions through GLASS's Stage 1
     verify_stage1_results.py       independent check of a Stage 1 result folder
@@ -125,7 +126,10 @@ python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py --round 3 --out ev
 Undecided KPIs are treated as accepted, as the UI requires a decision on every KPI before refining.
 
 **Further rounds** are defined in `setup/pilot_rounds.json`, for Procure2Pay_G1G2 and Procure2Pay_G2G3.
-From round 2 on, the manager gives concrete feedback (`"protocol": "concrete"`).
+From round 2 on, the manager gives concrete feedback (`"protocol": "concrete"`). An earlier protocol with
+general clarifications in rounds 2–3 was run first and replaced by the concrete-feedback protocol on the lead
+author's decision; its records are kept in `results/refinement_pilot/superseded_general_feedback/` for
+completeness and are not part of the main results.
 Round n refines round n-1's delivered result and rejects the KPIs listed for that round, each with a
 fixed feedback sentence; every other KPI is accepted. The model, temperature and GLASS code are the same
 in every round. `max_rounds` is 3, so round 3 is the last.

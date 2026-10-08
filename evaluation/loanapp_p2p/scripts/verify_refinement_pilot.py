@@ -2,7 +2,8 @@
 Independent verification of results/refinement_pilot/ (report only: never edits or reruns anything).
 
 Records: round 1 for every case of setup/pilot_config.json, plus one record per entry of
-setup/pilot_rounds.json (round n refines round n-1's delivered result).
+setup/pilot_rounds.json (round n refines round n-1's delivered result). Only raw/ is checked; the
+superseded_general_feedback/ folder is not part of the main results and is excluded from every check.
 
 Checks
   1. files     : one raw file per pilot case, status ok; one model / temperature / json_mode / patch /

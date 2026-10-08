@@ -347,8 +347,10 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
         "- `manual_outcome`: the lead author's assessment where one is recorded (`manual_outcomes` in "
         "`setup/pilot_rounds.json`), e.g. a case closed after reaching the expected KPI by its formula; empty "
         "otherwise.", "",
+        "## Protocol", "",
+        "From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`).",
+        "An earlier protocol with general clarifications in rounds 2–3 was run first and replaced by the concrete-feedback protocol on the lead author's decision; its records are kept in superseded_general_feedback/ for completeness and are not part of the main results.", "",
         "## Further rounds", "",
-        "From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`). "
         "Decisions and fixed feedback: `setup/pilot_rounds.json`. Round n refines round n-1's delivered result; "
         "every KPI not rejected in that round is accepted. The feedback text of every record is in "
         "`pilot_summary.csv` (column `feedback_text`).", "",

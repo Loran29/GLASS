@@ -1,0 +1,51 @@
+{
+  "description": "Further refinement rounds of the pilot. Each round refines the previous round's delivered result; every KPI not listed under reject is accepted. Feedback is fixed per rejected KPI.",
+  "max_rounds": 3,
+  "after_max_rounds": "round max_rounds is the last round: a case is recorded as reached_after_<max_rounds>_rounds or not_converged_after_<max_rounds>_rounds",
+  "feedback_sentences": {
+    "P2P_INVOICE_R2": "The quotation steps are not what I mean. I only mean how long the invoice itself sits idle right before someone starts releasing it from the moment the step before is finished until the release begins.",
+    "P2P_CYCLE_R2": "By the whole purchase I mean starting when the purchase requisition is first created, before any request for quotation until the invoice is paid.",
+    "P2P_INVOICE_R3": "I mean the delay directly before the step 'Release Supplier's Invoice' begins, and nothing from earlier in the process.",
+    "P2P_CYCLE_R3": "The request for quotation comes later. The purchase starts when the purchase requisition is created; please count from there until the invoice is paid."
+  },
+  "rounds": [
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "rep": 1,
+      "round": 2,
+      "reject": [
+        "Invoice Release Wait Time",
+        "Total Cycle Time from Requisition to Invoice Payment"
+      ],
+      "feedback_text": "About \"Invoice Release Wait Time\": The quotation steps are not what I mean. I only mean how long the invoice itself sits idle right before someone starts releasing it from the moment the step before is finished until the release begins.\nAbout \"Total Cycle Time from Requisition to Invoice Payment\": By the whole purchase I mean starting when the purchase requisition is first created, before any request for quotation until the invoice is paid."
+    },
+    {
+      "config_id": "Procure2Pay_G2G3",
+      "rep": 1,
+      "round": 2,
+      "reject": [
+        "Average Invoice Wait Time Before Release by Hour of Day"
+      ],
+      "feedback_text": "About \"Average Invoice Wait Time Before Release by Hour of Day\": The quotation steps are not what I mean. I only mean how long the invoice itself sits idle right before someone starts releasing it from the moment the step before is finished until the release begins."
+    },
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "rep": 1,
+      "round": 3,
+      "reject": [
+        "Invoice Idle Time Before Release",
+        "Total Cycle Time from Requisition Creation to Invoice Payment"
+      ],
+      "feedback_text": "About \"Invoice Idle Time Before Release\": I mean the delay directly before the step 'Release Supplier's Invoice' begins, and nothing from earlier in the process.\nAbout \"Total Cycle Time from Requisition Creation to Invoice Payment\": The request for quotation comes later. The purchase starts when the purchase requisition is created; please count from there until the invoice is paid."
+    },
+    {
+      "config_id": "Procure2Pay_G2G3",
+      "rep": 1,
+      "round": 3,
+      "reject": [
+        "Invoice Idle Time Before Release"
+      ],
+      "feedback_text": "About \"Invoice Idle Time Before Release\": I mean the delay directly before the step 'Release Supplier's Invoice' begins, and nothing from earlier in the process."
+    }
+  ]
+}

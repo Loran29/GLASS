@@ -431,7 +431,7 @@ index e19888e..4faff6a 100644
          for path in sorted((SOURCE / "raw" / cfg["id"]).glob("rep_*.json"), key=lambda p: int(p.stem.split("_")[1])):
              source_bytes = path.read_bytes()
 diff --git a/evaluation/run_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
-index 21342ec..1d2120f 100644
+index 21342ec..27fca59 100644
 --- a/evaluation/run_refinement_pilot.py
 +++ b/evaluation/loanapp_p2p/scripts/run_refinement_pilot.py
 @@ -1,7 +1,7 @@
@@ -707,7 +707,7 @@ index 21342ec..1d2120f 100644
          f"this invocation {started} .. {ended}",
          f"- Python {platform.python_version()}; openai {version('openai')}; pydantic {version('pydantic')}", "",
          "## Findings to keep in mind", "",
-@@ -267,7 +341,20 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+@@ -267,7 +341,22 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
            f"formula `{k['suggested_formula']}` counts activity occurrences per hour; it is not a utilization measure."
            for c, k in soft],
          "- `outcome` (lenient scoring): reached_without_refinement = all expected KPIs already in the first "
@@ -718,8 +718,10 @@ index 21342ec..1d2120f 100644
 +        "- `manual_outcome`: the lead author's assessment where one is recorded (`manual_outcomes` in "
 +        "`setup/pilot_rounds.json`), e.g. a case closed after reaching the expected KPI by its formula; empty "
 +        "otherwise.", "",
++        "## Protocol", "",
++        "From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`).",
++        "An earlier protocol with general clarifications in rounds 2–3 was run first and replaced by the concrete-feedback protocol on the lead author's decision; its records are kept in superseded_general_feedback/ for completeness and are not part of the main results.", "",
 +        "## Further rounds", "",
-+        "From round 2 on, the manager gives concrete feedback (`protocol: concrete` in `setup/pilot_rounds.json`). "
 +        "Decisions and fixed feedback: `setup/pilot_rounds.json`. Round n refines round n-1's delivered result; "
 +        "every KPI not rejected in that round is accepted. The feedback text of every record is in "
 +        "`pilot_summary.csv` (column `feedback_text`).", "",
@@ -729,7 +731,7 @@ index 21342ec..1d2120f 100644
          "## Method notes", "",
          "- First proposal = `result` of the `stage1_results_normalised/` record whose",
          "  `normalisation.source_file_sha256` equals the SHA-256 of the `stage1_results/` source file (same LLM",
-@@ -279,7 +366,9 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
+@@ -279,7 +368,9 @@ def write_readme(ctx: dict, rows: list[dict], started: str, ended: str) -> None:
          f"  it would block: {', '.join(gated) or 'none'}.",
          "- Expected KPIs are scored with the batch's rule sets; `<role> Utilization` is scored as",
          "  `Resource Utilization` (the lenient rule does not check the role).",
@@ -740,7 +742,7 @@ index 21342ec..1d2120f 100644
      ]
      (OUT / "README.md").write_text("\n".join(lines), encoding="utf-8")
  
-@@ -323,17 +412,33 @@ def reprocess_record(rec: dict, ctx: dict, now: str) -> dict:
+@@ -323,17 +414,33 @@ def reprocess_record(rec: dict, ctx: dict, now: str) -> dict:
  
  
  def main() -> None:
@@ -778,7 +780,7 @@ index 21342ec..1d2120f 100644
  
      sys.stdout = batch._MuteCostTracker(sys.stdout)
      logging.getLogger("utils.parsing").addHandler(batch._ParseWarnings())
-@@ -344,21 +449,30 @@ def main() -> None:
+@@ -344,21 +451,30 @@ def main() -> None:
      for case in pilot["cases"]:
          log_name = configs[case["config_id"]]["event_log"]
          if log_name not in artifacts:
@@ -816,7 +818,7 @@ index 21342ec..1d2120f 100644
          rec = batch.load_json(path)
          if args.reprocess:
              if rec is None:
-@@ -372,11 +486,17 @@ def main() -> None:
+@@ -372,11 +488,17 @@ def main() -> None:
          else:
              if n > 1:
                  time.sleep(batch.PAUSE_S)
@@ -837,20 +839,21 @@ index 21342ec..1d2120f 100644
      write_readme(ctx, rows, started, datetime.now(timezone.utc).isoformat(timespec="seconds"))
      batch.log(f"\nWrote pilot_summary.csv and README.md in {OUT}")
 diff --git a/evaluation/verify_refinement_pilot.py b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
-index f344d36..9ed1bc1 100644
+index f344d36..42f79bc 100644
 --- a/evaluation/verify_refinement_pilot.py
 +++ b/evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,9 @@
  """
 -Independent verification of evaluation/refinement_pilot/ (report only: never edits or reruns anything).
 +Independent verification of results/refinement_pilot/ (report only: never edits or reruns anything).
 +
 +Records: round 1 for every case of setup/pilot_config.json, plus one record per entry of
-+setup/pilot_rounds.json (round n refines round n-1's delivered result).
++setup/pilot_rounds.json (round n refines round n-1's delivered result). Only raw/ is checked; the
++superseded_general_feedback/ folder is not part of the main results and is excluded from every check.
  
  Checks
    1. files     : one raw file per pilot case, status ok; one model / temperature / json_mode / patch /
-@@ -13,14 +16,17 @@ Checks
+@@ -13,14 +17,17 @@ Checks
                   previous_kpis_json it was shown, (b) delivered result vs first proposal. Differences are
                   listed per field.
    5. summary   : pilot_summary.csv rebuilt from the raw files with fresh code and diffed cell by cell.
@@ -872,7 +875,7 @@ index f344d36..9ed1bc1 100644
  """
  
  from __future__ import annotations
-@@ -34,16 +40,30 @@ import subprocess
+@@ -34,16 +41,30 @@ import subprocess
  import sys
  from pathlib import Path
  
@@ -907,7 +910,7 @@ index f344d36..9ed1bc1 100644
  def digest(data: bytes) -> str:
      return hashlib.sha256(data).hexdigest()
  
-@@ -70,8 +90,8 @@ def key_for(expected: str) -> str:
+@@ -70,8 +91,8 @@ def key_for(expected: str) -> str:
      return "Resource Utilization" if re.search(r" Utilization$", expected) else expected
  
  
@@ -918,7 +921,7 @@ index f344d36..9ed1bc1 100644
      before, after = rec["first_proposal"]["kpis"], (rec.get("result") or {}).get("kpis") or []
      exp = case["expected"]
  
-@@ -90,22 +110,31 @@ def fresh_row(rec: dict) -> dict[str, str]:
+@@ -90,22 +111,31 @@ def fresh_row(rec: dict) -> dict[str, str]:
      changed = [n for n in rec["decisions"]["accepted"]
                 if n not in after_formula or after_formula[n] != before_formula[n]]
      row = {"case": f"{case['config_id']}_rep{case['rep']}", "config_id": case["config_id"], "rep": case["rep"],
@@ -957,7 +960,7 @@ index f344d36..9ed1bc1 100644
      row["accepted_unchanged"] = ("no" if changed else "yes") if after else ""
      row["accepted_changed"] = "|".join(changed) if after else ""
      row["rejected_names_still_present"] = "|".join(n for n in rec["decisions"]["rejected"] if n in after_formula)
-@@ -116,38 +145,66 @@ def fresh_row(rec: dict) -> dict[str, str]:
+@@ -116,38 +146,66 @@ def fresh_row(rec: dict) -> dict[str, str]:
  
  
  def main() -> None:
@@ -1036,7 +1039,7 @@ index f344d36..9ed1bc1 100644
          norm = json.loads(norm_bytes)
          if digest(src_bytes) != rec["source_sha256"]:
              fails.append(f"{name}: {rec['source_file']} no longer has the recorded SHA-256")
-@@ -160,7 +217,8 @@ def main() -> None:
+@@ -160,7 +218,8 @@ def main() -> None:
              fails.append(f"{name}: first_proposal != normalised record's result")
          if rec["previous_kpis_json"] != KPIGenerationResult.model_validate(rec["first_proposal"]).model_dump_json(indent=2):
              fails.append(f"{name}: previous_kpis_json is not the first proposal's model_dump_json(indent=2)")
@@ -1046,7 +1049,7 @@ index f344d36..9ed1bc1 100644
  
      fails, checked = [], 0
      for name, rec in records.items():
-@@ -169,7 +227,11 @@ def main() -> None:
+@@ -169,7 +228,11 @@ def main() -> None:
          if sorted(d["accepted"] + d["rejected"]) != sorted(names):
              fails.append(f"{name}: accepted + rejected != first-proposal KPIs")
          if d["rejected"] != [n for n in names if n in rec["case"]["reject"]] or not set(rec["case"]["accept"]) <= set(d["accepted"]):
@@ -1059,7 +1062,7 @@ index f344d36..9ed1bc1 100644
          u = rec["user_prompt"]
          if f"Accepted KPIs (keep exactly unchanged): {', '.join(d['accepted']) or 'None'}\n" not in u or \
                  f"Rejected KPIs (replace one-for-one): {', '.join(d['rejected']) or 'None'}\n" not in u:
-@@ -205,8 +267,8 @@ def main() -> None:
+@@ -205,8 +268,8 @@ def main() -> None:
  
      fails = []
      with open(PILOT / "pilot_summary.csv", newline="", encoding="utf-8") as f:
@@ -1070,7 +1073,7 @@ index f344d36..9ed1bc1 100644
      for name in sorted(set(csv_rows) | set(fresh)):
          if name not in csv_rows or name not in fresh:
              fails.append(f"{name}: row only in {'rebuild' if name in fresh else 'pilot_summary.csv'}")
-@@ -219,25 +281,29 @@ def main() -> None:
+@@ -219,25 +282,29 @@ def main() -> None:
      fails = []
      patch = (PILOT / "glass_local_fixes.patch").read_bytes()
      llm_patch = (PILOT / "glass_local_fixes_llm_run.patch").read_bytes()
@@ -1109,7 +1112,7 @@ index f344d36..9ed1bc1 100644
      logs = {c["id"]: c["event_log"] for c in config["configurations"]}
      fails, checked, artifacts = [], 0, {}
      strip_raw = lambda r: canon({**r, "kpis": [{k: v for k, v in kpi.items() if k != "measurable_as_raw"} for kpi in r["kpis"]]})
-@@ -247,7 +313,7 @@ def main() -> None:
+@@ -247,7 +314,7 @@ def main() -> None:
          checked += 2
          log_name = logs[rec["case"]["config_id"]]
          if log_name not in artifacts:
@@ -1118,7 +1121,7 @@ index f344d36..9ed1bc1 100644
                  artifacts[log_name] = app["extract_log_artifacts"](fh)
          log_profile, _, context_evidence = artifacts[log_name]
          result, _ = app["_finalize_generated_result"](app["parse_kpi_generation_payload"](rec["raw"]),
-@@ -262,7 +328,7 @@ def main() -> None:
+@@ -262,7 +329,7 @@ def main() -> None:
  
      verdict = "PASS" if report.passed else "FAIL"
      md = [f"# Refinement pilot verification: {verdict}", "",
