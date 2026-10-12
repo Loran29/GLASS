@@ -1,0 +1,2944 @@
+{
+ "start": "2023-02-09T10:00:00+02:00",
+ "n_cases": 1000,
+ "seed": 20230209,
+ "results": {
+  "LoanApp_G1": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.546,
+    "events_per_case_se": 0.04451815209401516,
+    "duration_median_min": {
+     "AML check": 20.34968333333333,
+     "Applicant completes form": 198.70411666666666,
+     "Appraise property": 21.65761666666667,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 44.11655,
+     "Check credit history": 20.366833333333332,
+     "Design loan offer": 20.1143,
+     "Reject application": 45.0,
+     "Return application back to applicant": 62.547983333333335
+    },
+    "duration_median_se_min": {
+     "AML check": 1.0779910723573802,
+     "Applicant completes form": 65.80680784254557,
+     "Appraise property": 1.1900912011667129,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 2.0675167093442055,
+     "Check credit history": 1.0595441392821916,
+     "Design loan offer": 0.9531635511663942,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.5591029688850395
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 23.25692496638889
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.467,
+    "events_per_case_se": 0.046745011456797145,
+    "duration_median_min": {
+     "AML check": 20.560097025,
+     "Applicant completes form": 192.80994616666666,
+     "Appraise property": 21.093690375,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 41.5233943,
+     "Check credit history": 21.612317458333333,
+     "Design loan offer": 22.9322154,
+     "Reject application": 45.0,
+     "Return application back to applicant": 66.10997825
+    },
+    "duration_median_se_min": {
+     "AML check": 1.007406037703019,
+     "Applicant completes form": 6.224075613292628,
+     "Appraise property": 1.0278205122839401,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.9190082744323553,
+     "Check credit history": 1.0597273677449859,
+     "Design loan offer": 1.195860333537184,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.8235729351681633
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 23.72356295783333
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.467,
+    "events_per_case_se": 0.046745011456797145,
+    "duration_median_min": {
+     "AML check": 20.560097025,
+     "Applicant completes form": 192.80994616666666,
+     "Appraise property": 21.093690375,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 41.5233943,
+     "Check credit history": 21.612317458333333,
+     "Design loan offer": 22.9322154,
+     "Reject application": 45.0,
+     "Return application back to applicant": 66.10997825
+    },
+    "duration_median_se_min": {
+     "AML check": 1.007406037703019,
+     "Applicant completes form": 6.224075613292628,
+     "Appraise property": 1.0278205122839401,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.9190082744323553,
+     "Check credit history": 1.0597273677449859,
+     "Design loan offer": 1.195860333537184,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.8235729351681633
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 23.72356295783333
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Check application form completeness",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 8.141662584025282,
+    "events_dev": 0.0,
+    "events_tol": 0.1983222875264647,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.08333333333333333
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 1.0200644750808128
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 1.0200644750808128
+   },
+   "norm_checked": 9,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "LoanApp_G2": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [
+    "Imported 4 intermediate (timer) event(s) from event_distribution: Timer before Assess loan risk, Timer before Applicant completes form, Timer before Approve loan offer, Timer before Design loan offer."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.572,
+    "events_per_case_se": 0.045792061680087225,
+    "duration_median_min": {
+     "AML check": 22.922649999999997,
+     "Applicant completes form": 60.0,
+     "Appraise property": 21.111358333333335,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 15.996941666666666,
+     "Check credit history": 21.210616666666667,
+     "Design loan offer": 7.694733333333334,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 1.0945958163781513,
+     "Applicant completes form": 0.0,
+     "Appraise property": 1.1753997547010948,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.5936354144418357,
+     "Check credit history": 0.9205823613791049,
+     "Design loan offer": 0.5401642634160236,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 28.686176670000002
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.498,
+    "events_per_case_se": 0.045870470894684524,
+    "duration_median_min": {
+     "AML check": 20.42663305,
+     "Applicant completes form": 60.0,
+     "Appraise property": 21.36498035,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.328710916666667,
+     "Check credit history": 20.696541191666668,
+     "Design loan offer": 7.145607175,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 0.9166485873888774,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.8968487241933945,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.5673182031253702,
+     "Check credit history": 0.965986832409732,
+     "Design loan offer": 0.3758534572334755,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 27.021043947825834
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.495,
+    "events_per_case_se": 0.045210828559306665,
+    "duration_median_min": {
+     "AML check": 20.168661941666667,
+     "Applicant completes form": 60.0,
+     "Appraise property": 20.445431683333332,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.227091633333334,
+     "Check credit history": 20.742789541666667,
+     "Design loan offer": 6.931280316666667,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 0.9837666964461901,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.8411128251325428,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.5247343167135617,
+     "Check credit history": 0.8279579578015633,
+     "Design loan offer": 0.4570011088986296,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 26.97470365988889
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Appraise property",
+    "worst_dev_min": 0.9195486666666675,
+    "worst_tol_min": 3.68866856307366,
+    "events_dev": 0.0030000000000001137,
+    "events_tol": 0.19321768053693245,
+    "cycle_rel": 0.0017179164791290003,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.4
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.9419534801960708
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.9403380579503656
+   },
+   "norm_checked": 2,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_1eeszyh",
+     "glass_name": "Timer before Assess loan risk",
+     "orig": "fix",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ja79b8",
+     "glass_name": "Timer before Applicant completes form",
+     "orig": "norm",
+     "orig_mean_s": 43200.0,
+     "orig_std_s": 3600.0,
+     "glass": "norm",
+     "glass_mean_s": 43200.0,
+     "glass_std_s": 3600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_16zb60q",
+     "glass_name": "Timer before Approve loan offer",
+     "orig": "norm",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": 600.0,
+     "glass": "norm",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": 600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_1yap8f0",
+     "glass_name": "Timer before Design loan offer",
+     "orig": "fix",
+     "orig_mean_s": 3600.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 3600.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "LoanApp_G3": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.569,
+    "events_per_case_se": 0.043716703331222836,
+    "duration_median_min": {
+     "AML check": 21.591783333333332,
+     "Applicant completes form": 60.0,
+     "Appraise property": 19.9028,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 15.569733333333334,
+     "Check credit history": 20.582708333333333,
+     "Design loan offer": 6.929175,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 1.2529644661039787,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.7660256088952547,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.7009888802686541,
+     "Check credit history": 0.9019633861827264,
+     "Design loan offer": 0.3589375872961885,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.3103433333333333,
+    "mean_cycle_h": 11.51000917222222
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.445,
+    "events_per_case_se": 0.04188949426443019,
+    "duration_median_min": {
+     "AML check": 20.084033025,
+     "Applicant completes form": 60.0,
+     "Appraise property": 22.500465300000002,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.788245016666668,
+     "Check credit history": 20.968781625000002,
+     "Design loan offer": 7.5776515333333325,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 0.7684393787789413,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.9532255221721061,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.6613143252686285,
+     "Check credit history": 1.0704869321650403,
+     "Design loan offer": 0.4280510974176133,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.2791619836111111,
+    "mean_cycle_h": 11.273483931502222
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.445,
+    "events_per_case_se": 0.04188949426443019,
+    "duration_median_min": {
+     "AML check": 20.084033025,
+     "Applicant completes form": 60.0,
+     "Appraise property": 22.500465300000002,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.788245016666668,
+     "Check credit history": 20.968781625000002,
+     "Design loan offer": 7.5776515333333325,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 0.7684393787789413,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.9532255221721061,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.6613143252686285,
+     "Check credit history": 1.0704869321650403,
+     "Design loan offer": 0.4280510974176133,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 0.2791619836111111,
+    "mean_cycle_h": 11.273483931502222
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Check application form completeness",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.8057190633595206,
+    "events_dev": 0.0,
+    "events_tol": 0.17772207272912147,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.08333333333333333
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.8995262782438089,
+    "cycle_ratio": 0.9794504733071092
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.8995262782438089,
+    "cycle_ratio": 0.9794504733071092
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "LoanApp_G1G2": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [
+    "Imported 4 intermediate (timer) event(s) from event_distribution: Timer before Assess loan risk, Timer before Applicant completes form, Timer before Approve loan offer, Timer before Design loan offer."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.568,
+    "events_per_case_se": 0.04584187471600041,
+    "duration_median_min": {
+     "AML check": 20.901608333333336,
+     "Applicant completes form": 184.18744166666667,
+     "Appraise property": 20.84915,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 41.551175,
+     "Check credit history": 20.488075000000002,
+     "Design loan offer": 19.615425,
+     "Reject application": 45.0,
+     "Return application back to applicant": 62.89434166666667
+    },
+    "duration_median_se_min": {
+     "AML check": 0.8929002998809066,
+     "Applicant completes form": 4.83081403694682,
+     "Appraise property": 0.9877081319883825,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.9003156579199567,
+     "Check credit history": 0.8167905339245419,
+     "Design loan offer": 0.9894376150246927,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.313976712734516
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 40.69299978388889
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.489,
+    "events_per_case_se": 0.04433784889735681,
+    "duration_median_min": {
+     "AML check": 21.689230666666667,
+     "Applicant completes form": 191.61936454999997,
+     "Appraise property": 19.87558165,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 42.498238183333335,
+     "Check credit history": 20.618259175,
+     "Design loan offer": 18.662767799999997,
+     "Reject application": 45.0,
+     "Return application back to applicant": 60.44820345
+    },
+    "duration_median_se_min": {
+     "AML check": 1.0331079604726692,
+     "Applicant completes form": 3.656930643445875,
+     "Appraise property": 0.9094669665952173,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.7423855296393238,
+     "Check credit history": 0.8500018708744521,
+     "Design loan offer": 1.461379381248985,
+     "Reject application": 0.0,
+     "Return application back to applicant": 1.639646586280613
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 39.832320506290834
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.475,
+    "events_per_case_se": 0.04332726915295092,
+    "duration_median_min": {
+     "AML check": 19.993766558333334,
+     "Applicant completes form": 182.7841312,
+     "Appraise property": 21.175318533333332,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 43.24122573333333,
+     "Check credit history": 20.901124483333334,
+     "Design loan offer": 18.79827415,
+     "Reject application": 45.0,
+     "Return application back to applicant": 60.3969247
+    },
+    "duration_median_se_min": {
+     "AML check": 0.9559916158372118,
+     "Applicant completes form": 5.146978347231491,
+     "Appraise property": 1.0372065264927735,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.9755604187955893,
+     "Check credit history": 0.9283488639490016,
+     "Design loan offer": 1.3206988091128073,
+     "Reject application": 0.0,
+     "Return application back to applicant": 1.51067560794026
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 4,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.0,
+    "mean_cycle_h": 39.197170044187494
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Applicant completes form",
+    "worst_dev_min": 8.835233349999982,
+    "worst_tol_min": 18.941508665905932,
+    "events_dev": 0.014000000000000234,
+    "events_tol": 0.1859781542920401,
+    "cycle_rel": 0.01620398772123921,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.4
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.9788494512036733
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.9632411041789645
+   },
+   "norm_checked": 11,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_1eeszyh",
+     "glass_name": "Timer before Assess loan risk",
+     "orig": "fix",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ja79b8",
+     "glass_name": "Timer before Applicant completes form",
+     "orig": "norm",
+     "orig_mean_s": 43200.0,
+     "orig_std_s": 3600.0,
+     "glass": "norm",
+     "glass_mean_s": 43200.0,
+     "glass_std_s": 3600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_16zb60q",
+     "glass_name": "Timer before Approve loan offer",
+     "orig": "norm",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": 600.0,
+     "glass": "norm",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": 600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_1yap8f0",
+     "glass_name": "Timer before Design loan offer",
+     "orig": "fix",
+     "orig_mean_s": 3600.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 3600.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "LoanApp_G1G3": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.586,
+    "events_per_case_se": 0.047168091214600034,
+    "duration_median_min": {
+     "AML check": 21.447608333333335,
+     "Applicant completes form": 210.47129999999999,
+     "Appraise property": 21.446958333333335,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 42.60479166666667,
+     "Check credit history": 22.94526666666667,
+     "Design loan offer": 22.068283333333333,
+     "Reject application": 45.0,
+     "Return application back to applicant": 60.76289166666667
+    },
+    "duration_median_se_min": {
+     "AML check": 1.2334857764297515,
+     "Applicant completes form": 155.2630494577859,
+     "Appraise property": 1.1670527040156515,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.8139582352318544,
+     "Check credit history": 1.1287699102807007,
+     "Design loan offer": 1.6478835640769114,
+     "Reject application": 0.0,
+     "Return application back to applicant": 1.5520479930464457
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1346.8759090277777,
+    "mean_cycle_h": 2325.903174085278
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.479,
+    "events_per_case_se": 0.04342170476207083,
+    "duration_median_min": {
+     "AML check": 21.063944191666668,
+     "Applicant completes form": 193.7869701,
+     "Appraise property": 20.455509616666667,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 43.1355212,
+     "Check credit history": 20.529881983333333,
+     "Design loan offer": 19.600360958333333,
+     "Reject application": 45.0,
+     "Return application back to applicant": 61.270585366666666
+    },
+    "duration_median_se_min": {
+     "AML check": 1.0627944392478537,
+     "Applicant completes form": 108.67796081752597,
+     "Appraise property": 1.0286885144671096,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.7868595447953244,
+     "Check credit history": 0.6892838493205348,
+     "Design loan offer": 0.9512013888094781,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.4430700882442316
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1273.0821890323612,
+    "mean_cycle_h": 2161.7385448759087
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.502,
+    "events_per_case_se": 0.044158192285757646,
+    "duration_median_min": {
+     "AML check": 21.348914424999997,
+     "Applicant completes form": 191.82438693333336,
+     "Appraise property": 21.50872015,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 42.07516669166667,
+     "Check credit history": 20.860550141666664,
+     "Design loan offer": 18.957442225,
+     "Reject application": 45.0,
+     "Return application back to applicant": 66.319751
+    },
+    "duration_median_se_min": {
+     "AML check": 0.9677322548013848,
+     "Applicant completes form": 4.196582905350648,
+     "Appraise property": 1.3687519015253176,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.5618392247507,
+     "Check credit history": 0.8225416458926472,
+     "Design loan offer": 1.1197557601326606,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.196616447672925
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1273.0821890323612,
+    "mean_cycle_h": 2181.2617073151937
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Return application back to applicant",
+    "worst_dev_min": 5.049165633333331,
+    "worst_tol_min": 9.856137045939859,
+    "events_dev": 0.022999999999999687,
+    "events_tol": 0.18579158622906883,
+    "cycle_rel": -0.008950398924535752,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 254.61643780647225
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.9452111961459884,
+    "cycle_ratio": 0.9294189753733273
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.9452111961459884,
+    "cycle_ratio": 0.9378127738155014
+   },
+   "norm_checked": 9,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "LoanApp_G2G3": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [
+    "Imported 4 intermediate (timer) event(s) from event_distribution: Timer before Assess loan risk, Timer before Applicant completes form, Timer before Approve loan offer, Timer before Design loan offer."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.478,
+    "events_per_case_se": 0.04312047512928603,
+    "duration_median_min": {
+     "AML check": 21.33955833333333,
+     "Applicant completes form": 60.0,
+     "Appraise property": 21.202475,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 12.63035,
+     "Check credit history": 21.803266666666666,
+     "Design loan offer": 6.688133333333334,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 0.9187251862622604,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.9109659871619694,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.5529750392895402,
+     "Check credit history": 1.0335764893571993,
+     "Design loan offer": 0.46616883602242604,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.4361841666666666,
+    "mean_cycle_h": 28.70865019888889
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.519,
+    "events_per_case_se": 0.04553803588993176,
+    "duration_median_min": {
+     "AML check": 22.302844708333332,
+     "Applicant completes form": 60.0,
+     "Appraise property": 20.851777883333334,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.152719666666666,
+     "Check credit history": 18.904876241666667,
+     "Design loan offer": 7.1844539,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 1.079786938121573,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.9751335618496012,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.6025094554483339,
+     "Check credit history": 0.8116630666967627,
+     "Design loan offer": 0.3053393391539128,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.5277213061111112,
+    "mean_cycle_h": 30.472713221253336
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.519,
+    "events_per_case_se": 0.04553803588993176,
+    "duration_median_min": {
+     "AML check": 22.302844708333332,
+     "Applicant completes form": 60.0,
+     "Appraise property": 20.851777883333334,
+     "Approve application": 5.0,
+     "Approve loan offer": 20.0,
+     "Assess loan risk": 20.0,
+     "Cancel application": 5.0,
+     "Check application form completeness": 13.152719666666666,
+     "Check credit history": 18.904876241666667,
+     "Design loan offer": 7.1844539,
+     "Reject application": 10.0,
+     "Return application back to applicant": 5.0
+    },
+    "duration_median_se_min": {
+     "AML check": 1.079786938121573,
+     "Applicant completes form": 0.0,
+     "Appraise property": 0.9751335618496012,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 0.6025094554483339,
+     "Check credit history": 0.8116630666967627,
+     "Design loan offer": 0.3053393391539128,
+     "Reject application": 0.0,
+     "Return application back to applicant": 0.0
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 2.5277213061111112,
+    "mean_cycle_h": 30.472713221253336
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Check application form completeness",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.5562311300591856,
+    "events_dev": 0.0,
+    "events_tol": 0.19320152387812273,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.5055442612222223
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0375739817608662,
+    "cycle_ratio": 1.0614470903418762
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0375739817608662,
+    "cycle_ratio": 1.0614470903418762
+   },
+   "norm_checked": 2,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_1eeszyh",
+     "glass_name": "Timer before Assess loan risk",
+     "orig": "fix",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ja79b8",
+     "glass_name": "Timer before Applicant completes form",
+     "orig": "norm",
+     "orig_mean_s": 43200.0,
+     "orig_std_s": 3600.0,
+     "glass": "norm",
+     "glass_mean_s": 43200.0,
+     "glass_std_s": 3600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_16zb60q",
+     "glass_name": "Timer before Approve loan offer",
+     "orig": "norm",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": 600.0,
+     "glass": "norm",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": 600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_1yap8f0",
+     "glass_name": "Timer before Design loan offer",
+     "orig": "fix",
+     "orig_mean_s": 3600.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 3600.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "LoanApp_G1G2G3": {
+   "kpi_activity": "Assess loan risk",
+   "import_notes": [
+    "Imported 4 intermediate (timer) event(s) from event_distribution: Timer before Assess loan risk, Timer before Applicant completes form, Timer before Approve loan offer, Timer before Design loan offer."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 7.558,
+    "events_per_case_se": 0.046029933247341934,
+    "duration_median_min": {
+     "AML check": 19.944883333333333,
+     "Applicant completes form": 192.9721583333333,
+     "Appraise property": 22.215608333333332,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 44.11975833333334,
+     "Check credit history": 22.950141666666667,
+     "Design loan offer": 20.219233333333335,
+     "Reject application": 45.0,
+     "Return application back to applicant": 63.72423333333333
+    },
+    "duration_median_se_min": {
+     "AML check": 0.7823352420751221,
+     "Applicant completes form": 4.7230928699032235,
+     "Appraise property": 0.9739242294160071,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.7150535341774646,
+     "Check credit history": 0.9289606700039684,
+     "Design loan offer": 1.3243832928615187,
+     "Reject application": 0.0,
+     "Return application back to applicant": 1.310348001313676
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1299.2185143055553,
+    "mean_cycle_h": 2293.458003414722
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 7.425,
+    "events_per_case_se": 0.043569178019252024,
+    "duration_median_min": {
+     "AML check": 21.42792766666667,
+     "Applicant completes form": 182.70875560000002,
+     "Appraise property": 20.498892383333335,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 41.61704571666667,
+     "Check credit history": 20.868561200000002,
+     "Design loan offer": 22.432998516666665,
+     "Reject application": 45.0,
+     "Return application back to applicant": 58.73418466666667
+    },
+    "duration_median_se_min": {
+     "AML check": 1.2311989419840943,
+     "Applicant completes form": 4.505979583370574,
+     "Appraise property": 0.9582529447090075,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.7010609636787322,
+     "Check credit history": 0.9097169825269714,
+     "Design loan offer": 1.5388804434277505,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.331873088153249
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1329.67356666875,
+    "mean_cycle_h": 2191.3990281650404
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 7.466,
+    "events_per_case_se": 0.04475317694697045,
+    "duration_median_min": {
+     "AML check": 22.644338166666664,
+     "Applicant completes form": 180.96536854166663,
+     "Appraise property": 20.608883050000003,
+     "Approve application": 45.0,
+     "Approve loan offer": 45.0,
+     "Assess loan risk": 60.0,
+     "Cancel application": 45.0,
+     "Check application form completeness": 40.507056750000004,
+     "Check credit history": 19.781249425,
+     "Design loan offer": 23.327050216666667,
+     "Reject application": 45.0,
+     "Return application back to applicant": 61.85395628333333
+    },
+    "duration_median_se_min": {
+     "AML check": 1.1333490580935326,
+     "Applicant completes form": 3.9222874326188055,
+     "Appraise property": 1.033334947882346,
+     "Approve application": 0.0,
+     "Approve loan offer": 0.0,
+     "Assess loan risk": 0.0,
+     "Cancel application": 0.0,
+     "Check application form completeness": 1.884056984161028,
+     "Check credit history": 0.8752281732363671,
+     "Design loan offer": 1.422875824558375,
+     "Reject application": 0.0,
+     "Return application back to applicant": 2.285239644761001
+    },
+    "resources_per_pool": {
+     "AML Investigator": 2,
+     "Applicant": 1,
+     "Appraiser": 2,
+     "Clerk": 8,
+     "Loan Officer": 1,
+     "Senior Officer": 2
+    },
+    "kpi_wait_median_h": 1329.67356666875,
+    "mean_cycle_h": 2231.5488796734967
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Return application back to applicant",
+    "worst_dev_min": 3.119771616666661,
+    "worst_tol_min": 9.794874731162558,
+    "events_dev": 0.04100000000000037,
+    "events_tol": 0.18737684243545435,
+    "cycle_rel": -0.01799192116030668,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 265.93471333375004
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.02344105477859,
+    "cycle_ratio": 0.955499958971245
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.02344105477859,
+    "cycle_ratio": 0.9730062099898716
+   },
+   "norm_checked": 11,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_1eeszyh",
+     "glass_name": "Timer before Assess loan risk",
+     "orig": "fix",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ja79b8",
+     "glass_name": "Timer before Applicant completes form",
+     "orig": "norm",
+     "orig_mean_s": 43200.0,
+     "orig_std_s": 3600.0,
+     "glass": "norm",
+     "glass_mean_s": 43200.0,
+     "glass_std_s": 3600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_16zb60q",
+     "glass_name": "Timer before Approve loan offer",
+     "orig": "norm",
+     "orig_mean_s": 7200.0,
+     "orig_std_s": 600.0,
+     "glass": "norm",
+     "glass_mean_s": 7200.0,
+     "glass_std_s": 600.0,
+     "match": true
+    },
+    {
+     "event_id": "Event_1yap8f0",
+     "glass_name": "Timer before Design loan offer",
+     "orig": "fix",
+     "orig_mean_s": 3600.0,
+     "orig_std_s": null,
+     "glass": "fix",
+     "glass_mean_s": 3600.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "Procure2Pay_G1": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 12.641,
+    "events_per_case_se": 0.1740701566019271,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 24.138783333333333,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 36.02211666666667,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 32.24024166666666,
+     "Create Quotation comparison Map": 18.68091666666667,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 28.137241666666668,
+     "Pay invoice": 10.057,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.6140799408454107,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.8957199994553466,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.7978139065332337,
+     "Create Quotation comparison Map": 0.9004783895048897,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.2208762763537593,
+     "Pay invoice": 0.390569414139488,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.275485,
+    "mean_cycle_h": 281.4444547747222
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.92,
+    "events_per_case_se": 0.18111433516539324,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.7710551,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 31.2879085,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 33.60162774166666,
+     "Create Quotation comparison Map": 17.082332283333336,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 27.140676,
+     "Pay invoice": 10.187630316666667,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.4646813136947454,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.1493398913311543,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.398706773549769,
+     "Create Quotation comparison Map": 0.7117541146838722,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.179614878131225,
+     "Pay invoice": 0.5272989978995696,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.5067024866666667,
+    "mean_cycle_h": 354.02246947277445
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.92,
+    "events_per_case_se": 0.18111433516539324,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.7710551,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 31.2879085,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 33.60162774166666,
+     "Create Quotation comparison Map": 17.082332283333336,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 27.140676,
+     "Pay invoice": 10.187630316666667,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.4646813136947454,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.1493398913311543,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.398706773549769,
+     "Create Quotation comparison Map": 0.7117541146838722,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.179614878131225,
+     "Pay invoice": 0.5272989978995696,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.5067024866666667,
+    "mean_cycle_h": 354.02246947277445
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Analyze Purchase Requisition",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.0,
+    "events_dev": 0.0,
+    "events_tol": 0.7684030473932566,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.10134049733333335
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.8393106218729396,
+    "cycle_ratio": 1.257876868656539
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.8393106218729396,
+    "cycle_ratio": 1.257876868656539
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "Procure2Pay_G2": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [
+    "Imported 7 intermediate (timer) event(s) from event_distribution: Timer before Create Purchase Requisition, Timer before Analyze Purchase Requisition, Timer before Analyze Request for Quotation, Timer before Create Quotation comparison Map, Timer before Release Supplier's Invoice, Timer before Pay invoice, Event_0uhli6k."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 12.744,
+    "events_per_case_se": 0.17459366239055457,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 14.554716666666668,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 21.194175,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 19.829349999999998,
+     "Create Quotation comparison Map": 7.25125,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 22.925316666666667,
+     "Pay invoice": 14.747274999999998,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7327246709007373,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.1895320631498696,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.5054726035298187,
+     "Create Quotation comparison Map": 0.33098651209645275,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.9331833830444464,
+     "Pay invoice": 0.8073216819060547,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.6204638888888889,
+    "mean_cycle_h": 38.549254259444446
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.711,
+    "events_per_case_se": 0.1793980564628911,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.353645241666666,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 22.7863269,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 22.804619000000002,
+     "Create Quotation comparison Map": 6.432451866666667,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 20.781519433333337,
+     "Pay invoice": 14.075752275,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.6581189710557191,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.0511675527777666,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.3926517695704894,
+     "Create Quotation comparison Map": 0.30409161130026297,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.8694826899770556,
+     "Pay invoice": 0.6853272452842613,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.663079624861111,
+    "mean_cycle_h": 43.982440512190834
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.887,
+    "events_per_case_se": 0.1816513920349311,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.470584083333334,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 22.167705675,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 22.747250516666668,
+     "Create Quotation comparison Map": 6.357869766666667,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 21.248794633333333,
+     "Pay invoice": 13.578214825,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7091031410560767,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 0.9974768124171647,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.4518817577133423,
+     "Create Quotation comparison Map": 0.3096448322613863,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.7478449565352293,
+     "Pay invoice": 0.7790411117613683,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.6852871861111112,
+    "mean_cycle_h": 43.90921838468028
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Pay invoice",
+    "worst_dev_min": 0.4975374499999994,
+    "worst_tol_min": 3.112749007306841,
+    "events_dev": 0.17600000000000016,
+    "events_tol": 0.7659164562914275,
+    "cycle_rel": 0.0016675798432363997,
+    "wait_dev_h": 0.02220756125000012,
+    "wait_tol_h": 0.13705743722222224
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0686836683574563,
+    "cycle_ratio": 1.1409414100770905
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.1044755357774425,
+    "cycle_ratio": 1.1390419666529
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_0nd5v3c",
+     "glass_name": "Timer before Create Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1u4ansz",
+     "glass_name": "Timer before Analyze Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1200.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1h2f129",
+     "glass_name": "Timer before Analyze Request for Quotation",
+     "orig": "expon",
+     "orig_mean_s": 2400.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2400.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1o0ttnh",
+     "glass_name": "Timer before Create Quotation comparison Map",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_13wwpup",
+     "glass_name": "Timer before Release Supplier's Invoice",
+     "orig": "expon",
+     "orig_mean_s": 2700.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2700.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ar4ghb",
+     "glass_name": "Timer before Pay invoice",
+     "orig": "expon",
+     "orig_mean_s": 600.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 600.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_0uhli6k",
+     "glass_name": "Event_0uhli6k",
+     "orig": "expon",
+     "orig_mean_s": 900.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 900.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "Procure2Pay_G3": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 12.973,
+    "events_per_case_se": 0.18561444912431715,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.773600000000002,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 22.397949999999998,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 21.384141666666665,
+     "Create Quotation comparison Map": 7.063383333333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 20.333383333333334,
+     "Pay invoice": 14.112233333333334,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7457199952150713,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.0448918789335035,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.7135947992174956,
+     "Create Quotation comparison Map": 0.31573733402476645,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.8498313453069335,
+     "Pay invoice": 0.8174814402249099,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 38.37561428722222
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.965,
+    "events_per_case_se": 0.1774690684887659,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 14.074230891666666,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 20.65347416666667,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 24.745410216666667,
+     "Create Quotation comparison Map": 6.943181458333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 19.4885965,
+     "Pay invoice": 13.833538516666668,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7236896880216197,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 0.6665704109947596,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.2583927505112396,
+     "Create Quotation comparison Map": 0.3312338715733679,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.671819762385361,
+     "Pay invoice": 0.7178717132707901,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 31.16351721353389
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.965,
+    "events_per_case_se": 0.1774690684887659,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 14.074230891666666,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 20.65347416666667,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 24.745410216666667,
+     "Create Quotation comparison Map": 6.943181458333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 19.4885965,
+     "Pay invoice": 13.833538516666668,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7236896880216197,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 0.6665704109947596,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.2583927505112396,
+     "Create Quotation comparison Map": 0.3312338715733679,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.671819762385361,
+     "Pay invoice": 0.7178717132707901,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 31.16351721353389
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Analyze Purchase Requisition",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.0,
+    "events_dev": 0.0,
+    "events_tol": 0.7529374906755972,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.08333333333333333
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.8120656253289028
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.8120656253289028
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "Procure2Pay_G1G2": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [
+    "Imported 7 intermediate (timer) event(s) from event_distribution: Timer before Create Purchase Requisition, Timer before Analyze Purchase Requisition, Timer before Analyze Request for Quotation, Timer before Create Quotation comparison Map, Timer before Release Supplier's Invoice, Timer before Pay invoice, Event_0uhli6k."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 13.27,
+    "events_per_case_se": 0.18310277613031054,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.848583333333334,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 32.68151666666667,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 36.33625,
+     "Create Quotation comparison Map": 17.85355,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 28.0931,
+     "Pay invoice": 9.707483333333332,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.176141140018014,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.3748416057066002,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 3.2413710403347915,
+     "Create Quotation comparison Map": 0.780802523652366,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.2743587404351011,
+     "Pay invoice": 0.4553870659024541,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 1.2836869444444443,
+    "mean_cycle_h": 438.1204339322222
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.702,
+    "events_per_case_se": 0.16712608152866842,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.164529950000002,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 34.36050731666667,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 32.937404425,
+     "Create Quotation comparison Map": 18.655695058333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 28.27446796666667,
+     "Pay invoice": 10.766931233333334,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.4092996330517964,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.5434591237019226,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.8829743114183402,
+     "Create Quotation comparison Map": 0.8099481266803129,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.4107281594804713,
+     "Pay invoice": 0.521027558490974,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 2.187901388333333,
+    "mean_cycle_h": 366.73446025297886
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.702,
+    "events_per_case_se": 0.16712608152866842,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.164529950000002,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 34.36050731666667,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 32.937404425,
+     "Create Quotation comparison Map": 18.655695058333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 28.27446796666667,
+     "Pay invoice": 10.766931233333334,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.4092996330517964,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.5434591237019226,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.8829743114183402,
+     "Create Quotation comparison Map": 0.8099481266803129,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.4107281594804713,
+     "Pay invoice": 0.521027558490974,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 6,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 2.187901388333333,
+    "mean_cycle_h": 366.73446025297886
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Analyze Purchase Requisition",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.0,
+    "events_dev": 0.0,
+    "events_tol": 0.7090559133723435,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.43758027766666663
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.7043885955233546,
+    "cycle_ratio": 0.837063126596175
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.7043885955233546,
+    "cycle_ratio": 0.837063126596175
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_0nd5v3c",
+     "glass_name": "Timer before Create Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1u4ansz",
+     "glass_name": "Timer before Analyze Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1200.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1h2f129",
+     "glass_name": "Timer before Analyze Request for Quotation",
+     "orig": "expon",
+     "orig_mean_s": 2400.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2400.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1o0ttnh",
+     "glass_name": "Timer before Create Quotation comparison Map",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_13wwpup",
+     "glass_name": "Timer before Release Supplier's Invoice",
+     "orig": "expon",
+     "orig_mean_s": 2700.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2700.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ar4ghb",
+     "glass_name": "Timer before Pay invoice",
+     "orig": "expon",
+     "orig_mean_s": 600.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 600.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_0uhli6k",
+     "glass_name": "Event_0uhli6k",
+     "orig": "expon",
+     "orig_mean_s": 900.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 900.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "Procure2Pay_G1G3": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 12.766,
+    "events_per_case_se": 0.1725253865638591,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 25.151133333333334,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 30.370566666666665,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 30.0185,
+     "Create Quotation comparison Map": 16.424075000000002,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 29.207816666666666,
+     "Pay invoice": 10.586475,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.1825185018918067,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.40486962296277,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.4397485482698884,
+     "Create Quotation comparison Map": 0.7593331918184953,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.1218219891219834,
+     "Pay invoice": 0.45545956387258346,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 854.9404422691667
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.928,
+    "events_per_case_se": 0.18152621785231954,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 22.872107149999998,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 31.767916366666668,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 32.5998313,
+     "Create Quotation comparison Map": 17.57969525,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 26.708848866666663,
+     "Pay invoice": 10.067166816666667,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.3394295397783087,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.4453799206949407,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.1983271710012207,
+     "Create Quotation comparison Map": 0.7213673595351363,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.2153776659066249,
+     "Pay invoice": 0.36930862853879387,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 733.2661646093047
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.928,
+    "events_per_case_se": 0.18152621785231954,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 22.872107149999998,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 31.767916366666668,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 32.5998313,
+     "Create Quotation comparison Map": 17.57969525,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 26.708848866666663,
+     "Pay invoice": 10.067166816666667,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.3394295397783087,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.4453799206949407,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.1983271710012207,
+     "Create Quotation comparison Map": 0.7213673595351363,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.2153776659066249,
+     "Pay invoice": 0.36930862853879387,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.0,
+    "mean_cycle_h": 733.2661646093047
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Analyze Purchase Requisition",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.0,
+    "events_dev": 0.0,
+    "events_tol": 0.77015051763913,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.08333333333333333
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.8576809896407328
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0,
+    "cycle_ratio": 0.8576809896407328
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": null
+  },
+  "Procure2Pay_G2G3": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [
+    "Imported 7 intermediate (timer) event(s) from event_distribution: Timer before Create Purchase Requisition, Timer before Analyze Purchase Requisition, Timer before Analyze Request for Quotation, Timer before Create Quotation comparison Map, Timer before Release Supplier's Invoice, Timer before Pay invoice, Event_0uhli6k."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 13.034,
+    "events_per_case_se": 0.18152078061146,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.450583333333334,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 20.75865,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 22.447266666666668,
+     "Create Quotation comparison Map": 7.194108333333333,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 21.003141666666668,
+     "Pay invoice": 12.832716666666666,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.7989298869696864,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.0033545071664631,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.460944915509186,
+     "Create Quotation comparison Map": 0.3502161580406248,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.1793824524079253,
+     "Pay invoice": 0.6257703827212556,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.7385876388888889,
+    "mean_cycle_h": 50.15723464472222
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.531,
+    "events_per_case_se": 0.16718549575244257,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.310957408333334,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 21.663419433333335,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 21.794076683333333,
+     "Create Quotation comparison Map": 7.253126383333334,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 20.882101350000003,
+     "Pay invoice": 14.3011344,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.6787559049545769,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 0.9784306416766183,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.6611914652080406,
+     "Create Quotation comparison Map": 0.2904608489769231,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.919402426026491,
+     "Pay invoice": 0.8777755487843427,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.6306574697222223,
+    "mean_cycle_h": 39.51376535431028
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.531,
+    "events_per_case_se": 0.16718549575244257,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 13.310957408333334,
+     "Amend Request for Quotation Requester": 20.0,
+     "Amend Request for Quotation Requester Manager": 21.663419433333335,
+     "Analyze Purchase Requisition": 5.0,
+     "Analyze Request for Quotation": 10.0,
+     "Authorize Supplier's Invoice payment": 5.0,
+     "Create Purchase Requisition": 21.794076683333333,
+     "Create Quotation comparison Map": 7.253126383333334,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 20.882101350000003,
+     "Pay invoice": 14.3011344,
+     "Release Supplier's Invoice": 20.0,
+     "Settle dispute with supplier Financial Manager": 5.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 0.6787559049545769,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 0.9784306416766183,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 1.6611914652080406,
+     "Create Quotation comparison Map": 0.2904608489769231,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.919402426026491,
+     "Pay invoice": 0.8777755487843427,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.6306574697222223,
+    "mean_cycle_h": 39.51376535431028
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Analyze Purchase Requisition",
+    "worst_dev_min": 0.0,
+    "worst_tol_min": 2.0,
+    "events_dev": 0.0,
+    "events_tol": 0.7093079865755212,
+    "cycle_rel": 0.0,
+    "wait_dev_h": 0.0,
+    "wait_tol_h": 0.12613149394444445
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.8538695159737119,
+    "cycle_ratio": 0.7877979245506131
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 0.8538695159737119,
+    "cycle_ratio": 0.7877979245506131
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_0nd5v3c",
+     "glass_name": "Timer before Create Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1u4ansz",
+     "glass_name": "Timer before Analyze Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1200.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1h2f129",
+     "glass_name": "Timer before Analyze Request for Quotation",
+     "orig": "expon",
+     "orig_mean_s": 2400.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2400.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1o0ttnh",
+     "glass_name": "Timer before Create Quotation comparison Map",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_13wwpup",
+     "glass_name": "Timer before Release Supplier's Invoice",
+     "orig": "expon",
+     "orig_mean_s": 2700.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2700.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ar4ghb",
+     "glass_name": "Timer before Pay invoice",
+     "orig": "expon",
+     "orig_mean_s": 600.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 600.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_0uhli6k",
+     "glass_name": "Event_0uhli6k",
+     "orig": "expon",
+     "orig_mean_s": 900.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 900.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  },
+  "Procure2Pay_G1G2G3": {
+   "kpi_activity": "Release Supplier's Invoice",
+   "import_notes": [
+    "Imported 7 intermediate (timer) event(s) from event_distribution: Timer before Create Purchase Requisition, Timer before Analyze Purchase Requisition, Timer before Analyze Request for Quotation, Timer before Create Quotation comparison Map, Timer before Release Supplier's Invoice, Timer before Pay invoice, Event_0uhli6k."
+   ],
+   "log": {
+    "cases": 1000,
+    "events_per_case": 13.001,
+    "events_per_case_se": 0.17478429148109548,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 27.649516666666667,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 34.27408333333334,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 36.528925,
+     "Create Quotation comparison Map": 17.29525,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 27.943841666666664,
+     "Pay invoice": 10.613624999999999,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.3359267219048694,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.2943528870690395,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.4865864800147235,
+     "Create Quotation comparison Map": 0.6881252187942799,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 0.9755354542654616,
+     "Pay invoice": 0.5066555653957385,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.770306111111111,
+    "mean_cycle_h": 924.1870322891667
+   },
+   "glass": {
+    "cases": 1000,
+    "events_per_case": 12.467,
+    "events_per_case_se": 0.1633511389448956,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 24.700095333333334,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 33.77792783333334,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 34.05627235,
+     "Create Quotation comparison Map": 17.007523366666668,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 30.004144525,
+     "Pay invoice": 10.825781466666667,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.2344324555487014,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.1212731005901577,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 3.2087455139114747,
+     "Create Quotation comparison Map": 0.8780509618721725,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.3807040302732423,
+     "Pay invoice": 0.48650967719435817,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.7967120580555554,
+    "mean_cycle_h": 784.3254855337836
+   },
+   "direct": {
+    "cases": 1000,
+    "events_per_case": 12.627,
+    "events_per_case_se": 0.1713161411549426,
+    "duration_median_min": {
+     "Amend Purchase Requisition": 24.539389458333332,
+     "Amend Request for Quotation Requester": 45.0,
+     "Amend Request for Quotation Requester Manager": 33.19698173333333,
+     "Analyze Purchase Requisition": 20.0,
+     "Analyze Request for Quotation": 70.0,
+     "Authorize Supplier's Invoice payment": 20.0,
+     "Create Purchase Requisition": 31.89849395,
+     "Create Quotation comparison Map": 16.8186352,
+     "Create Request for Quotation Requester": 60.0,
+     "Create Request for Quotation Requester Manager": 30.678330216666666,
+     "Pay invoice": 10.707111025,
+     "Release Supplier's Invoice": 35.0,
+     "Settle dispute with supplier Financial Manager": 30.0
+    },
+    "duration_median_se_min": {
+     "Amend Purchase Requisition": 1.2342225271338505,
+     "Amend Request for Quotation Requester": 0.0,
+     "Amend Request for Quotation Requester Manager": 1.1195442541536686,
+     "Analyze Purchase Requisition": 0.0,
+     "Analyze Request for Quotation": 0.0,
+     "Authorize Supplier's Invoice payment": 0.0,
+     "Create Purchase Requisition": 2.9230899311286604,
+     "Create Quotation comparison Map": 0.8852619358576811,
+     "Create Request for Quotation Requester": 0.0,
+     "Create Request for Quotation Requester Manager": 1.2843584526932668,
+     "Pay invoice": 0.4730974932957,
+     "Release Supplier's Invoice": 0.0,
+     "Settle dispute with supplier Financial Manager": 0.0
+    },
+    "resources_per_pool": {
+     "Financial Manager": 2,
+     "Purchasing Agent": 3,
+     "Requester": 2,
+     "Requester Manager": 2,
+     "Supplier": 2
+    },
+    "kpi_wait_median_h": 0.7886277041666666,
+    "mean_cycle_h": 788.1320250434838
+   },
+   "i": {
+    "checks": {
+     "duration_medians": true,
+     "events_per_case": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "worst_activity": "Create Purchase Requisition",
+    "worst_dev_min": 2.1577784000000015,
+    "worst_tol_min": 13.02169430859959,
+    "events_dev": 0.16000000000000014,
+    "events_tol": 0.710137545362399,
+    "cycle_rel": -0.004829824685134709,
+    "wait_dev_h": 0.00808435388888884,
+    "wait_tol_h": 0.15772554083333334
+   },
+   "ii": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0342798097581698,
+    "cycle_ratio": 0.8486653222032853
+   },
+   "direct_vs_log": {
+    "checks": {
+     "cases": true,
+     "resources_per_pool": true,
+     "mean_cycle": true,
+     "kpi_wait": true
+    },
+    "wait_ratio": 1.0237848211136842,
+    "cycle_ratio": 0.8527841199971382
+   },
+   "norm_checked": 0,
+   "norm_mismatches": [],
+   "timers": [
+    {
+     "event_id": "Event_0nd5v3c",
+     "glass_name": "Timer before Create Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1u4ansz",
+     "glass_name": "Timer before Analyze Purchase Requisition",
+     "orig": "expon",
+     "orig_mean_s": 1200.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1200.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1h2f129",
+     "glass_name": "Timer before Analyze Request for Quotation",
+     "orig": "expon",
+     "orig_mean_s": 2400.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2400.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1o0ttnh",
+     "glass_name": "Timer before Create Quotation comparison Map",
+     "orig": "expon",
+     "orig_mean_s": 1800.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 1800.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_13wwpup",
+     "glass_name": "Timer before Release Supplier's Invoice",
+     "orig": "expon",
+     "orig_mean_s": 2700.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 2700.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_1ar4ghb",
+     "glass_name": "Timer before Pay invoice",
+     "orig": "expon",
+     "orig_mean_s": 600.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 600.0,
+     "glass_std_s": null,
+     "match": true
+    },
+    {
+     "event_id": "Event_0uhli6k",
+     "glass_name": "Event_0uhli6k",
+     "orig": "expon",
+     "orig_mean_s": 900.0,
+     "orig_std_s": null,
+     "glass": "expon",
+     "glass_mean_s": 900.0,
+     "glass_std_s": null,
+     "match": true
+    }
+   ]
+  }
+ }
+}

@@ -38,6 +38,10 @@ evaluation/loanapp_p2p/
     run_refinement_pilot.py        runs one refinement round (--round N) for the pilot cases
     verify_refinement_pilot.py     independent check of the pilot folder
     relocation.patch               how these scripts differ from the versions used at run time (see Notes)
+    qbp2prosimos.py                converts a BIMP model into a Prosimos sim_params.json (Stage 2)
+    merge_ends.py                  merges several BPMN end events into one for Prosimos (Stage 2)
+    build_stage2_baselines.py      builds and validates the Stage 2 baselines
+  stage2/              Stage 2 baselines (BPMN + Prosimos parameters) per configuration and their validation (see stage2/README.md)
 ```
 
 ## Files
@@ -124,12 +128,23 @@ One line per file or folder of this directory (each `raw/` folder is one line; i
 
 ### scripts/
 
+- `scripts/build_stage2_baselines.py`: Builds the Stage 2 baselines and validates them through GLASS against a direct Prosimos run and the input logs (Python 3.11 environment with Prosimos, see `stage2/README.md`): `python evaluation/loanapp_p2p/scripts/build_stage2_baselines.py`.
+- `scripts/merge_ends.py`: Merges several end events of a BPMN model into one through a converging gateway, for Prosimos: `python merge_ends.py <in.bpmn> <out.bpmn>`.
+- `scripts/qbp2prosimos.py`: Converts a BIMP/QBP model into a Prosimos `sim_params.json`: `python qbp2prosimos.py <in.bpmn> <out.json>`.
 - `scripts/relocation.patch`: Every difference between these scripts and their run-time versions; `git apply -R` in a scratch checkout restores the versions whose SHA-256 the result READMEs list.
 - `scripts/reprocess_stage1_normalised.py`: Re-applies GLASS's post-processing to the stored Stage 1 answers to build stage1_results_normalised, only at the base commit with that folder's patch: `python evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py`.
 - `scripts/run_refinement_pilot.py`: Runs one refinement round of the pilot through GLASS's handle_refinement path: `python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py [--round N] [--out <folder>]`.
 - `scripts/run_stage1_batch.py`: Runs the 14 configurations through GLASS's own Stage 1 code and writes a result folder: `python evaluation/loanapp_p2p/scripts/run_stage1_batch.py --workers 4 --out <folder>`.
 - `scripts/verify_refinement_pilot.py`: Checks the stored pilot folder independently, without LLM calls, and writes its verification report: `python evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py`.
 - `scripts/verify_stage1_results.py`: Checks a Stage 1 result folder independently, without LLM calls, and writes its verification report: `python evaluation/loanapp_p2p/scripts/verify_stage1_results.py [--results <folder>]`.
+
+### stage2/
+
+- `stage2/README.md`: How the Stage 2 baselines were produced and validated, and the Python/Prosimos environment used.
+- `stage2/baselines/<config_id>/` (14 folders): `model.bpmn` and `sim_params.json`, the baseline GLASS receives in Stage 2 for that configuration.
+- `stage2/baselines/validation_report.md`: Per-configuration comparison of the GLASS path with a direct Prosimos run and with the input log, with PASS/FAIL.
+- `stage2/baselines/validation_metrics.json`: All measured values behind the validation report.
+- `stage2/healthy/<process>/` (2 folders): `model.bpmn` and `sim_params.json` of the healthy original models; scoring reference only, never given to GLASS.
 
 ## The 14 configurations
 
