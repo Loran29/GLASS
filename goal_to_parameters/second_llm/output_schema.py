@@ -394,6 +394,16 @@ class StartEvent(BaseModel):
 
     id: str = Field(description="BPMN start event element ID")
     interArrivalTime: TimeDistribution
+    # Arrival calendar of the baseline (Prosimos ``arrival_time_calendar``); empty means 24/7.
+    # Not part of the LLM-facing JSON schema, and omitted from serialisation when empty.
+    arrivalCalendar: SkipJsonSchema[list[TimetableItem]] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_arrival_calendar(self, handler: Any) -> Any:
+        data = handler(self)
+        if isinstance(data, dict) and not self.arrivalCalendar:
+            data.pop("arrivalCalendar", None)
+        return data
 
 
 class IntermediateEvent(BaseModel):

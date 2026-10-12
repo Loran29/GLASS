@@ -679,14 +679,17 @@ def _build_gateways(gw_probs: list[dict[str, Any]]) -> list[Gateway]:
 def _build_start_events(
     arrival: dict[str, Any] | None,
     start_event_id: str = "StartEvent_1",
+    arrival_calendar: Any = None,
 ) -> list[StartEvent]:
-    """Produce a single :class:`StartEvent` from the SIMOD arrival distribution."""
+    """Produce a single :class:`StartEvent` from the SIMOD arrival distribution and calendar."""
     if not isinstance(arrival, dict):
         arrival = {"distribution_name": "exponential", "distribution_params": [{"value": 1.0}]}
+    calendar = _build_timetable({"id": "arrival_calendar", "time_periods": arrival_calendar})
     return [
         StartEvent(
             id=start_event_id,
             interArrivalTime=_parse_distribution(arrival, default_mean_seconds=3600.0),
+            arrivalCalendar=calendar.timeTableItems if calendar else [],
         ),
     ]
 
@@ -887,6 +890,7 @@ def build_baseline_scenario(
     events = _build_start_events(
         simod_dict.get("arrival_time_distribution")
         or simod_dict.get("case_arrival_distribution"),
+        arrival_calendar=simod_dict.get("arrival_time_calendar"),
     )
 
     # --- Intermediate (timer) events ---

@@ -126,6 +126,23 @@ Configured in [`goal_to_parameters/config.yaml`](./goal_to_parameters/config.yam
 
 ---
 
+## Calendars
+
+**Previous behaviour.** `second_llm/prosimos_runner.py::scenario_to_prosimos_json` replaced the baseline's calendars on export:
+- The arrival calendar was hard-coded to 24/7 (the baseline's `arrival_time_calendar` was never imported). For a baseline whose cases arrive Mon–Fri 09–17, cases then arrived around the clock, which roughly tripled the daily load.
+- Every weekday missing from a resource calendar was filled with that calendar's hours, a workaround for a Prosimos `CalendarIterator` crash. A Mon–Fri 09–17 calendar therefore became Mon–Sun 09–17.
+
+Together these made simulated cycle and waiting times differ from the baseline by up to 40×.
+
+**What changed** (applies from the commit "Fix arrival and resource calendars being replaced by 24/7 on export", the first commit after `cb9cb17`):
+- **Arrival calendar.** It is imported into `StartEvent.arrivalCalendar` and exported as `arrival_time_calendar`. A scenario without one (for example a baseline without `arrival_time_calendar`, or a legacy full-scenario proposal) still exports 24/7.
+- **Resource calendars.** They are exported as they are. Prosimos 2.x handles calendars without weekend days. Only a calendar with no periods at all falls back to Mon–Sun 09–17.
+- **Unchanged outputs.** The new field is hidden from the LLM schemas and left out of the serialised output when empty. Baselines whose calendars are already 24/7 export byte-identically to before; `tests/test_calendars.py` checks this against fingerprints taken at `cb9cb17`.
+
+**Known limitation.** Calendar times are whole hours (`TimetableItem` stores integer hours), as before for resource calendars.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

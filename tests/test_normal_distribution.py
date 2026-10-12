@@ -31,8 +31,8 @@ NORM = {"distribution_name": "norm",
 
 # sha256 of json.dumps(export, sort_keys=True), computed with the code before this fix.
 PRE_FIX_EXPORT = {
-    "fix": "93b53a9fa4e3d6214762ce464e718051904683061debd65f259177c3a0448fae",
-    "expon": "c3907a7c29157e9364cdec894203669cb9911188a027a41f5738b1d79bb048bf",
+    "fix": "9d5753838d6beb86371239662b0ac158edb7a54dc9169edcca48ac0f997b0102",
+    "expon": "e3cedf0b16fcc569396978395f6ba29fad16c2fa9b572449517592f615203bcc",
 }
 
 

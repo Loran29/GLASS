@@ -64,7 +64,8 @@ def simod_json(with_timer: bool) -> dict:
         ],
         "resource_calendars": [
             {"id": "Cal_1", "name": "Cal_1", "time_periods": [
-                {"from": "MONDAY", "to": "FRIDAY", "beginTime": "09:00:00", "endTime": "17:00:00"},
+                # 24/7, so the export is the same with and without calendar weekend-filling.
+                {"from": "MONDAY", "to": "SUNDAY", "beginTime": "00:00:00", "endTime": "23:59:59"},
             ]},
         ],
         "task_resource_distribution": [
@@ -122,9 +123,9 @@ def timerless_fingerprints() -> dict[str, str]:
 
 # Computed with the code before this change (commit bddc958), for the inputs above.
 PRE_CHANGE_FINGERPRINTS = {
-    "export_plain_bpmn": "b9632e7af8f13e2e6c29f8576f4ebdfb68e7867304ef528709f944713dc6aef2",
-    "export_timer_bpmn_no_distribution": "cd37d48e547a7834dbe1a2c7c7c90f6d8751010b2c2be59f928e01f571ba9673",
-    "baseline_serialisation": "3531550d36d6d57d106dabd27a0a732b61356b7592db98e281772e46b5b12620",
+    "export_plain_bpmn": "3764bbd72094670f67a4c639037878492ef805f0fe92446392eb401a34de3ec8",
+    "export_timer_bpmn_no_distribution": "54c47709259550bb64e0090f8080f689f053556df6cd91d48f1ac6cf99be4bc2",
+    "baseline_serialisation": "fc3967b244d35b5d6750cea807ab3490cef974c3378eec280ac0d2cfcfdc7c48",
     "patch_prompt": "a4e10d99d7093631e297bde97d8143e79e0ad5fe074f15333dee6db5df907806",
     "patch_constrained_schema": "34cf355e2bd0ff36b4cfff08521b2f2d89fcc856fd3dde4a09500da4ab4de7bb",
     "legacy_constrained_schema": "101b9fce25357cc69329a492fa2fe9af718a0c173b6c4a441e4c48ec858fbf25",

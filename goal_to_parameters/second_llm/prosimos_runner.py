@@ -230,45 +230,23 @@ def scenario_to_prosimos_json(
     rp = scenario.resourceParameters
 
     # --- Resource calendars ---
-    # Prosimos's CalendarIterator crashes if a day has no work intervals.
-    # Extend all calendars to cover Mon–Sun to prevent IndexError on weekends.
+    # Exported as they are: Prosimos 2.x handles calendars without weekend (or other)
+    # days. Only a calendar with no periods at all falls back to Mon–Sun 09–17.
     _ALL_DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
 
     resource_calendars: list[dict[str, Any]] = []
     for tt in rp.timeTables:
         periods: list[dict[str, Any]] = []
-        covered_days: set[str] = set()
-        default_begin = "09:00:00"
-        default_end = "17:00:00"
-
         for item in tt.timeTableItems:
-            from_day = _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value)
-            to_day = _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value)
-            begin_time = f"{item.startTime:02d}:00:00"
-            end_time = f"{item.endTime:02d}:00:00"
-            default_begin = begin_time
-            default_end = end_time
             periods.append({
-                "from": from_day,
-                "to": to_day,
-                "beginTime": begin_time,
-                "endTime": end_time,
+                "from": _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value),
+                "to": _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value),
+                "beginTime": f"{item.startTime:02d}:00:00",
+                "endTime": f"{item.endTime:02d}:00:00",
             })
-            # Track which days are covered
-            start_idx = _ALL_DAYS.index(from_day)
-            end_idx = _ALL_DAYS.index(to_day)
-            for i in range(start_idx, end_idx + 1):
-                covered_days.add(_ALL_DAYS[i])
-
-        # Add missing days with the same hours to avoid CalendarIterator crash
-        for day in _ALL_DAYS:
-            if day not in covered_days:
-                periods.append({
-                    "from": day,
-                    "to": day,
-                    "beginTime": default_begin,
-                    "endTime": default_end,
-                })
+        if not periods:
+            periods = [{"from": day, "to": day, "beginTime": "09:00:00", "endTime": "17:00:00"}
+                       for day in _ALL_DAYS]
 
         resource_calendars.append({"id": tt.id, "time_periods": periods})
 
@@ -351,8 +329,19 @@ def scenario_to_prosimos_json(
                 ],
             }
 
-    # --- Arrival time calendar (24/7 — cases can arrive any time) ---
+    # --- Arrival time calendar ---
+    # The baseline's arrival calendar when the scenario holds one; otherwise 24/7
+    # (cases can arrive any time). An end hour of 24 is written as 23:59:59, as in the 24/7 default.
+    arrival_items = model.modelParameter.events[0].arrivalCalendar if model.modelParameter.events else []
     arrival_calendar: list[dict[str, Any]] = [
+        {
+            "from": _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value),
+            "to": _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value),
+            "beginTime": f"{item.startTime:02d}:00:00",
+            "endTime": "23:59:59" if item.endTime == 24 else f"{item.endTime:02d}:00:00",
+        }
+        for item in arrival_items
+    ] or [
         {
             "from": "MONDAY",
             "to": "SUNDAY",
