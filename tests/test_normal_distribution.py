@@ -83,6 +83,56 @@ class NormalDistributionRoundTripTests(unittest.TestCase):
             self.assertEqual({v.id: v.value for v in td.values}, {"mean": MEAN_S, "variance": STD_S ** 2})
 
 
+class ProposedNormalDistributionTests(unittest.TestCase):
+    """LLM side: a proposed std alias is squared into the stored variance."""
+
+    def _export_patched_task_a(self, values: list[dict]) -> list[float]:
+        from test_event_duration import patch_of
+
+        from second_llm.output_schema import ModificationDirection
+        from second_llm.output_schema_patch import PatchModification, PatchParameterType
+        from second_llm.scenario_merger import apply_patch
+
+        mod = PatchModification(
+            parameter_type=PatchParameterType.ACTIVITY_DURATION, target_element="Task A",
+            direction=ModificationDirection.INCREASE, baseline_value="600", proposed_value=str(MEAN_S),
+            proposed_structured={"distributionType": "normal", "timeUnit": "secs", "values": values},
+            kpi_reference="Task B Waiting Time", rationale="Normal duration for Task A.",
+            evidence_source="baseline",
+        )
+        baseline = build_baseline_scenario(simod_json(with_timer=True), bpmn_xml=bpmn_with_timer()).scenario
+        merged = apply_patch(baseline, patch_of(mod))
+        self.assertIsNotNone(merged.scenario, merged.diagnostics)
+        out = scenario_to_prosimos_json(merged.scenario, bpmn_with_timer())
+        task = next(t for t in out["task_resource_distribution"] if t["task_id"] == "Task_A")
+        self.assertEqual({r["distribution_name"] for r in task["resources"]}, {"norm"})
+        return _params(task["resources"][0])[:2]
+
+    def test_proposed_std_exports_unchanged(self):
+        exported = self._export_patched_task_a([{"id": "mean", "value": MEAN_S}, {"id": "std", "value": STD_S}])
+        self.assertEqual(exported, [MEAN_S, STD_S])
+
+    def test_proposed_variance_exports_the_same(self):
+        exported = self._export_patched_task_a(
+            [{"id": "mean", "value": MEAN_S}, {"id": "variance", "value": STD_S ** 2}])
+        self.assertEqual(exported, [MEAN_S, STD_S])
+
+    def test_every_std_alias_is_squared_and_variance_aliases_kept(self):
+        from second_llm.output_schema import DistributionParameter
+
+        for alias in ("std", "sigma", "std_dev", "stdev", "standard_deviation", "std_hours", "std_minutes"):
+            with self.subTest(alias=alias):
+                p = DistributionParameter(id=alias, value=STD_S)
+                self.assertEqual((p.id, p.value), ("variance", STD_S ** 2))
+        for alias in ("variance", "var"):
+            with self.subTest(alias=alias):
+                p = DistributionParameter(id=alias, value=STD_S ** 2)
+                self.assertEqual((p.id, p.value), ("variance", STD_S ** 2))
+        # Re-validating a stored scenario does not square twice.
+        p = DistributionParameter(id="std", value=STD_S)
+        self.assertEqual(DistributionParameter.model_validate(p.model_dump()).value, STD_S ** 2)
+
+
 class FixAndExponUnaffectedTests(unittest.TestCase):
     def test_fix_and_expon_export_byte_identical(self):
         timers = {

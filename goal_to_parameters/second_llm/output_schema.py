@@ -85,6 +85,19 @@ class DistributionParameter(BaseModel):
     id: str = Field(description="Parameter name: mean, variance, lower, upper, peak, constantValue, order, probability, amount")
     value: float
 
+    @model_validator(mode="before")
+    @classmethod
+    def _std_to_variance(cls, data: Any) -> Any:
+        # A standard deviation is stored as variance = std ** 2; an explicit
+        # "variance"/"var" id keeps its value.
+        if isinstance(data, dict) and isinstance(data.get("id"), str):
+            if data["id"].strip().lower() in _STD_PARAM_ALIASES:
+                try:
+                    return {**data, "id": "variance", "value": float(data.get("value")) ** 2}
+                except (TypeError, ValueError):
+                    return data
+        return data
+
     @field_validator("id", mode="before")
     @classmethod
     def _normalise_id(cls, v: Any) -> str:
@@ -138,6 +151,12 @@ _PARAM_ID_ALIASES: dict[str, str] = {
     "inter_arrival_mean": "mean",
     "lambda": "mean",
 }
+
+# Aliases naming a standard deviation (squared into "variance" on validation).
+_STD_PARAM_ALIASES = frozenset(
+    alias for alias, canonical in _PARAM_ID_ALIASES.items()
+    if canonical == "variance" and alias not in ("variance", "var")
+)
 
 
 # Normalise common LLM aliases for distribution type names.
