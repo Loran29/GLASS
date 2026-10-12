@@ -235,10 +235,10 @@ def _positional_to_named(
         if m is not None:
             out.append(DistributionParameter(id="mean", value=m))
         if v is not None:
-            # SIMOD often stores standard deviation; the Pydantic model
-            # normalises "std" -> "variance" via its aliases so we store
-            # the raw numeric value under "variance" here.
-            out.append(DistributionParameter(id="variance", value=v))
+            # Prosimos norm params are [mean, std, min, max]; SimuBridge's
+            # normal is (mean, variance), so square the std (export takes
+            # the square root again).
+            out.append(DistributionParameter(id="variance", value=v ** 2))
         return out
     if dist_type == DistributionType.UNIFORM:
         lo = _f(0)
@@ -285,7 +285,8 @@ def _named_fields_to_params(
 ) -> list[DistributionParameter]:
     """Fallback path: read mean/sd/min/max directly off the SIMOD dict."""
     mean = raw.get("mean")
-    sd = raw.get("sd") or raw.get("std") or raw.get("stddev") or raw.get("variance")
+    sd = raw.get("sd") or raw.get("std") or raw.get("stddev")
+    variance = float(sd) ** 2 if sd is not None else raw.get("variance")
     lo = raw.get("min") or raw.get("lower") or raw.get("lo")
     hi = raw.get("max") or raw.get("upper") or raw.get("hi")
 
@@ -295,8 +296,8 @@ def _named_fields_to_params(
     elif dist_type == DistributionType.NORMAL:
         if mean is not None:
             out.append(DistributionParameter(id="mean", value=float(mean)))
-        if sd is not None:
-            out.append(DistributionParameter(id="variance", value=float(sd)))
+        if variance is not None:
+            out.append(DistributionParameter(id="variance", value=float(variance)))
     elif dist_type == DistributionType.UNIFORM:
         if lo is not None:
             out.append(DistributionParameter(id="lower", value=float(lo)))
