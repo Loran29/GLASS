@@ -35,6 +35,7 @@ from second_llm.output_schema_patch import (
     get_patch_constrained_decoding_schema,
 )
 from second_llm.compatibility_adapter import build_legacy_proposal
+from second_llm.payload_builder import summarize_intermediate_events
 from second_llm.patch_validator import (
     enforce_headcount_constraints,
     repair_patch_against_baseline,
@@ -531,9 +532,8 @@ def generate_scenario_patch(
     use_constrained = (
         constrained_decoding and provider.supports_structured_output()
     )
-    schema_dict: dict[str, Any] | None = None
+    schema_dict: dict[str, Any] | None = None  # built once the baseline is known
     if use_constrained:
-        schema_dict = get_patch_constrained_decoding_schema()
         result.decoding_mode = "patch-constrained"
         notes.append(
             f"Patch constrained decoding enabled "
@@ -580,6 +580,13 @@ def generate_scenario_patch(
         return result
     baseline = baseline_build.scenario
 
+    # Timer events: offered to the LLM (event_duration) only when the baseline has any.
+    events_summary = summarize_intermediate_events(baseline)
+    if use_constrained:
+        schema_dict = get_patch_constrained_decoding_schema(
+            include_event_duration=bool(events_summary),
+        )
+
     # --- Patch prompt ---
     from prompts.scenario_patch_prompt import build_scenario_patch_prompt
 
@@ -588,6 +595,7 @@ def generate_scenario_patch(
         evidence=evidence,
         chat_history=chat_history,
         operational_context=ctx_summary,
+        intermediate_events_summary=events_summary,
     )
     notes.append(
         f"Patch prompt: system={len(system_prompt)} chars, "

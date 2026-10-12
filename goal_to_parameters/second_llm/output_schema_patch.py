@@ -64,6 +64,7 @@ class PatchParameterType(str, Enum):
     RESOURCE_CALENDAR = "resource_calendar"
     RESOURCE_ACTIVITY_ASSIGNMENT = "resource_activity_assignment"
     RESOURCE_COST = "resource_cost"
+    EVENT_DURATION = "event_duration"
 
 
 class PatchTargetKind(str, Enum):
@@ -74,6 +75,7 @@ class PatchTargetKind(str, Enum):
     ROLE = "role"
     TIMETABLE = "timetable"
     START_EVENT = "start_event"
+    INTERMEDIATE_EVENT = "intermediate_event"
 
 
 # Mapping from parameter_type to the expected element kind.
@@ -85,6 +87,9 @@ _PARAM_TO_KIND: dict[PatchParameterType, PatchTargetKind] = {
     PatchParameterType.RESOURCE_CALENDAR: PatchTargetKind.TIMETABLE,
     PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT: PatchTargetKind.ACTIVITY,
     PatchParameterType.RESOURCE_COST: PatchTargetKind.ROLE,
+    # A timer-caused delay; target = the event's display name or id. Proposed value is a
+    # duration as for activity_duration; 0 removes the delay.
+    PatchParameterType.EVENT_DURATION: PatchTargetKind.INTERMEDIATE_EVENT,
 }
 
 
@@ -389,6 +394,15 @@ SCENARIO_PATCH_JSON_SCHEMA: str = """\
 """
 
 
-def get_patch_constrained_decoding_schema() -> dict:
-    """Return the Pydantic JSON Schema for constrained decoding of ScenarioPatch."""
-    return ScenarioPatch.model_json_schema()
+def get_patch_constrained_decoding_schema(include_event_duration: bool = False) -> dict:
+    """Return the Pydantic JSON Schema for constrained decoding of ScenarioPatch.
+
+    ``event_duration`` is offered only when the baseline has intermediate (timer) events;
+    otherwise the schema is the one used before that parameter type existed.
+    """
+    schema = ScenarioPatch.model_json_schema()
+    if not include_event_duration:
+        enum = schema.get("$defs", {}).get("PatchParameterType", {}).get("enum")
+        if isinstance(enum, list) and PatchParameterType.EVENT_DURATION.value in enum:
+            enum.remove(PatchParameterType.EVENT_DURATION.value)
+    return schema

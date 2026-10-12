@@ -362,9 +362,17 @@ def scenario_to_prosimos_json(
     ]
 
     # --- Intermediate event distributions (timer events from BPMN) ---
+    # Events stored on the scenario keep their (possibly patched) delay; events the
+    # scenario does not hold keep the zero default.
+    stored_events = {e.id: e for e in model.modelParameter.intermediateEvents}
     event_distribution: list[dict[str, Any]] = []
     intermediate_event_ids = _extract_intermediate_event_ids(bpmn_xml)
     for evt_id in intermediate_event_ids:
+        if evt_id in stored_events:
+            event_distribution.append(
+                {"event_id": evt_id, **_distribution_to_prosimos(stored_events[evt_id].duration)}
+            )
+            continue
         event_distribution.append({
             "event_id": evt_id,
             "distribution_name": "expon",

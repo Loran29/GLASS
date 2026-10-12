@@ -198,12 +198,18 @@ def build_scenario_patch_prompt(
     simod_output: str = "",
     kb_context: str = "",
     context_evidence: str | None = None,
+    intermediate_events_summary: str = "",
 ) -> tuple[str, list[dict[str, str]], str]:
     """Build the patch-only prompt for the second LLM step.
 
     Reuses the evidence-briefing user prompt from the legacy builder and
     replaces the trailing schema + task instructions so the model emits
     a :class:`ScenarioPatch` instead of a full :class:`ScenarioProposal`.
+
+    ``intermediate_events_summary`` (from
+    :func:`second_llm.payload_builder.summarize_intermediate_events`) lists the
+    baseline's timer events. When it is non-empty, the ``event_duration`` parameter
+    type and the event list are added to the prompt; when empty the prompt is unchanged.
     """
     system_prompt, _, legacy_user_prompt = build_scenario_proposal_prompt(
         first_llm_json=first_llm_json,
@@ -232,6 +238,21 @@ def build_scenario_patch_prompt(
     patch_instructions = _PATCH_OUTPUT_INSTRUCTIONS.format(
         schema=SCENARIO_PATCH_JSON_SCHEMA,
     )
+    if intermediate_events_summary:
+        patch_instructions = patch_instructions.replace(
+            "resource_activity_assignment, resource_cost.",
+            "resource_activity_assignment, resource_cost, event_duration "
+            "(a timer-caused waiting time before an activity; can be shortened or set to 0; "
+            "target = the timer's display name).",
+            1,
+        ).replace("| resource_cost>", "| resource_cost | event_duration>", 1)
+        briefing += (
+            "\n\n## Intermediate (timer) events in the SIMOD baseline\n\n"
+            "Each timer adds a waiting time before its successor activity. Change it with "
+            "parameter_type event_duration, target_element = the display name below, and "
+            "baseline_value quoted in the unit shown.\n\n"
+            + intermediate_events_summary
+        )
 
     # Build an explicit budget clause for the task instruction so the
     # constraint appears in the final, highest-attention position.

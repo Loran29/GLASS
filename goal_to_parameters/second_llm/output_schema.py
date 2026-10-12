@@ -26,7 +26,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_serializer, model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 
 # ===================================================================
@@ -376,12 +377,36 @@ class StartEvent(BaseModel):
     interArrivalTime: TimeDistribution
 
 
+class IntermediateEvent(BaseModel):
+    """An intermediate (timer) event and the delay it adds before its successor.
+
+    Imported from the ``event_distribution`` of a Prosimos baseline. Timers carry no
+    BPMN name, so ``name`` is a display name derived from the successor activity.
+    """
+
+    id: str = Field(description="BPMN intermediate event element ID")
+    name: str = Field(default="", description="Display name, e.g. 'Timer before <successor activity>'")
+    duration: TimeDistribution
+    predecessor: str = Field(default="", description="Name of the activity before the event")
+    successor: str = Field(default="", description="Name of the activity after the event")
+
+
 class ModelParameter(BaseModel):
     """All process-model-level parameters for one BPMN model."""
 
     activities: list[Activity] = Field(default_factory=list)
     gateways: list[Gateway] = Field(default_factory=list)
     events: list[StartEvent] = Field(default_factory=list)
+    # Not part of the LLM-facing JSON schema, and omitted from serialisation when empty, so
+    # scenarios without timers serialise exactly as before.
+    intermediateEvents: SkipJsonSchema[list[IntermediateEvent]] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_intermediate_events(self, handler: Any) -> Any:
+        data = handler(self)
+        if isinstance(data, dict) and not self.intermediateEvents:
+            data.pop("intermediateEvents", None)
+        return data
 
 
 class ProcessModel(BaseModel):
@@ -548,6 +573,7 @@ class ParameterModification(BaseModel):
             "resource_calendar": "resource availability calendar",
             "resource_activity_assignment": "resource activity assignment",
             "resource_cost": "resource cost",
+            "event_duration": "timer delay",
         }
         direction_labels = {
             ModificationDirection.INCREASE: "increase",

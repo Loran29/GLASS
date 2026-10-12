@@ -736,6 +736,8 @@ def build_cost_report(
             _estimate_calendar_cost(
                 idx, mod, role_map, tt_map, report, proposal,
             )
+        elif mod.parameter_type == "event_duration":
+            continue  # cost-neutral: a timer delay uses no resources
 
     # --- Combined queueing estimates (grouped by shared activity) ---
     _build_combined_queueing_estimates(proposal, report)

@@ -33,6 +33,7 @@ from second_llm.output_schema import (
     DistributionParameter,
     DistributionType,
     Gateway,
+    IntermediateEvent,
     ModelParameter,
     ProcessModel,
     Resource,
@@ -689,6 +690,77 @@ def _build_start_events(
     ]
 
 
+_BPMN_ACTIVITY_TAGS = {
+    "task", "userTask", "serviceTask", "manualTask", "scriptTask", "sendTask",
+    "receiveTask", "businessRuleTask", "subProcess", "callActivity",
+}
+
+
+def _build_intermediate_events(
+    entries: list[dict[str, Any]],
+    bpmn_xml: str,
+) -> list[IntermediateEvent]:
+    """Produce :class:`IntermediateEvent` entries from Prosimos ``event_distribution``.
+
+    Predecessor / successor activities are resolved from the BPMN sequence flows,
+    walking through gateways and other events while the path is unambiguous. Timers
+    have no BPMN name, so the display name is ``Timer before <successor activity>``
+    (the event id when the successor cannot be resolved).
+    """
+    tags: dict[str, str] = {}
+    names: dict[str, str] = {}
+    incoming: dict[str, list[str]] = {}
+    outgoing: dict[str, list[str]] = {}
+    if bpmn_xml:
+        try:
+            import xml.etree.ElementTree as ET
+            for elem in ET.fromstring(bpmn_xml).iter():
+                tag = elem.tag.split("}")[-1]
+                eid = elem.get("id") or ""
+                if tag == "sequenceFlow":
+                    src, tgt = elem.get("sourceRef") or "", elem.get("targetRef") or ""
+                    outgoing.setdefault(src, []).append(tgt)
+                    incoming.setdefault(tgt, []).append(src)
+                elif eid:
+                    tags[eid] = tag
+                    names[eid] = (elem.get("name") or "").strip()
+        except Exception:
+            tags, names, incoming, outgoing = {}, {}, {}, {}
+
+    def _neighbour_activity(start: str, links: dict[str, list[str]]) -> str:
+        node, seen = start, {start}
+        while True:
+            nxt = links.get(node, [])
+            if len(nxt) != 1 or nxt[0] in seen:
+                return ""
+            node = nxt[0]
+            seen.add(node)
+            if tags.get(node) in _BPMN_ACTIVITY_TAGS:
+                return names.get(node) or node
+
+    out: list[IntermediateEvent] = []
+    for entry in entries:
+        evt_id = str(entry.get("event_id") or "").strip()
+        if not evt_id:
+            continue
+        successor = _neighbour_activity(evt_id, outgoing)
+        out.append(IntermediateEvent(
+            id=evt_id,
+            name=f"Timer before {successor}" if successor else evt_id,
+            duration=_parse_distribution(entry, default_mean_seconds=0.0),
+            predecessor=_neighbour_activity(evt_id, incoming),
+            successor=successor,
+        ))
+    # Display names must resolve to one event: disambiguate duplicates with the id.
+    counts: dict[str, int] = {}
+    for evt in out:
+        counts[evt.name] = counts.get(evt.name, 0) + 1
+    for evt in out:
+        if counts[evt.name] > 1 and evt.name != evt.id:
+            evt.name = f"{evt.name} ({evt.id})"
+    return out
+
+
 # -------------------------------------------------------------------
 # Top-level builder
 # -------------------------------------------------------------------
@@ -816,10 +888,22 @@ def build_baseline_scenario(
         or simod_dict.get("case_arrival_distribution"),
     )
 
+    # --- Intermediate (timer) events ---
+    intermediate_events = _build_intermediate_events(
+        _as_list_of_dicts(simod_dict.get("event_distribution") or [], id_key="event_id"),
+        bpmn_xml,
+    )
+    if intermediate_events:
+        result.notes.append(
+            f"Imported {len(intermediate_events)} intermediate (timer) event(s) from "
+            f"event_distribution: {', '.join(e.name for e in intermediate_events)}."
+        )
+
     model_parameter = ModelParameter(
         activities=activities,
         gateways=gateways,
         events=events,
+        intermediateEvents=intermediate_events,
     )
     process_model = ProcessModel(
         name=process_name,

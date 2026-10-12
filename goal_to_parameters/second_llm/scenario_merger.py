@@ -190,6 +190,48 @@ def _apply_activity_duration(
     return True
 
 
+def _apply_event_duration(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    """Set the delay of an intermediate (timer) event; same handling as activity durations.
+
+    A proposed value of 0 removes the delay (constant distribution of 0).
+    """
+    events = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
+    evt = _resolve(events, mod.target_element)
+    if evt is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=(
+                f"Intermediate event '{mod.target_element}' not found in baseline — "
+                f"cannot apply event_duration modification."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    new_dist = _distribution_from_payload(
+        mod.proposed_structured, evt.duration.timeUnit, mod.proposed_value,
+    )
+    if new_dist is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Intermediate event '{mod.target_element}': could not parse a valid "
+                f"duration from proposed_value='{mod.proposed_value}' or "
+                f"proposed_structured."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    evt.duration = new_dist
+    return True
+
+
 def _apply_inter_arrival_time(
     scenario: SimuBridgeScenario,
     mod: PatchModification,
@@ -533,6 +575,7 @@ _APPLIERS = {
     PatchParameterType.RESOURCE_COST: _apply_resource_cost,
     PatchParameterType.RESOURCE_CALENDAR: _apply_resource_calendar,
     PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT: _apply_resource_activity_assignment,
+    PatchParameterType.EVENT_DURATION: _apply_event_duration,
 }
 
 
@@ -571,6 +614,8 @@ def _check_element_kind(
         pool = list(scenario.resourceParameters.roles)
     elif kind == PatchTargetKind.TIMETABLE:
         pool = list(scenario.resourceParameters.timeTables)
+    elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
+        pool = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
     else:
         pool = []
 
@@ -583,6 +628,9 @@ def _check_element_kind(
                 for a in pool[:6]
             ]
             hint = f" Known activities (first 6): {candidates}."
+        elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
+            candidates = [f"{e.name} ({e.id})" for e in pool[:6]]
+            hint = f" Known intermediate events (first 6): {candidates}."
         return PatchDiagnostic(
             severity="warning", category="missing_element",
             message=(
@@ -630,6 +678,13 @@ def _check_baseline_value_match(
         event = _resolve(events, mod.target_element) or (events[0] if events else None)
         if event is not None:
             actual_numeric = _distribution_mean(event.interArrivalTime)
+    elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
+        evt = _resolve(
+            [e for m in scenario.models for e in m.modelParameter.intermediateEvents],
+            mod.target_element,
+        )
+        if evt is not None:
+            actual_numeric = _distribution_mean(evt.duration)
 
     if actual_numeric is None:
         return None

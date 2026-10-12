@@ -20,6 +20,27 @@ from second_llm.models import (
 )
 
 
+def summarize_intermediate_events(scenario: Any) -> str:
+    """Baseline summary of intermediate (timer) events for the second-LLM prompt.
+
+    One line per event: display name, id, predecessor -> successor activity and the
+    current mean delay in the event's own time unit (the unit the merger compares a
+    quoted ``baseline_value`` against). Empty string when the baseline has no events.
+    """
+    from second_llm.scenario_merger import _distribution_mean
+
+    lines: list[str] = []
+    for model in getattr(scenario, "models", None) or []:
+        for evt in model.modelParameter.intermediateEvents:
+            mean = _distribution_mean(evt.duration)
+            mean_text = f"{mean:g} {evt.duration.timeUnit.value}" if mean is not None else "unknown"
+            lines.append(
+                f"- {evt.name} (id {evt.id}): {evt.predecessor or '?'} -> {evt.successor or '?'}; "
+                f"current mean duration {mean_text} ({evt.duration.distributionType.value})"
+            )
+    return "\n".join(lines)
+
+
 class DraftPayloadBuilder:
     """Builds the second-LLM request from workspace state."""
 

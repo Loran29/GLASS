@@ -105,6 +105,27 @@ Configured in [`goal_to_parameters/config.yaml`](./goal_to_parameters/config.yam
 
 ---
 
+## Timer / extraneous-delay events
+
+**Previous behaviour.** Stage 2 lost every timer delay discovered by SIMOD. `second_llm/simod_to_simubridge.py` ignored the baseline's `event_distribution`, and `second_llm/prosimos_runner.py::scenario_to_prosimos_json` exported every BPMN intermediate catch event with duration 0 (`expon`, mean 0). Baseline and proposed simulations therefore ran without extraneous waiting time, and the second LLM could neither see nor change it.
+
+**What changed** (applies from the commit that adds this section, the first commit after `bddc958`):
+- **Import.** Each `event_distribution` entry becomes an `IntermediateEvent` on `modelParameter.intermediateEvents`. Its display name is `Timer before <successor activity>`, falling back to the event id; predecessor and successor are resolved from the BPMN; the distribution is parsed by the existing activity-duration code.
+- **Export.** Stored events are written back with their (possibly patched) distribution. BPMN intermediate events not held on the scenario keep the zero default.
+- **Patch type.** New `event_duration` patch parameter type, targeting an intermediate event by display name or id. It is applied by `scenario_merger._apply_event_duration`. The validator rejects unknown events and negative durations, and cost estimation treats it as cost-neutral.
+- **LLM visibility.** When the baseline has timers, the patch prompt lists them (name, id, predecessor → successor, current mean) and adds `event_duration` to the allowed types and to the constrained-decoding enum. For baselines without timers, the prompt, schemas and Prosimos export are byte-identical to before; `tests/test_event_duration.py` checks this against fingerprints taken at `bddc958`.
+
+**Example modification** (remove a timer's waiting time):
+
+```json
+{"parameter_type": "event_duration", "target_element": "Timer before <activity>",
+ "baseline_value": "<current mean>", "proposed_value": 0}
+```
+
+**Known limitations.** Timer distributions share the existing activity-duration conversion: `fix` and the `expon` mean round-trip exactly, but `expon` min/max are regenerated on export, and `norm` std is imported as variance. The legacy full-scenario flow (`generate_scenario_proposal`, not used by the orchestrator) and hand-uploaded scenario JSON written before this change carry no `intermediateEvents`, so their timers still export as 0.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

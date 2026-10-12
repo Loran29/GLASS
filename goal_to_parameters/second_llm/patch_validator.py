@@ -158,6 +158,29 @@ def _check_direction_consistency(
     return None
 
 
+def _check_event_duration_value(
+    mod: PatchModification, idx: int,
+) -> PatchDiagnostic | None:
+    """event_duration: the proposed delay must not be negative (0 removes the delay)."""
+    if mod.parameter_type != PatchParameterType.EVENT_DURATION:
+        return None
+    values = [_extract_first_number(mod.proposed_value)]
+    if isinstance(mod.proposed_structured, dict):
+        for param in mod.proposed_structured.get("values") or []:
+            if isinstance(param, dict) and isinstance(param.get("value"), (int, float)):
+                values.append(float(param["value"]))
+    if any(v is not None and v < 0 for v in values):
+        return PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Modification #{idx} on '{mod.target_element}': an event duration "
+                f"cannot be negative (proposed '{mod.proposed_value}'); use 0 to remove the delay."
+            ),
+            modification_index=idx, element=mod.target_element,
+        )
+    return None
+
+
 # -------------------------------------------------------------------
 # KPI coverage — every declared KPI is either targeted or explicitly unresolved
 # -------------------------------------------------------------------
@@ -217,6 +240,7 @@ def _check_baseline_faithfulness(
         # ADD_NEW here means the role is genuinely absent, which is an error.
         check_exists = (
             mod.parameter_type in _ROLE_PARAM_TYPES
+            or mod.parameter_type == PatchParameterType.EVENT_DURATION  # timers cannot be added
             or mod.direction != ModificationDirection.ADD_NEW
         )
         if check_exists:
@@ -237,6 +261,21 @@ def _check_baseline_faithfulness(
                             f"baseline. You MUST use one of the actual role names "
                             f"from the baseline: [{available_str}]. "
                             f"Do NOT invent conceptual role names."
+                        ),
+                        modification_index=i,
+                        element=mod.target_element,
+                    ))
+                elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
+                    available = [
+                        f"{e.name} ({e.id})"
+                        for m in baseline.models for e in m.modelParameter.intermediateEvents
+                    ]
+                    out.append(PatchDiagnostic(
+                        severity="error",
+                        category=exists.category,
+                        message=(
+                            f"'{mod.target_element}' is not an intermediate event in the "
+                            f"SIMOD baseline. Use one of: [{', '.join(available) or 'none'}]."
                         ),
                         modification_index=i,
                         element=mod.target_element,
@@ -503,6 +542,9 @@ def validate_patch(
         d = _check_direction_consistency(mod, i)
         if d is not None:
             result.diagnostics.append(d)
+        e = _check_event_duration_value(mod, i)
+        if e is not None:
+            result.diagnostics.append(e)
 
     # 3. KPI coverage.
     if declared_kpis is not None:
