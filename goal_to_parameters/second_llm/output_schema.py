@@ -319,6 +319,16 @@ class Resource(BaseModel):
     """An individual resource (worker or machine)."""
 
     id: str
+    # The resource's own calendar when it differs from its role's schedule (e.g. one calendar
+    # per resource in the baseline). Not part of the LLM-facing JSON schema; omitted when None.
+    calendar: SkipJsonSchema[str | None] = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_calendar(self, handler: Any) -> Any:
+        data = handler(self)
+        if isinstance(data, dict) and self.calendar is None:
+            data.pop("calendar", None)
+        return data
 
 
 class Role(BaseModel):
@@ -346,6 +356,12 @@ class ResourceParameters(BaseModel):
                     f"Role '{role.id}' references timetable '{role.schedule}' "
                     f"which is not defined. Available: {timetable_ids}"
                 )
+            for res in role.resources:
+                if res.calendar is not None and res.calendar not in timetable_ids:
+                    raise ValueError(
+                        f"Resource '{res.id}' of role '{role.id}' references timetable "
+                        f"'{res.calendar}' which is not defined."
+                    )
         return self
 
 

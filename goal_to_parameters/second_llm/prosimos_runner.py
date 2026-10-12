@@ -260,7 +260,7 @@ def scenario_to_prosimos_json(
                 "name": r.id,
                 "cost_per_hour": role.costHour,
                 "amount": 1,
-                "calendar": role.schedule,
+                "calendar": r.calendar or role.schedule,
             })
         resource_profiles.append({
             "id": role.id,

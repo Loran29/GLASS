@@ -377,6 +377,7 @@ def _build_roles_and_resources(
 
         res_list_raw = prof.get("resource_list") or prof.get("resources") or []
         res_ids: list[str] = []
+        res_calendar: dict[str, str] = {}
         pool_cost = 0.0
         pool_calendar: str | None = None
 
@@ -401,6 +402,7 @@ def _build_roles_and_resources(
                 cal = r.get("calendar") or r.get("calendar_id")
                 if cal and str(cal) in timetables:
                     pool_calendar = str(cal)
+                    res_calendar[rid] = str(cal)
 
         # Profile-level overrides
         top_cost = prof.get("cost_per_hour") or prof.get("costHour")
@@ -435,7 +437,9 @@ def _build_roles_and_resources(
             id=role_id,
             schedule=pool_calendar,
             costHour=pool_cost,
-            resources=[Resource(id=rid) for rid in res_ids],
+            # Each resource keeps its own calendar when it differs from the role's schedule.
+            resources=[Resource(id=rid, calendar=res_calendar.get(rid) if res_calendar.get(rid) != pool_calendar
+                                else None) for rid in res_ids],
         ))
 
     return roles, resources, notes

@@ -464,13 +464,42 @@ def _apply_resource_cost(
     return True
 
 
+def _role_timetables(scenario: SimuBridgeScenario, target: str) -> list[Any]:
+    """Every timetable used by the role(s) a resource_calendar target refers to.
+
+    The target may name a role or one of the timetables a role uses (its schedule or
+    one of its resources' calendars); the change then applies to all resources of that
+    role. A timetable no role uses resolves to itself.
+    """
+    rp = scenario.resourceParameters
+    by_id = {t.id: t for t in rp.timeTables}
+    role = _resolve(rp.roles, target)
+    tt = _resolve(rp.timeTables, target)
+    if role is not None:
+        owners = [role]
+    elif tt is not None:
+        owners = [r for r in rp.roles
+                  if tt.id == r.schedule or any(res.calendar == tt.id for res in r.resources)]
+        if not owners:
+            return [tt]
+    else:
+        return []
+    ids: list[str] = []
+    for r in owners:
+        for tid in [r.schedule] + [res.calendar for res in r.resources if res.calendar]:
+            if tid not in ids:
+                ids.append(tid)
+    return [by_id[i] for i in ids if i in by_id]
+
+
 def _apply_resource_calendar(
     scenario: SimuBridgeScenario,
     mod: PatchModification,
     diag: list[PatchDiagnostic],
     idx: int,
 ) -> bool:
-    tt = _resolve(scenario.resourceParameters.timeTables, mod.target_element)
+    targets = _role_timetables(scenario, mod.target_element)
+    tt = targets[0] if targets else None
     if tt is None:
         diag.append(PatchDiagnostic(
             severity="error", category="missing_element",
@@ -506,7 +535,8 @@ def _apply_resource_calendar(
             modification_index=idx, element=mod.target_element,
         ))
         return False
-    tt.timeTableItems = new_items
+    for t in targets:
+        t.timeTableItems = [it.model_copy() for it in new_items]
     return True
 
 
@@ -613,7 +643,8 @@ def _check_element_kind(
     elif kind == PatchTargetKind.ROLE:
         pool = list(scenario.resourceParameters.roles)
     elif kind == PatchTargetKind.TIMETABLE:
-        pool = list(scenario.resourceParameters.timeTables)
+        # A role name is accepted: the change applies to every timetable of the role.
+        pool = list(scenario.resourceParameters.timeTables) + list(scenario.resourceParameters.roles)
     elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
         pool = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
     else:

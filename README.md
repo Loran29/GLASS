@@ -141,6 +141,12 @@ Together these made simulated cycle and waiting times differ from the baseline b
 
 **Known limitation.** Calendar times are whole hours (`TimetableItem` stores integer hours), as before for resource calendars.
 
+**Role calendars** (from the commit "Fix role calendar import/patching applying to one resource only"). Previously, a baseline with one calendar per resource (as converted from BIMP) had each role bound to its *last* resource's calendar, and every resource of the role was exported with that calendar. The other resources' calendars stayed in the scenario unused, so a `resource_calendar` modification that named one of them was accepted but changed nothing. Now:
+- **Import:** each resource keeps its own calendar (`Resource.calendar`, set only when it differs from the role's schedule, hidden from the LLM schemas and omitted when unset), and the export uses it.
+- **Patching:** a `resource_calendar` modification that names a role, or any timetable a role uses, applies to every resource of that role.
+
+Scenarios whose resources share their role's calendar are unchanged. `tests/test_role_calendars.py` covers the import and the patch.
+
 ---
 
 ## Clarification-context summary
