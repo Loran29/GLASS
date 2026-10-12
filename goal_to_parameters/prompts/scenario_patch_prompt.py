@@ -159,8 +159,20 @@ def _build_constraints_block(operational_context: Any) -> str:
             role_lines.append(f"max {info['max_hours_per_week']} h/week")
         if info.get("overtime_available") is False:
             role_lines.append("NO overtime available")
+        elif info.get("overtime_available") is True:
+            hours = info.get("max_overtime_hours_per_day")
+            role_lines.append(f"overtime up to {hours} h/day" if hours is not None else "overtime available")
+        if info.get("external_party") is True:
+            role_lines.append("external party (headcount cannot be changed)")
         if role_lines:
             lines.append(f"- **{role_name}**: {'; '.join(role_lines)}.")
+
+    # --- Relative budget limit ---
+    budget = getattr(operational_context, "budget", {}) or {}
+    if budget.get("max_increase_pct") is not None:
+        lines.append(
+            f"- **Budget**: total staff cost may increase by at most {budget['max_increase_pct']} %."
+        )
 
     # --- Immutable elements ---
     immutable = getattr(operational_context, "get_immutable_elements", lambda: set())()

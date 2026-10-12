@@ -143,6 +143,25 @@ Together these made simulated cycle and waiting times differ from the baseline b
 
 ---
 
+## Clarification-context summary
+
+**Previous behaviour.** `second_llm/context_summary.py` asks an LLM to turn the clarification chat into structured constraints, and `prompts/scenario_patch_prompt.py::_build_constraints_block` renders them as hard rules in the Stage 2 prompt. The schema had no "not stated" value for `staffing_flexible` / `overtime_available`, no rule for statements about a group of roles, and no place for hours per day, external parties, a relative budget or hourly costs. An answer such as "for each internal role we could add up to three people, and working hours could be extended by up to two hours per day", followed by a sentence naming each role with its hourly cost, therefore became "staffing is FIXED, NO overtime" for every named role. In addition, summary role names ("loan_officer") were compared verbatim with model role names ("Loan Officer"), so per-role limits were never applied.
+
+**What changed** (applies from the commit "Fix clarification-context summary misreading staffing and overtime flexibility"):
+- **Schema:** `staffing_flexible` and `overtime_available` may be `null` (not stated). New fields: `max_overtime_hours_per_day`, `external_party`, `cost_per_hour` per role, and `budget.max_increase_pct`.
+- **Summariser rules:**
+  - `false` only when the user said so.
+  - A group statement is recorded for every role of the group.
+  - An external party gets its own entry.
+  - A per-role limit is not a total.
+- **Prompt rendering:** the constraints block also shows overtime availability with hours per day, external parties and the relative budget limit. Summaries without these fields render as before.
+- **Role-name matching:** role names are matched case-insensitively, with `_` and `-` read as spaces and a plural "s" ignored.
+- **Tests:** `tests/test_context_summary_flexibility.py` holds deterministic tests and a live test of the summariser on the three LoanApp business-context answers. The live test runs only with `GLASS_LIVE_LLM_TESTS=1` and an API key.
+
+**Known limitation.** `budget.max_increase_pct` is shown to the LLM but not enforced by GLASS's validators, which check `additional_monthly` only.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

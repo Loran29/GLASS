@@ -36,19 +36,23 @@ CONTEXT_SUMMARY_SCHEMA = """\
 {
   "resource_constraints": {
     "<role_name>": {
-      "staffing_flexible": <true|false>,
+      "staffing_flexible": <true|false|null>,
       "reason": "<why fixed or flexible>",
-      "overtime_available": <true|false>,
+      "overtime_available": <true|false|null>,
+      "max_overtime_hours_per_day": <number or null>,
       "overtime_rate_multiplier": <float or null>,
       "max_headcount": <integer or null>,
       "max_additional": <integer or null>,
       "max_hours_per_week": <number or null>,
       "cross_trained_with": ["<other role names>"],
-      "shared_across_processes": <true|false>
+      "shared_across_processes": <true|false>,
+      "external_party": <true|false|null>,
+      "cost_per_hour": <number or null>
     }
   },
   "budget": {
     "additional_monthly": <number or null>,
+    "max_increase_pct": <number or null>,
     "currency": "<EUR|USD|...>",
     "notes": "<any budget context>"
   },
@@ -121,7 +125,9 @@ Rules:
   hires total", "we can bring in 2 new staff"), capture it in \
   calendar_constraints.total_max_additional_resources as an integer. \
   This is different from per-role limits: when the user says "2 more people" \
-  without naming a specific role, it is a global limit.
+  without naming a specific role, it is a global limit. A limit stated for \
+  each role (e.g. "for every role up to 2 more") is a per-role limit, not a \
+  total: leave total_max_additional_resources null unless a total was stated.
 - If the user stated a maximum number of **working hours per week** for a \
   role or for added resources (e.g. "they can only work 20 hours a week", \
   "max 30h/week"), capture it in resource_constraints.<role>.max_hours_per_week \
@@ -132,10 +138,25 @@ Rules:
   "no one can work more than 20 hours", "everyone is part-time at most 25h") \
   — capture it in calendar_constraints.new_hire_max_hours_per_week \
   as a number instead of (or in addition to) the per-role field.
+- Use null for every field the user did not state for a role. Set   staffing_flexible or overtime_available to false only when the user   explicitly said so for that role or for a group that includes it; naming   a role (e.g. together with its hourly cost) says nothing about its flexibility.
+- When a statement applies to a group of roles (e.g. "each internal role",   "every team", "all staff"), record it under every role of that group that is   named anywhere in the conversation, not under an invented group name.
+- A party the user describes as external (e.g. a customer or an outside   partner whose headcount the organisation cannot change) is not part of an   internal-staff group: add it to resource_constraints under its own name   with external_party true and staffing_flexible false.
+- If the user stated how far working hours can be extended (e.g. "by up to   one hour per day"), set overtime_available true and   max_overtime_hours_per_day for the roles it applies to, and   calendar_constraints.shift_extension_possible true.
+- If the user stated a relative budget limit (e.g. "up to 10% higher cost"),   capture it in budget.max_increase_pct as a number.
+- If the user stated hourly costs per role, capture them in   resource_constraints.<role>.cost_per_hour.
+- Write role names as the user wrote them, in plain words (not snake_case).
 - Output ONLY the JSON object. No explanation, no markdown fences.
 
 Output schema:
 """ + CONTEXT_SUMMARY_SCHEMA
+
+
+def _same_role(a: str, b: str) -> bool:
+    """Role names compared case-insensitively, with '_' and '-' read as spaces and a
+    plural 's' ignored ("purchasing agents" matches "Purchasing Agent")."""
+    norm = lambda s: [w[:-1] if len(w) > 3 and w.endswith("s") else w
+                      for w in str(s).replace("_", " ").replace("-", " ").lower().split()]
+    return norm(a) == norm(b)
 
 
 # -- Public API -----------------------------------------------------------
@@ -198,7 +219,7 @@ class OperationalContextSummary:
         """Return the user-stated absolute maximum headcount for a role, or None."""
         rc = self.resource_constraints
         for name, info in rc.items():
-            if name.lower() == role_name.lower():
+            if _same_role(name, role_name):
                 val = info.get("max_headcount")
                 if val is not None:
                     try:
@@ -211,7 +232,7 @@ class OperationalContextSummary:
         """Return how many extra resources the user said can be added, or None."""
         rc = self.resource_constraints
         for name, info in rc.items():
-            if name.lower() == role_name.lower():
+            if _same_role(name, role_name):
                 val = info.get("max_additional")
                 if val is not None:
                     try:
@@ -224,7 +245,7 @@ class OperationalContextSummary:
         """Return the working-hours/week cap for a role, or the global new-hire cap."""
         rc = self.resource_constraints
         for name, info in rc.items():
-            if name.lower() == role_name.lower():
+            if _same_role(name, role_name):
                 val = info.get("max_hours_per_week")
                 if val is not None:
                     try:
@@ -276,7 +297,7 @@ class OperationalContextSummary:
         """Check if a role was declared as having fixed staffing."""
         rc = self.resource_constraints
         for name, info in rc.items():
-            if name.lower() == role_name.lower():
+            if _same_role(name, role_name):
                 return info.get("staffing_flexible") is False
         return False
 
@@ -284,7 +305,7 @@ class OperationalContextSummary:
         """Check if the user declared that a role can work overtime."""
         rc = self.resource_constraints
         for name, info in rc.items():
-            if name.lower() == role_name.lower():
+            if _same_role(name, role_name):
                 return bool(info.get("overtime_available"))
         return False
 
