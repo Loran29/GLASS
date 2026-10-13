@@ -59,3 +59,9 @@ evaluation/stage1_results_prefix_v1/
 # Local transfer archives (not part of the repo)
 missing_for_repo.zip
 evaluation/refinement_pilot.zip
+
+# Stage-2 simulated logs (SHA-256 in the run records; archived per configuration in log_archives/, not in git)
+evaluation/loanapp_p2p/results/stage2_results/logs/
+evaluation/loanapp_p2p/results/stage2_results/baseline_logs/*/*.csv.gz
+evaluation/loanapp_p2p/results/stage2_results/healthy_logs/
+evaluation/loanapp_p2p/results/stage2_results/log_archives/

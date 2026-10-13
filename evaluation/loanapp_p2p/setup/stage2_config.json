@@ -1,0 +1,399 @@
+{
+  "settings": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.3,
+    "repetitions": 5,
+    "max_iterations": 4,
+    "seeds": 10,
+    "cases": 1000,
+    "start": "2023-02-09T10:00:00+02:00"
+  },
+  "business_context": {
+    "LoanApp": {
+      "staffing": "Staffing is flexible within limits: for each internal role we could add up to three people, and working hours could be extended by up to two hours per day if needed. The applicant is an external party; we cannot add applicants, but we can send reminders and simplify what we ask from them.",
+      "budget": "We can accept up to 35% higher staff cost overall. Hourly costs: clerk 25 EUR, loan officer 50 EUR, appraiser 45 EUR, AML investigator 45 EUR, senior officer 70 EUR.",
+      "immutable": "The AML check is a regulatory step and the senior officer's approval of the offer is our four-eyes rule; both must stay in the process in their current order. Everything else – who does what, how long steps take, how long files wait between steps – can be improved.",
+      "cost_per_hour": {
+        "Clerk": 25,
+        "Loan Officer": 50,
+        "Appraiser": 45,
+        "AML Investigator": 45,
+        "Senior Officer": 70,
+        "Applicant": 0
+      }
+    },
+    "Procure2Pay": {
+      "staffing": "For each internal role (purchasing agents, requesters, requester managers, financial managers) we could add up to three people, and working hours could be extended by up to two hours per day. The supplier is an external party: we cannot change their headcount, but the hand-offs to and from the supplier can be improved.",
+      "budget": "We can accept up to 35% higher staff cost overall. Hourly costs: purchasing agent 35 EUR, requester 30 EUR, requester manager 55 EUR, financial manager 60 EUR.",
+      "immutable": "Invoice payments must keep a separate authorization by a financial manager, and every purchase must end with the invoice being paid. Everything else – who does what, how long steps take, how long items wait between steps – can be improved.",
+      "cost_per_hour": {
+        "Purchasing Agent": 35,
+        "Requester": 30,
+        "Requester Manager": 55,
+        "Financial Manager": 60,
+        "Supplier": 0
+      }
+    }
+  },
+  "expected_fix": {
+    "LoanApp": {
+      "G1": {
+        "parameter_type": "activity_duration",
+        "direction": "decrease",
+        "elements": [
+          "Check application form completeness",
+          "Return application back to applicant",
+          "Assess loan risk",
+          "Reject application",
+          "Cancel application",
+          "Approve application",
+          "Design loan offer",
+          "Approve loan offer",
+          "Applicant completes form"
+        ]
+      },
+      "G2": {
+        "parameter_type": "event_duration",
+        "direction": "decrease",
+        "elements": [
+          "Timer before Assess loan risk",
+          "Timer before Applicant completes form",
+          "Timer before Approve loan offer",
+          "Timer before Design loan offer"
+        ]
+      },
+      "G3": {
+        "parameter_type": "resource_count",
+        "direction": "increase",
+        "elements": [
+          "Loan Officer"
+        ],
+        "healthy_value": 4
+      }
+    },
+    "Procure2Pay": {
+      "G1": {
+        "parameter_type": "activity_duration",
+        "direction": "decrease",
+        "elements": [
+          "Analyze Request for Quotation",
+          "Release Supplier's Invoice",
+          "Settle dispute with supplier Financial Manager",
+          "Authorize Supplier's Invoice payment",
+          "Amend Request for Quotation Requester",
+          "Create Quotation comparison Map",
+          "Create Purchase Requisition",
+          "Amend Purchase Requisition",
+          "Analyze Purchase Requisition",
+          "Create Request for Quotation Requester Manager",
+          "Amend Request for Quotation Requester Manager"
+        ]
+      },
+      "G2": {
+        "parameter_type": "event_duration",
+        "direction": "decrease",
+        "elements": [
+          "Timer before Create Purchase Requisition",
+          "Timer before Analyze Purchase Requisition",
+          "Timer before Analyze Request for Quotation",
+          "Timer before Create Quotation comparison Map",
+          "Timer before Release Supplier's Invoice",
+          "Timer before Pay invoice",
+          "Event_0uhli6k"
+        ]
+      },
+      "G3": {
+        "parameter_type": "resource_count",
+        "direction": "increase",
+        "elements": [
+          "Purchasing Agent"
+        ],
+        "healthy_value": 6
+      }
+    }
+  },
+  "configurations": [
+    {
+      "config_id": "LoanApp_G1",
+      "process": "LoanApp",
+      "goal_config": "G1",
+      "event_log": "input_logs/LoanApp_durations_0.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G1",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/stage1_results/raw/LoanApp_G1/rep_1.json",
+      "kpi_names_to_pass": [
+        "Average Loan Assessment Cycle Time"
+      ],
+      "expected_kpi_kinds": [
+        "CT"
+      ],
+      "injected_problems": [
+        "G1"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G2",
+      "process": "LoanApp",
+      "goal_config": "G2",
+      "event_log": "input_logs/LoanApp_extraneous_0.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G2",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/stage1_results/raw/LoanApp_G2/rep_1.json",
+      "kpi_names_to_pass": [
+        "Average Wait Time Before Loan Assessment"
+      ],
+      "expected_kpi_kinds": [
+        "AW"
+      ],
+      "injected_problems": [
+        "G2"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G3",
+      "process": "LoanApp",
+      "goal_config": "G3",
+      "event_log": "input_logs/LoanApp_resource_target_bimp.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G3",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/stage1_results/raw/LoanApp_G3/rep_1.json",
+      "kpi_names_to_pass": [
+        "Loan Officer Workload Distribution"
+      ],
+      "expected_kpi_kinds": [
+        "UT"
+      ],
+      "injected_problems": [
+        "G3"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G1G3",
+      "process": "LoanApp",
+      "goal_config": "G1G3",
+      "event_log": "input_logs/LoanApp_G1G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G1G3",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/stage1_results/raw/LoanApp_G1G3/rep_1.json",
+      "kpi_names_to_pass": [
+        "Average Loan Assessment Cycle Time",
+        "Loan Officer Workload Utilization"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "UT"
+      ],
+      "injected_problems": [
+        "G1",
+        "G3"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G1",
+      "process": "Procure2Pay",
+      "goal_config": "G1",
+      "event_log": "input_logs/Procure2Pay_durations_0.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G1",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/stage1_results/raw/Procure2Pay_G1/rep_1.json",
+      "kpi_names_to_pass": [
+        "Average Cycle Time for Procure-to-Pay Process"
+      ],
+      "expected_kpi_kinds": [
+        "CT"
+      ],
+      "injected_problems": [
+        "G1"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G1G2",
+      "process": "LoanApp",
+      "goal_config": "G1G2",
+      "event_log": "input_logs/LoanApp_G1G2_bimp.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G1G2",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/refinement_pilot/raw/LoanApp_G1G2_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Average Loan Assessment Cycle Time",
+        "Average Wait Time After Background Checks"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "AW"
+      ],
+      "injected_problems": [
+        "G1",
+        "G2"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G2G3",
+      "process": "LoanApp",
+      "goal_config": "G2G3",
+      "event_log": "input_logs/LoanApp_G2G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G2G3",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/refinement_pilot/raw/LoanApp_G2G3_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Average Wait Time Before Assessing Loan Risk",
+        "Loan Officer Utilization Rate"
+      ],
+      "expected_kpi_kinds": [
+        "AW",
+        "UT"
+      ],
+      "injected_problems": [
+        "G2",
+        "G3"
+      ]
+    },
+    {
+      "config_id": "LoanApp_G1G2G3",
+      "process": "LoanApp",
+      "goal_config": "G1G2G3",
+      "event_log": "input_logs/LoanApp_G1G2G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/LoanApp_G1G2G3",
+      "healthy_dir": "stage2/healthy/LoanApp",
+      "kpi_source_record": "results/refinement_pilot/raw/LoanApp_G1G2G3_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Average Loan Assessment Cycle Time",
+        "Average Wait Time Before Assessment Start",
+        "Loan Officer Workload Utilization"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "AW",
+        "UT"
+      ],
+      "injected_problems": [
+        "G1",
+        "G2",
+        "G3"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G2",
+      "process": "Procure2Pay",
+      "goal_config": "G2",
+      "event_log": "input_logs/Procure2Pay_extraneous_0.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G2",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G2_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Invoice Release Waiting Time"
+      ],
+      "expected_kpi_kinds": [
+        "AW"
+      ],
+      "injected_problems": [
+        "G2"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G3",
+      "process": "Procure2Pay",
+      "goal_config": "G3",
+      "event_log": "input_logs/Procure2Pay_resource_target_bimp.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G3",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G3_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Purchasing Agent Workload by Time of Day"
+      ],
+      "expected_kpi_kinds": [
+        "UT"
+      ],
+      "injected_problems": [
+        "G3"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G1G3",
+      "process": "Procure2Pay",
+      "goal_config": "G1G3",
+      "event_log": "input_logs/Procure2Pay_G1G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G1G3",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G1G3_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Average Cycle Time for Procure-to-Pay Process",
+        "Average Resource Utilization of Purchasing Agents"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "UT"
+      ],
+      "injected_problems": [
+        "G1",
+        "G3"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G1G2G3",
+      "process": "Procure2Pay",
+      "goal_config": "G1G2G3",
+      "event_log": "input_logs/Procure2Pay_G1G2G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G1G2G3",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G1G2G3_rep1_round1.json",
+      "kpi_names_to_pass": [
+        "Average Cycle Time from Requisition to Invoice Payment",
+        "Average Wait Time Before Invoice Release",
+        "Purchasing Agent Workload Utilization"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "AW",
+        "UT"
+      ],
+      "injected_problems": [
+        "G1",
+        "G2",
+        "G3"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "process": "Procure2Pay",
+      "goal_config": "G1G2",
+      "event_log": "input_logs/Procure2Pay_G1G2_bimp.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G1G2",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G1G2_rep1_round3.json",
+      "kpi_names_to_pass": [
+        "Total Cycle Time from Purchase Requisition to Invoice Payment",
+        "Invoice Release Waiting Time"
+      ],
+      "expected_kpi_kinds": [
+        "CT",
+        "AW"
+      ],
+      "injected_problems": [
+        "G1",
+        "G2"
+      ]
+    },
+    {
+      "config_id": "Procure2Pay_G2G3",
+      "process": "Procure2Pay",
+      "goal_config": "G2G3",
+      "event_log": "input_logs/Procure2Pay_G2G3_bimp.csv",
+      "baseline_dir": "stage2/baselines/Procure2Pay_G2G3",
+      "healthy_dir": "stage2/healthy/Procure2Pay",
+      "kpi_source_record": "results/refinement_pilot/raw/Procure2Pay_G2G3_rep1_round2.json",
+      "kpi_names_to_pass": [
+        "Invoice Release Waiting Time from Prior Step",
+        "Purchasing Agent Workload Distribution"
+      ],
+      "expected_kpi_kinds": [
+        "AW",
+        "UT"
+      ],
+      "injected_problems": [
+        "G2",
+        "G3"
+      ]
+    }
+  ]
+}
