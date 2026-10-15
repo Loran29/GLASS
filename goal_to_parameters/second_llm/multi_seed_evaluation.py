@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from second_llm.output_schema import SimuBridgeScenario
-from second_llm.prosimos_runner import run_prosimos_simulation
+from second_llm.prosimos_runner import run_prosimos_simulation, scenario_to_prosimos_json
 from second_llm.kpi_computation import compute_kpis
 from second_llm.scenario_evaluation import (
     EvaluationSummary,
@@ -272,6 +272,10 @@ def evaluate_multi_seed(
         "seeds": seeds,
     }
 
+    # Prosimos parameters of both scenarios: resource calendars and roles for utilization.
+    baseline_params = scenario_to_prosimos_json(baseline_scenario, bpmn_xml)
+    proposed_params = scenario_to_prosimos_json(proposed_scenario, bpmn_xml)
+
     for seed_idx, seed in enumerate(seeds):
         msg = f"Running seed {seed} ({seed_idx + 1}/{num_seeds})…"
         if on_progress:
@@ -293,8 +297,10 @@ def evaluate_multi_seed(
             result.error = f"Proposed simulation failed on seed {seed}: {proposed_run.error if proposed_run else 'unknown'}"
             return result
 
-        baseline_kpis = compute_kpis(baseline_run.simulated_log, cost_per_hour=cost_per_hour)
-        proposed_kpis = compute_kpis(proposed_run.simulated_log, cost_per_hour=cost_per_hour)
+        baseline_kpis = compute_kpis(baseline_run.simulated_log, cost_per_hour=cost_per_hour,
+                                     prosimos_params=baseline_params, sim_start=start_time)
+        proposed_kpis = compute_kpis(proposed_run.simulated_log, cost_per_hour=cost_per_hour,
+                                     prosimos_params=proposed_params, sim_start=start_time)
 
         # Collect ALL KPI values across seeds for averaging
         for kpi in baseline_kpis.kpis:
@@ -308,8 +314,10 @@ def evaluate_multi_seed(
 
         for target in targets:
             key = _strip_temporal_suffix(target.name)
-            b_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as)
-            p_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as)
+            b_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as,
+                                     target.description)
+            p_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as,
+                                     target.description)
 
             if b_kpi is not None and b_kpi.value is not None:
                 baseline_collections.setdefault(key, []).append(b_kpi.value)

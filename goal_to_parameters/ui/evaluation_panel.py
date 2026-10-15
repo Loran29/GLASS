@@ -122,6 +122,7 @@ def _get_kpi_targets_from_workspace() -> list[KPITarget]:
                 is_safeguard=is_safeguard,
                 unit=kpi.get("unit", ""),
                 measurable_as=kpi.get("measurable_as") or None,
+                description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
             ))
     except Exception:
         pass

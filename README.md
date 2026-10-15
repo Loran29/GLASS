@@ -168,6 +168,39 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 
 ---
 
+## Utilization and throughput metrics
+
+**Previous definition.** `Resource Utilization` (`second_llm/kpi_computation.py`) was, per resource, busy time (sum of activity end − start) divided by the simulated span (first start to last end, wall-clock time). The KPI value was the mean over all resources.
+
+**Why it moved the wrong way.** When a fix clears a bottleneck, the backlog drains sooner and the span shrinks. The resources that do not form the bottleneck (clerks, for example) then do the same work in fewer working days: they genuinely get busier, and they dominate the all-resource mean. The mean therefore rises even though the overloaded role is relieved. Under `minimize`, GLASS's iterative loop read such a correct fix as a degradation.
+
+**New definition** (from the commit "Resource Utilization: calendar-based availability and role-aware evaluation"):
+- **Per resource:** utilization = busy time ÷ available working time.
+  - The evaluated period runs from the simulation start to the last end in the log.
+  - Available time is the resource's calendar periods within that period.
+  - Busy time counts only the in-calendar part of each activity, so an activity paused over night counts only its working hours.
+- **Role resolution:** when a target KPI is matched to `Resource Utilization`, it is evaluated for the role(s) it names. The roles come from the resource profiles and are looked up case-insensitively, tolerating a plural "s", first in the KPI name, then in its description and suggested formula. The value is the mean utilization of those roles' resources. The all-resource mean, the per-role and the per-resource values stay in `details`. This applies in the iterative loop, the multi-seed evaluation and `evaluate_scenarios`.
+- **Resource matching:** log resource names are matched to calendars by indexing `resource_profiles` by both id and name, as `simod_to_simubridge` and `patch_validator` already do.
+
+**Fallbacks.**
+- A resource without a calendar, or every resource when no Prosimos parameters are passed (for example `evaluate_from_logs` on uploaded logs), keeps the span-based value and is listed in `details["fallback_span_based"]`.
+- A KPI that names no role keeps the all-resource mean, with `details["role_resolved"] = false`.
+
+**Throughput** is unchanged (completed cases per day over the span of case ends). Its direction is already right. Only the Stage 1 wording describing both metrics was updated.
+
+**Worked example: LoanApp_G1G3 rep 1, seed 42.** The baseline has one overloaded Loan Officer; the fix adds two more.
+
+| | Baseline | After the fix |
+|---|---|---|
+| Old all-resource mean | 0.243 | 0.571 (rises) |
+| New all-resource mean | 0.257 | 0.593 (still rises) |
+| Clerks | 0.22 | 0.60 |
+| **New, role-resolved (Loan Officer)** | **0.997** | **0.850 (falls)** |
+
+`tests/test_utilization_role_aware.py` covers these cases.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

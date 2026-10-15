@@ -17,7 +17,7 @@ from typing import Any, Callable
 
 from second_llm.kpi_computation import KPIComputationResult, compute_kpis
 from second_llm.output_schema import SimuBridgeScenario
-from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation
+from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation, scenario_to_prosimos_json
 from second_llm.scenario_evaluation import (
     KPIComparisonEntry,
     KPITarget,
@@ -390,7 +390,9 @@ def run_iterative_evaluation(
         result.total_time_seconds = time.time() - t0
         return result
 
-    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour)
+    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour,
+                                 prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
+                                 sim_start=start_time)
     result.baseline_kpis = baseline_kpis
 
     # --- Step 2: Iterative loop ---
@@ -430,7 +432,9 @@ def run_iterative_evaluation(
 
         # Compute KPIs and compare
         _notify(i, "Evaluating KPIs...")
-        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour)
+        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour,
+                                     prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
+                                     sim_start=start_time)
         eval_result = compare_kpis(baseline_kpis, proposed_kpis, targets)
         iter_result.eval_result = eval_result
         iter_result.status = eval_result.summary.overall_status if eval_result.summary else None

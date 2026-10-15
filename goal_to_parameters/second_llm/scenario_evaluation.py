@@ -20,6 +20,7 @@ from second_llm.kpi_computation import (
     ComputedKPI,
     KPIComputationResult,
     compute_kpis,
+    resolve_role_utilization,
 )
 from second_llm.output_schema import SimuBridgeScenario
 from second_llm.prosimos_runner import (
@@ -28,6 +29,7 @@ from second_llm.prosimos_runner import (
     is_prosimos_available,
     load_simulation_log,
     run_prosimos_simulation,
+    scenario_to_prosimos_json,
 )
 
 
@@ -61,6 +63,7 @@ class KPITarget:
     threshold: float | None = None  # Absolute threshold (e.g., max utilization 0.85)
     unit: str = ""
     measurable_as: str | None = None  # Exact computed KPI name from kpi_computation.py
+    description: str = ""  # KPI description and suggested formula (role resolution for utilization)
 
 
 @dataclass
@@ -270,6 +273,25 @@ def _match_kpi_value(
     computed: KPIComputationResult,
     target_category: str = "",
     measurable_as: str | None = None,
+    target_text: str = "",
+) -> ComputedKPI | None:
+    """Find the best matching computed KPI for a target KPI name.
+
+    A matched "Resource Utilization" is resolved to the role(s) the target names
+    (in its name, else in ``target_text``: description and formula); see
+    :func:`second_llm.kpi_computation.resolve_role_utilization`.
+    """
+    kpi = _find_kpi(target_name, computed, target_category, measurable_as)
+    if kpi is not None and kpi.name == "Resource Utilization":
+        return resolve_role_utilization(kpi, target_name, target_text)
+    return kpi
+
+
+def _find_kpi(
+    target_name: str,
+    computed: KPIComputationResult,
+    target_category: str = "",
+    measurable_as: str | None = None,
 ) -> ComputedKPI | None:
     """Find the best matching computed KPI for a target KPI name.
 
@@ -383,8 +405,10 @@ def compare_kpis(
     safeguard_total = 0
 
     for target in targets:
-        baseline_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as)
-        proposed_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as)
+        baseline_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as,
+                                        target.description)
+        proposed_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as,
+                                        target.description)
 
         baseline_val = baseline_kpi.value if baseline_kpi else None
         proposed_val = proposed_kpi.value if proposed_kpi else None
@@ -606,10 +630,14 @@ def evaluate_scenarios(
     baseline_kpis = compute_kpis(
         baseline_result.simulated_log,
         cost_per_hour=cost_per_hour,
+        prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
+        sim_start=start_time,
     )
     proposed_kpis = compute_kpis(
         proposed_result.simulated_log,
         cost_per_hour=cost_per_hour,
+        prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
+        sim_start=start_time,
     )
 
     # --- Compare ---

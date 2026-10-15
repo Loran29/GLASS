@@ -6,6 +6,8 @@ All computations are deterministic and code-based — no LLM involvement.
 
 from __future__ import annotations
 
+import bisect
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -181,8 +183,77 @@ def _compute_throughput(df: pd.DataFrame) -> ComputedKPI | None:
     )
 
 
-def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
-    """Average resource utilization (busy time / available time)."""
+_WEEKDAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+
+
+def _wall_time(values: Any, tz: Any = None) -> Any:
+    """Timestamps as wall-clock time (the frame calendars are written in)."""
+    if isinstance(values, pd.Series):
+        return values.dt.tz_localize(None) if values.dt.tz is not None else values
+    ts = pd.Timestamp(values)
+    if ts.tzinfo is not None:
+        ts = (ts.tz_convert(tz) if tz is not None else ts).tz_localize(None)
+    return ts
+
+
+def _seconds_of_day(text: Any) -> float:
+    """'HH:MM:SS[.fff]' -> seconds; an end of 23:59:59 or later counts as the full day."""
+    h, m, s = (str(text).split(":") + ["0", "0"])[:3]
+    sec = int(h) * 3600 + int(m) * 60 + float(s)
+    return 86400.0 if sec >= 86399 else sec
+
+
+def _working_windows(periods: list[dict[str, Any]], t0: pd.Timestamp, t1: pd.Timestamp) -> tuple[list, list]:
+    """Sorted working intervals of a Prosimos calendar (list of time periods) within [t0, t1]."""
+    starts, ends = [], []
+    day = t0.normalize()
+    while day <= t1:
+        wd = day.weekday()
+        for p in periods:
+            a = _WEEKDAYS.index(str(p.get("from", "")).upper())
+            b = _WEEKDAYS.index(str(p.get("to") or p.get("from", "")).upper())
+            if (a <= wd <= b) if a <= b else (wd >= a or wd <= b):
+                s = max(day + pd.Timedelta(seconds=_seconds_of_day(p.get("beginTime", "00:00:00"))), t0)
+                e = min(day + pd.Timedelta(seconds=_seconds_of_day(p.get("endTime", "23:59:59"))), t1)
+                if e > s:
+                    starts.append(s)
+                    ends.append(e)
+        day += pd.Timedelta(days=1)
+    order = sorted(range(len(starts)), key=starts.__getitem__)
+    return [starts[i] for i in order], [ends[i] for i in order]
+
+
+def _resource_index(prosimos_params: dict[str, Any] | None) -> list[tuple[set[str], str, list | None]]:
+    """(log names of a resource, its role, its calendar periods) from Prosimos parameters.
+
+    Resources are indexed by both id and name, as simod_to_simubridge and patch_validator do,
+    so a log that names resources by either matches.
+    """
+    if not prosimos_params:
+        return []
+    periods = {c.get("id"): c.get("time_periods") or [] for c in prosimos_params.get("resource_calendars") or []}
+    out = []
+    for prof in prosimos_params.get("resource_profiles") or []:
+        role = str(prof.get("name") or prof.get("id"))
+        for res in prof.get("resource_list") or []:
+            keys = {str(k) for k in (res.get("id"), res.get("name")) if k}
+            out.append((keys, role, periods.get(res.get("calendar"))))
+    return out
+
+
+def _compute_resource_utilization(
+    df: pd.DataFrame,
+    prosimos_params: dict[str, Any] | None = None,
+    sim_start: Any = None,
+) -> ComputedKPI | None:
+    """Resource utilization: busy time / available working time, per resource.
+
+    Evaluated period: from the simulation start (``sim_start``, else the first start in the log)
+    to the last end in the log. Available time = the resource's calendar periods within the period;
+    busy time = its activities clipped to those periods. A resource without a calendar falls back to
+    busy time / log span and is listed in details["fallback_span_based"]. The value is the mean over
+    all resources; per-resource and per-role values are kept in details (see resolve_role_utilization).
+    """
     if "resource" not in df.columns or "case_id" not in df.columns:
         return None
 
@@ -190,23 +261,56 @@ def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
         (df["end_time"] - df["start_time"]).dt.total_seconds() / 3600.0
     )
 
-    sim_start = df["start_time"].min()
-    sim_end = df["end_time"].max()
-    if pd.isna(sim_start) or pd.isna(sim_end):
+    starts, ends = _wall_time(df["start_time"]), _wall_time(df["end_time"])
+    log_start, log_end = starts.min(), ends.max()
+    if pd.isna(log_start) or pd.isna(log_end):
         return None
-
-    total_hours = (sim_end - sim_start).total_seconds() / 3600.0
-    if total_hours <= 0:
+    span_hours = (log_end - log_start).total_seconds() / 3600.0
+    if span_hours <= 0:
         return None
+    period_start = log_start
+    if sim_start is not None:
+        period_start = min(_wall_time(sim_start, df["start_time"].dt.tz), log_start)
 
-    resource_busy = df.groupby("resource")["_duration_h"].sum()
-    resource_utils = resource_busy / total_hours
-    valid = resource_utils.dropna()
+    names = df["resource"].astype(str)
+    index = _resource_index(prosimos_params)
+    known = set().union(*(keys for keys, _, _ in index)) if index else set()
+    per_resource: dict[str, float] = {}
+    resource_role: dict[str, str] = {}
+    fallback: list[str] = []
+    for keys, role, periods in index:
+        mask = names.isin(keys)
+        label = next((k for k in sorted(keys) if k in set(names[mask])), sorted(keys)[0])
+        if periods:
+            w_start, w_end = _working_windows(periods, period_start, log_end)
+            available = sum((e - s).total_seconds() for s, e in zip(w_start, w_end))
+        else:
+            available = 0.0
+        if available > 0:
+            busy = 0.0
+            for s, e in zip(starts[mask], ends[mask]):
+                i = bisect.bisect_right(w_end, s)
+                while i < len(w_start) and w_start[i] < e:
+                    busy += max(0.0, (min(e, w_end[i]) - max(s, w_start[i])).total_seconds())
+                    i += 1
+            per_resource[label] = busy / available
+        else:
+            per_resource[label] = float(df.loc[mask, "_duration_h"].sum()) / span_hours
+            fallback.append(label)
+        resource_role[label] = role
+    for name in sorted(set(names) - known):          # resources without parameters
+        per_resource[name] = float(df.loc[names == name, "_duration_h"].sum()) / span_hours
+        fallback.append(name)
 
+    valid = pd.Series(per_resource, dtype=float).dropna()
     if valid.empty:
         return None
 
-    per_resource = {str(k): round(float(v), 3) for k, v in valid.items()}
+    per_role: dict[str, float] = {}
+    for role in dict.fromkeys(resource_role.values()):
+        vals = [valid[r] for r, ro in resource_role.items() if ro == role and r in valid]
+        if vals:
+            per_role[role] = round(float(np.mean(vals)), 3)
 
     return ComputedKPI(
         name="Resource Utilization",
@@ -217,9 +321,61 @@ def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
             "max_utilization": round(float(valid.max()), 3),
             "min_utilization": round(float(valid.min()), 3),
             "n_resources": len(valid),
-            "per_resource": per_resource,
+            "per_resource": {k: round(float(v), 3) for k, v in valid.items()},
+            "per_role": per_role,
+            "resource_role": resource_role,
+            "fallback_span_based": fallback,
+            "busy_clipped_to_calendar": True,
+            "period_start": str(period_start),
+            "period_end": str(log_end),
         },
     )
+
+
+def _role_tokens(text: str) -> list[str]:
+    """Lower-case words with a plural 's' dropped ("Field agents" -> field, agent)."""
+    return [w[:-1] if len(w) > 3 and w.endswith("s") else w for w in re.findall(r"[a-z0-9]+", text.lower())]
+
+
+def _roles_named(text: str, roles: list[str]) -> list[str]:
+    """Roles whose name occurs in ``text`` (case-insensitive, singular/plural tolerant); a role
+    whose occurrence lies inside a longer matched role ("Manager" in "Account Manager") is dropped."""
+    tokens = _role_tokens(text or "")
+    hits = []
+    for role in roles:
+        rt = _role_tokens(role)
+        spans = [(i, i + len(rt)) for i in range(len(tokens) - len(rt) + 1) if rt and tokens[i:i + len(rt)] == rt]
+        if spans:
+            hits.append((role, spans))
+    hits.sort(key=lambda h: -(h[1][0][1] - h[1][0][0]))
+    used: set[int] = set()
+    matched = []
+    for role, spans in hits:
+        free = [sp for sp in spans if not used & set(range(*sp))]
+        if free:
+            matched.append(role)
+            for sp in free:
+                used |= set(range(*sp))
+    return matched
+
+
+def resolve_role_utilization(kpi: ComputedKPI, kpi_name: str, kpi_text: str = "") -> ComputedKPI:
+    """Resource Utilization for the role(s) a KPI refers to.
+
+    Roles (from the resource profiles) are looked up in the KPI name, then in its description /
+    formula text. The value becomes the mean utilization of those roles' resources; the
+    all-resource mean is kept in details. Without a match (or without role data) the all-resource
+    mean is kept and details["role_resolved"] is False.
+    """
+    roles = list((kpi.details or {}).get("per_role") or {})
+    matched = _roles_named(kpi_name, roles) or _roles_named(kpi_text, roles)
+    if not matched:
+        return ComputedKPI(kpi.name, kpi.value, kpi.unit, kpi.category,
+                           {**kpi.details, "role_resolved": False})
+    resource_role = kpi.details.get("resource_role") or {}
+    values = [v for r, v in (kpi.details.get("per_resource") or {}).items() if resource_role.get(r) in matched]
+    return ComputedKPI(kpi.name, round(float(np.mean(values)), 3), kpi.unit, kpi.category,
+                       {**kpi.details, "role_resolved": True, "roles": matched, "all_resource_mean": kpi.value})
 
 
 def _compute_cost_per_case(
@@ -304,6 +460,8 @@ def compute_kpis(
     *,
     cost_per_hour: dict[str, float] | None = None,
     include_activity_kpis: bool = True,
+    prosimos_params: dict[str, Any] | None = None,
+    sim_start: Any = None,
 ) -> KPIComputationResult:
     """Compute all standard KPIs from a simulated event log.
 
@@ -315,6 +473,11 @@ def compute_kpis(
         Mapping of resource name → hourly cost rate for cost KPI computation.
     include_activity_kpis : bool
         Whether to include per-activity waiting time KPIs.
+    prosimos_params : dict, optional
+        The Prosimos parameters the log was simulated with (resource_profiles,
+        resource_calendars): utilization then uses each resource's working time.
+    sim_start : optional
+        Simulation start (start of the evaluated period for utilization).
 
     Returns
     -------
@@ -344,7 +507,7 @@ def compute_kpis(
     if throughput:
         result.kpis.append(throughput)
 
-    utilization = _compute_resource_utilization(df)
+    utilization = _compute_resource_utilization(df, prosimos_params, sim_start)
     if utilization:
         result.kpis.append(utilization)
 
