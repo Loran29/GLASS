@@ -88,6 +88,24 @@ The records keep both values: GLASS's in `evaluation.<phase>.kpis[*].baseline_me
 
 `loop_discarded_better_initial` (summary columns; per configuration: `reps_loop_discarded_better_initial`) marks runs whose loop kept a final worse than iteration 1. Across all runs: 22 run(s); in 15 of them GLASS's utilization metric rose while the pool's utilization fell.
 
+## Finding: utilization KPI without numeric target
+
+The validated utilization KPI tells GLASS to *minimize* utilization ("bring its utilization down to a sustainable level without idling the team") but carries no target value. GLASS's rule for minimize counts any decrease as improved, and its loop stops at the first iteration in which all target KPIs move the right way.
+
+The batch's limit (below 0.85 of available working time, and lower than the baseline) is an evaluation rule that GLASS never received. Both verdicts are reported side by side:
+- `util_improved_glass`: GLASS's own verdict for the utilization KPI, computed with GLASS's utilization value in this batch.
+- `util_improved_batch`: the batch's verdict.
+- `all_kpis_improved_glass_rule`: next to `all_kpis_improved`, using GLASS's rules for every KPI.
+
+Runs with a utilization KPI (status ok):
+
+| Phase | Runs | Improved, GLASS's rule | Improved, batch rule (< 0.85) | GLASS improved, batch not |
+|---|---|---|---|---|
+| initial | 37 | 12 | 18 | 1 |
+| final | 40 | 18 | 16 | 5 |
+
+A numeric target in the KPI text (e.g. below 85 % of available working time) is a protocol variant for a possible later batch; it is not applied here.
+
 ## Sensitivity: utilization limit (reported, not scored)
 
 Utilization verdicts "improved" (below the limit and lower than the baseline), from the stored per-seed pool utilizations, with the scored limit 0.85 and with 0.90:

@@ -65,3 +65,7 @@ evaluation/loanapp_p2p/results/stage2_results/logs/
 evaluation/loanapp_p2p/results/stage2_results/baseline_logs/*/*.csv.gz
 evaluation/loanapp_p2p/results/stage2_results/healthy_logs/
 evaluation/loanapp_p2p/results/stage2_results/log_archives/
+evaluation/loanapp_p2p/results/stage2_results_v2/logs/
+evaluation/loanapp_p2p/results/stage2_results_v2/baseline_logs/*/*.csv.gz
+evaluation/loanapp_p2p/results/stage2_results_v2/healthy_logs/
+evaluation/loanapp_p2p/results/stage2_results_v2/log_archives/

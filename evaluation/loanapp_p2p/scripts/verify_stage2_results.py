@@ -118,6 +118,10 @@ def own_summary_rows(rec: dict, cfg: dict) -> list[dict]:
         row["glass_utilization_baseline"] = util[0]["baseline_mean"] if util else ""
         row["glass_utilization_proposed"] = util[0]["proposed_mean"] if util else ""
         row["loop_discarded_better_initial"], row["loop_discarded_reason"] = own_discarded(rec)
+        u = [k for k in kpis if k.get("category") == "utilization"]
+        row["util_improved_glass"] = (u[0].get("glass_improved") is True) if u else ""
+        row["util_improved_batch"] = (u[0].get("improved") is True) if u else ""
+        row["all_kpis_improved_glass_rule"] = len(kpis) > 0 and all(k.get("glass_improved") is True for k in kpis)
         rows.append(row)
     return rows
 
@@ -138,6 +142,17 @@ def own_per_config(rows: list[dict], recs: list[dict], cfg: dict) -> dict:
             vals = [r[key] for r in pr if r[key] is not None]
             out[f"{phase}_mean_{key}"] = round(mean(vals), 3) if vals else ""
     out["reps_loop_discarded_better_initial"] = sum(own_discarded(r)[0] for r in recs)
+    has_util = any(k.get("category") == "utilization" for r in recs
+                   for k in (r.get("stage1_result_passed") or {}).get("kpis", []))
+    for phase in ("initial", "final"):
+        evs = [(r.get("evaluation") or {}).get(phase) or {} for r in recs if r["status"] == "ok"]
+        utils = [[k for k in e.get("kpis") or [] if k.get("category") == "utilization"] for e in evs]
+        out[f"{phase}_util_improved_glass"] = sum(bool(u) and u[0].get("glass_improved") is True for u in utils) \
+            if has_util else ""
+        out[f"{phase}_util_improved_batch"] = sum(bool(u) and u[0].get("improved") is True for u in utils) \
+            if has_util else ""
+        out[f"{phase}_all_kpis_improved_glass_rule"] = sum(
+            len(e.get("kpis") or []) > 0 and all(k.get("glass_improved") is True for k in e["kpis"]) for e in evs)
     return out
 
 

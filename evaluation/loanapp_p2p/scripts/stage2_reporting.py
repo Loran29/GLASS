@@ -63,6 +63,16 @@ def discarded(rec: dict) -> tuple[bool, str]:
     return True, "; ".join(reasons)
 
 
+def util_verdicts(ev: dict) -> tuple:
+    """(GLASS's verdict, batch verdict) for the phase's utilization KPI, and all KPIs improved under GLASS's rules."""
+    kpis = ev.get("kpis") or []
+    util = next((k for k in kpis if k.get("category") == "utilization"), None)
+    glass_all = bool(kpis) and all(k.get("glass_improved") is True for k in kpis)
+    if util is None:
+        return "", "", glass_all
+    return util.get("glass_improved") is True, util.get("improved") is True, glass_all
+
+
 def sensitivity(records: list[dict]) -> dict:
     """Utilization verdict counts with the scored limit (0.85) and with SENSITIVITY_LIMIT, from stored per-seed values."""
     out = {}
@@ -92,15 +102,19 @@ def main() -> None:
 
     with open(out / "stage2_summary.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-    base_fields = [k for k in rows[0] if not k.startswith(("glass_utilization_", "loop_discarded_"))]
+    base_fields = [k for k in rows[0] if not k.startswith(("glass_utilization_", "loop_discarded_", "util_improved_",
+                                                           "all_kpis_improved_glass_rule"))]
     for row in rows:
         rec = records[(row["config_id"], row["rep"])]
         ev = (rec.get("evaluation") or {}).get(row["phase"]) or {}
         gb, gp = glass_util(ev)
         flag, reason = discarded(rec)
+        ug, ub, ga = util_verdicts(ev)
         row.update({"glass_utilization_baseline": gb, "glass_utilization_proposed": gp,
+                    "util_improved_glass": ug, "util_improved_batch": ub, "all_kpis_improved_glass_rule": ga,
                     "loop_discarded_better_initial": flag, "loop_discarded_reason": reason})
-    fields = base_fields + ["glass_utilization_baseline", "glass_utilization_proposed",
+    fields = base_fields + ["glass_utilization_baseline", "glass_utilization_proposed", "util_improved_glass",
+                            "util_improved_batch", "all_kpis_improved_glass_rule",
                             "loop_discarded_better_initial", "loop_discarded_reason"]
     with open(out / "stage2_summary.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -109,12 +123,22 @@ def main() -> None:
 
     with open(out / "stage2_per_config.csv", newline="", encoding="utf-8") as f:
         per = list(csv.DictReader(f))
-    pfields = [k for k in per[0] if k != "reps_loop_discarded_better_initial"]
+    extra = ["reps_loop_discarded_better_initial"] + [f"{ph}_{m}" for ph in ("initial", "final") for m in
+                                                       ("util_improved_glass", "util_improved_batch",
+                                                        "all_kpis_improved_glass_rule")]
+    pfields = [k for k in per[0] if k not in extra]
     for row in per:
-        row["reps_loop_discarded_better_initial"] = sum(
-            discarded(r)[0] for (cid, _), r in records.items() if cid == row["config_id"])
+        recs = [r for (cid, _), r in records.items() if cid == row["config_id"]]
+        row["reps_loop_discarded_better_initial"] = sum(discarded(r)[0] for r in recs)
+        has_util = any(k.get("category") == "utilization" for r in recs
+                       for k in (r.get("stage1_result_passed") or {}).get("kpis", []))
+        for ph in ("initial", "final"):
+            v = [util_verdicts((r.get("evaluation") or {}).get(ph) or {}) for r in recs if r.get("status") == "ok"]
+            row[f"{ph}_util_improved_glass"] = sum(x[0] is True for x in v) if has_util else ""
+            row[f"{ph}_util_improved_batch"] = sum(x[1] is True for x in v) if has_util else ""
+            row[f"{ph}_all_kpis_improved_glass_rule"] = sum(x[2] for x in v)
     with open(out / "stage2_per_config.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=pfields + ["reps_loop_discarded_better_initial"], extrasaction="ignore")
+        w = csv.DictWriter(f, fieldnames=pfields + extra, extrasaction="ignore")
         w.writeheader()
         w.writerows(per)
 
@@ -131,13 +155,28 @@ def main() -> None:
     n_blocks = sum(len(bs) for bs in blocks)
     n_cap = sum("total additional resources across all roles" in b.lower() for bs in blocks for b in bs)
     n_cap_first = sum(bool(bs) and "total additional resources across all roles" in bs[0].lower() for bs in blocks)
-    lines = [
-        "", "## Finding: GLASS utilization metric", "",
+    old_metric = all(str(r.get("glass_commit", "")).startswith("8039058") for r in records.values())
+    util_counts = {}
+    for ph in ("initial", "final"):
+        v = [util_verdicts((r.get("evaluation") or {}).get(ph) or {}) for r in records.values() if r.get("status") == "ok"]
+        v = [x for x in v if x[0] != ""]
+        util_counts[ph] = (len(v), sum(x[0] is True for x in v), sum(x[1] is True for x in v),
+                           sum(x[0] is True and x[1] is not True for x in v))
+    metric_text = (
         "GLASS's utilization KPI (`Resource Utilization`, kpi_computation.py) is the mean over all resources of busy "
         "time divided by the whole simulated span (first start to last end, wall-clock time). When a fix removes a "
         "backlog, the span shrinks and this value rises, although the overloaded pool works less of its available "
         "time. Under `minimize` the iterative loop therefore reads the correct fix as a degradation, and GLASS's "
-        "feedback marks it as having \"LIKELY CAUSED DEGRADATION\".",
+        "feedback marks it as having \"LIKELY CAUSED DEGRADATION\"."
+        if old_metric else
+        "This batch ran on a GLASS version whose `Resource Utilization` already uses each resource's available "
+        "working time and is evaluated for the role the KPI names (commit 5112fbc). The earlier definition, busy "
+        "time divided by the whole simulated span averaged over all resources, rose when a backlog was cleared; "
+        "that made the loop discard correct fixes in batch v1. Discarded-better-initial counts below have other "
+        "causes here.")
+    lines = [
+        "", "## Finding: GLASS utilization metric", "",
+        metric_text,
         "",
         "The records keep both values: GLASS's in `evaluation.<phase>.kpis[*].baseline_mean / proposed_mean`, the "
         "batch's pool utilization of working time in `evaluation.<phase>.utilization_rule`. The summary CSV shows "
@@ -148,6 +187,26 @@ def main() -> None:
         f"Across all runs: {n_disc} run(s); in {n_glass} of them GLASS's utilization metric rose while the pool's "
         f"utilization fell.",
         "",
+        "## Finding: utilization KPI without numeric target", "",
+        "The validated utilization KPI tells GLASS to *minimize* utilization (\"bring its utilization down to a "
+        "sustainable level without idling the team\") but carries no target value. GLASS's rule for minimize "
+        "counts any decrease as improved, and its loop stops at the first iteration in which all target KPIs move "
+        "the right way.",
+        "",
+        "The batch's limit (below 0.85 of available working time, and lower than the baseline) is an evaluation "
+        "rule that GLASS never received. Both verdicts are reported side by side:",
+        "- `util_improved_glass`: GLASS's own verdict for the utilization KPI, computed with GLASS's utilization "
+        "value in this batch.",
+        "- `util_improved_batch`: the batch's verdict.",
+        "- `all_kpis_improved_glass_rule`: next to `all_kpis_improved`, using GLASS's rules for every KPI.",
+        "",
+        "Runs with a utilization KPI (status ok):", "",
+        "| Phase | Runs | Improved, GLASS's rule | Improved, batch rule (< 0.85) | GLASS improved, batch not |",
+        "|---|---|---|---|---|",
+        *[f"| {ph} | {n} | {g} | {b_} | {gb} |" for ph, (n, g, b_, gb) in util_counts.items()],
+        "",
+        "A numeric target in the KPI text (e.g. below 85 % of available working time) is a protocol variant for a "
+        "possible later batch; it is not applied here.", "",
         "## Sensitivity: utilization limit (reported, not scored)", "",
         "Utilization verdicts \"improved\" (below the limit and lower than the baseline), from the stored per-seed "
         f"pool utilizations, with the scored limit 0.85 and with {SENSITIVITY_LIMIT:.2f}:",
