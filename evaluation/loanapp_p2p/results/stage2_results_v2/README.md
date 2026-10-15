@@ -80,6 +80,30 @@ Secondary
   Elements match by display name or id, case-insensitively.
 ```
 
+## Finding: merger applies modifications whose baseline value does not match
+
+GLASS's merger compares the baseline value an LLM quotes with the actual baseline. On a mismatch it only warns; it still applies the modification, even when the mismatch reverses the intended direction.
+
+Example, LoanApp_G2G3 rep 5:
+- In all four iterations the LLM proposed "activity_duration decrease: Assess loan risk 7200 → 5400 s". It quoted the 2-hour timer *before* that activity as the activity's duration.
+- The activity actually takes 1,200 s, a 6× mismatch. The merger warned ("quoted baseline_value 7200.0 disagrees with actual baseline 1200") and applied 5,400 s, so the "decrease" made the activity 4.5× longer.
+- GLASS's feedback did not point out the mistake. The loop kept the least bad iteration (iteration 4): average waiting time before Assess loan risk 11.2 h → 600.3 h, CTD ratio −45.6.
+
+This single run moves the configuration's mean CTD ratio to −8.90 (the other four runs: +0.12 to +0.34). For that reason the v1-vs-v2 comparison reports the CTD ratio as a median as well as a mean.
+
+## Finding: resource-id stem used as a role name
+
+In Procure2Pay the resource ids share the stem `QBP_DEFAULT_RESOURCE` (`QBP_DEFAULT_RESOURCE_1`, …). The LLM sometimes uses that stem as the target role of a resource modification. GLASS's validator rejects it (it is not a role), and GLASS's repair maps only complete resource ids to their roles. Every attempt of such an iteration fails.
+
+| Batch | Runs whose first proposal failed this way | Recovered in a later iteration | No scenario in any iteration |
+|---|---|---|---|
+| v2 | 5, all Procure2Pay_G1G3 | reps 3, 5 | reps 1, 2, 4 |
+| v1 | 5 (Procure2Pay_G1 reps 2–3; Procure2Pay_G1G3 reps 1, 3, 4) | all 5 | none |
+
+- **v2:** the three runs without a scenario count as not valid, which explains Procure2Pay_G1G3's drop in valid finals (v1 5, v2 2).
+- **v1 vs v2:** it is the same defect in both batches. How often it hits, and whether a later iteration recovers, varies between batches because the LLM calls are not seeded. It is independent of the Resource Utilization change.
+- **Procure2Pay_G2 rep 4 (v2):** its first proposal failed for a different reason. The LLM gave an activity name instead of the timer's display name; a later iteration recovered.
+
 ## Finding: GLASS utilization metric
 
 This batch ran on a GLASS version whose `Resource Utilization` already uses each resource's available working time and is evaluated for the role the KPI names (commit 5112fbc). The earlier definition, busy time divided by the whole simulated span averaged over all resources, rose when a backlog was cleared; that made the loop discard correct fixes in batch v1. Discarded-better-initial counts below have other causes here.
