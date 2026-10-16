@@ -671,6 +671,15 @@ def generate_scenario_patch(
 
         # Pre-merge validation
         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
+        if (pv.has_errors and attempt == max_retries
+                and all(e.category == "baseline_mismatch" for e in pv.errors)):
+            # Last attempt: reject only the modifications whose quoted baseline value does
+            # not match the model and keep the rest of the patch.
+            rejected = {e.modification_index for e in pv.errors}
+            for e in pv.errors:
+                notes.append(f"[patch-reject] {e.message}")
+            patch.modifications = [m for k, m in enumerate(patch.modifications, start=1) if k not in rejected]
+            pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
         if pv.warnings:
             for w in pv.warnings:
                 notes.append(f"[patch warning] {w.message}")

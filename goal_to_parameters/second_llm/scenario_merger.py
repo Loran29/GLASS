@@ -674,6 +674,35 @@ def _check_element_kind(
     return None
 
 
+BASELINE_MISMATCH_TOLERANCE = 0.25  # relative; a larger deviation rejects the modification
+
+
+def _role_for_name(roles: list[Role], name: str) -> Role | None:
+    """The role a name refers to: the role's id/name, or the id/name of one of its resources."""
+    role = _resolve(roles, name)
+    if role is not None:
+        return role
+    needle = (name or "").strip().lower()
+    for r in roles:
+        if any(str(getattr(res, attr, None) or "").lower() == needle
+               for res in r.resources for attr in ("id", "name")):
+            return r
+    return None
+
+
+def _baseline_mismatch(mod: PatchModification, idx: int, quoted: str, actual: str, why: str) -> PatchDiagnostic:
+    return PatchDiagnostic(
+        severity="error", category="baseline_mismatch",
+        message=(
+            f"Modification #{idx} ({mod.parameter_type.value}) on '{mod.target_element}' was rejected: "
+            f"the quoted baseline_value '{quoted}' does not match the model's actual value {actual} ({why}). "
+            f"Check that this is the element you mean; if it is, quote baseline_value as {actual} and "
+            f"state proposed_value relative to it, in the same unit."
+        ),
+        modification_index=idx, element=mod.target_element,
+    )
+
+
 def _check_baseline_value_match(
     scenario: SimuBridgeScenario,
     mod: PatchModification,
@@ -681,55 +710,67 @@ def _check_baseline_value_match(
 ) -> PatchDiagnostic | None:
     """Compare the LLM's quoted baseline_value to the actual baseline.
 
-    Emits a ``warning`` (not an error) on numeric disagreement so the
-    merge can proceed in tolerant mode; strict mode escalates.
+    Numeric values (resource count, hourly cost, duration and inter-arrival means in the
+    element's own time unit) must lie within ``BASELINE_MISMATCH_TOLERANCE`` of the actual
+    value; the roles quoted for a resource_activity_assignment must be the activity's roles.
+    A mismatch is an ``error`` (category ``baseline_mismatch``): the modification is not
+    applied, and the message states the actual value so the LLM can correct its target.
+    Elements that do not exist, and empty quotes, are left to the other checks.
     """
+    roles = scenario.resourceParameters.roles
+    if mod.parameter_type == PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT:
+        act = _resolve([a for m in scenario.models for a in m.modelParameter.activities], mod.target_element)
+        if act is None or not mod.baseline_value.strip():
+            return None
+        tokens = [t.strip() for t in re.split(r"[,;]", mod.baseline_value) if t.strip()]
+        quoted = {getattr(_role_for_name(roles, t), "id", f"unknown:{t}") for t in tokens}
+        if quoted != set(act.resources):
+            return _baseline_mismatch(mod, idx, mod.baseline_value, ", ".join(act.resources) or "(no role)",
+                                      "roles assigned to the activity")
+        return None
+
     numeric_quoted = _first_number(mod.baseline_value)
     if numeric_quoted is None:
         return None
 
     actual_numeric: float | None = None
+    unit = ""
     if mod.parameter_type == PatchParameterType.RESOURCE_COUNT:
-        role = _resolve(scenario.resourceParameters.roles, mod.target_element)
+        role = _resolve(roles, mod.target_element)
         if role is not None:
-            actual_numeric = float(len(role.resources))
+            actual_numeric, unit = float(len(role.resources)), "resources"
     elif mod.parameter_type == PatchParameterType.RESOURCE_COST:
-        role = _resolve(scenario.resourceParameters.roles, mod.target_element)
+        role = _resolve(roles, mod.target_element)
         if role is not None:
-            actual_numeric = float(role.costHour)
+            actual_numeric, unit = float(role.costHour), "per hour"
     elif mod.parameter_type == PatchParameterType.ACTIVITY_DURATION:
         act = _resolve(
             [a for m in scenario.models for a in m.modelParameter.activities],
             mod.target_element,
         )
         if act is not None:
-            actual_numeric = _distribution_mean(act.duration)
+            actual_numeric, unit = _distribution_mean(act.duration), act.duration.timeUnit.value
     elif mod.parameter_type == PatchParameterType.INTER_ARRIVAL_TIME:
         events = [e for m in scenario.models for e in m.modelParameter.events]
         event = _resolve(events, mod.target_element) or (events[0] if events else None)
         if event is not None:
-            actual_numeric = _distribution_mean(event.interArrivalTime)
+            actual_numeric, unit = _distribution_mean(event.interArrivalTime), event.interArrivalTime.timeUnit.value
     elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
         evt = _resolve(
             [e for m in scenario.models for e in m.modelParameter.intermediateEvents],
             mod.target_element,
         )
         if evt is not None:
-            actual_numeric = _distribution_mean(evt.duration)
+            actual_numeric, unit = _distribution_mean(evt.duration), evt.duration.timeUnit.value
 
     if actual_numeric is None:
         return None
 
-    tol = max(1e-6, abs(actual_numeric) * 0.05)
+    tol = max(1e-6, abs(actual_numeric) * BASELINE_MISMATCH_TOLERANCE)
     if abs(actual_numeric - numeric_quoted) > tol:
-        return PatchDiagnostic(
-            severity="warning", category="baseline_value_mismatch",
-            message=(
-                f"Modification on '{mod.target_element}': quoted baseline_value "
-                f"{numeric_quoted} disagrees with actual baseline "
-                f"{actual_numeric:.4g} (>5% tolerance)."
-            ),
-            modification_index=idx, element=mod.target_element,
+        return _baseline_mismatch(
+            mod, idx, mod.baseline_value, f"{actual_numeric:g} {unit}".strip(),
+            f"more than {BASELINE_MISMATCH_TOLERANCE:.0%} apart",
         )
     return None
 
@@ -840,16 +881,13 @@ def apply_patch(
                 result.skipped_modifications.append(i)
                 continue
 
-        # Baseline value sanity.
+        # Baseline value sanity: a quoted value that does not match the model rejects the
+        # modification in both modes (it most likely targets the wrong element or unit).
         value_issue = _check_baseline_value_match(scenario, mod, i)
         if value_issue is not None:
-            if strict:
-                value_issue.severity = "error"
-                result.diagnostics.append(value_issue)
-                result.skipped_modifications.append(i)
-                continue
-            else:
-                result.diagnostics.append(value_issue)
+            result.diagnostics.append(value_issue)
+            result.skipped_modifications.append(i)
+            continue
 
         # Dispatch.
         applier = _APPLIERS.get(mod.parameter_type)

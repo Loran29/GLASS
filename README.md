@@ -201,6 +201,23 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 
 ---
 
+## Patch modifications: quoted baseline values
+
+**Previous behaviour.** Each modification quotes the element's current value (`baseline_value`). When the quote differed from the model by more than 5 %, `second_llm/scenario_merger.py` only warned and applied the proposed value anyway. Two kinds of error went through this way:
+- **Wrong element.** In a Stage 2 run the LLM quoted 7200 s for an activity whose actual mean is 1200 s and proposed 5400 s. The activity became 4.5× longer instead of shorter.
+- **Wrong unit.** A quote in hours for a duration stored in seconds ("1.1667 hours" for 4200 s), with the proposal "0.5 hours", set the activity to a constant 0.5 seconds.
+
+**What changed** (from the commit "Reject modifications whose baseline value does not match the model"):
+- **Numeric quotes** (resource count, hourly cost, and duration and inter-arrival means in the element's own time unit) must lie within 25 % of the actual value (`BASELINE_MISMATCH_TOLERANCE`).
+- **Categorical quotes.** For `resource_activity_assignment`, the quoted roles must be the activity's roles. A role may also be named by one of its resources.
+- **A mismatch is an error** (category `baseline_mismatch`). The merger skips the modification in both modes, and `validate_patch` reports it. The retry prompt therefore states the actual value and its unit, so the LLM can correct the target.
+- **Last attempt.** On the generator's last attempt, when baseline mismatches are the only errors, just those modifications are dropped (noted as `[patch-reject]`) and the rest of the patch is applied.
+- **Unchanged:** quotes within 25 %, empty quotes, and modifications of elements that do not exist (handled by the existence checks).
+
+`tests/test_baseline_mismatch.py` covers the rejection, a close match, the unit case, the feedback text, the assignment check and the generator's retry. `goal_to_parameters/tests/test_patch_flow.py` now expects the rejection in tolerant mode.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

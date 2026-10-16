@@ -4,8 +4,7 @@ Covers:
 
 * valid patch merges cleanly and applies every modification,
 * missing baseline element is rejected,
-* wrong ``baseline_value`` surfaces a warning in tolerant mode and an
-  error in strict mode,
+* wrong ``baseline_value`` rejects the modification (error) in both modes,
 * no-op modifications are rejected (schema or merger),
 * invalid distribution / gateway probabilities / resource counts are
   rejected,
@@ -218,17 +217,18 @@ def test_missing_element_rejected():
 # Baseline value mismatch
 # -------------------------------------------------------------------
 
-def test_baseline_value_mismatch_warning_in_tolerant_mode():
+def test_baseline_value_mismatch_rejected_in_tolerant_mode():
     baseline = _make_baseline()
     # Baseline has 2 analysts; claim 10 in the quote
     patch = _mk_patch([_mk_mod(baseline_value="10", proposed_value="4")])
     result = apply_patch(baseline, patch, strict=False)
     assert any(
-        d.category == "baseline_value_mismatch" and d.severity == "warning"
+        d.category == "baseline_mismatch" and d.severity == "error"
         for d in result.diagnostics
     )
-    # The merger still applies the change in tolerant mode
-    assert 1 in result.applied_modifications
+    # The modification is not applied (previously it was, with a warning)
+    assert 1 in result.skipped_modifications
+    assert len(result.scenario.resourceParameters.roles[0].resources) == 2
 
 
 def test_baseline_value_mismatch_error_in_strict_mode():
@@ -237,7 +237,7 @@ def test_baseline_value_mismatch_error_in_strict_mode():
     result = apply_patch(baseline, patch, strict=True)
     assert 1 in result.skipped_modifications
     assert any(
-        d.category == "baseline_value_mismatch" and d.severity == "error"
+        d.category == "baseline_mismatch" and d.severity == "error"
         for d in result.diagnostics
     )
 
