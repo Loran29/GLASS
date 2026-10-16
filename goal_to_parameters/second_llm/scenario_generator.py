@@ -35,7 +35,7 @@ from second_llm.output_schema_patch import (
     get_patch_constrained_decoding_schema,
 )
 from second_llm.compatibility_adapter import build_legacy_proposal
-from second_llm.payload_builder import summarize_intermediate_events
+from second_llm.payload_builder import simod_for_llm, summarize_intermediate_events
 from second_llm.patch_validator import (
     enforce_headcount_constraints,
     repair_patch_against_baseline,
@@ -548,10 +548,11 @@ def generate_scenario_patch(
     declared_kpis = [k.get("name") for k in kpis if isinstance(k, dict) and k.get("name")]
     simod_dict = _parse_simod_json(simod_raw_text, simod_json_content)
 
+    # The prompt shows resources by name; the baseline below is built from simod_dict.
     evidence = build_second_llm_evidence(
         goal_structured=goal_structured,
         kpis=kpis,
-        simod_json=simod_dict,
+        simod_json=simod_for_llm(simod_dict),
         log_profile=log_profile,
         context_profile=context_profile,
         bpmn_xml=bpmn_xml,

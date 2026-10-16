@@ -41,6 +41,46 @@ def summarize_intermediate_events(scenario: Any) -> str:
     return "\n".join(lines)
 
 
+def simod_for_llm(simod_json: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Copy of the SIMOD parameters for the LLM prompt with resources shown by name.
+
+    SIMOD gives resource profiles and resources both an id (e.g. ``POOL`` and
+    ``POOL_1``) and a name (the role, e.g. "Role X", and "Role X-000001"). The
+    scenario's roles are keyed by the profile name, so a profile id copied from
+    the prompt is not a valid patch target. Every string value equal to such an id
+    (the profile's and resources' ``id`` and references such as
+    ``task_resource_distribution[].resources[].resource_id``) is replaced by the
+    name, when the name is set, differs from the id and is unique. Calendar ids are
+    left as they are. The input is not modified; the baseline is built from it.
+    """
+    if not isinstance(simod_json, dict):
+        return simod_json
+    profiles = simod_json.get("resource_profiles")
+    if not isinstance(profiles, list):
+        return simod_json
+    pairs: list[tuple[str, str]] = []
+    for prof in profiles:
+        if not isinstance(prof, dict):
+            continue
+        items = [prof] + [r for r in prof.get("resource_list") or [] if isinstance(r, dict)]
+        pairs += [(str(it["id"]), str(it["name"])) for it in items if it.get("id") and it.get("name")]
+    names = [n for _, n in pairs]
+    id_to_name = {i: n for i, n in pairs if i != n and names.count(n) == 1}
+    if not id_to_name:
+        return simod_json
+
+    def swap(obj: Any) -> Any:
+        if isinstance(obj, dict):
+            return {k: swap(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [swap(v) for v in obj]
+        if isinstance(obj, str):
+            return id_to_name.get(obj, obj)
+        return obj
+
+    return swap(simod_json)
+
+
 class DraftPayloadBuilder:
     """Builds the second-LLM request from workspace state."""
 
@@ -143,7 +183,7 @@ class DraftPayloadBuilder:
                 evidence = build_second_llm_evidence(
                     goal_structured=goal_structured,
                     kpis=kpis,
-                    simod_json=simod_dict,
+                    simod_json=simod_for_llm(simod_dict),
                     log_profile=self._log_profile,
                     context_profile=self._context_profile,
                 )

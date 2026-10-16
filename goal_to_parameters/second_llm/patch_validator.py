@@ -39,6 +39,7 @@ from second_llm.scenario_merger import (
     _check_target_exists,
     _detect_conflicts,
     _resolve,
+    _role_for_name,
 )
 from second_llm.validation import _extract_first_number  # reused
 
@@ -317,55 +318,49 @@ def repair_patch_against_baseline(
 ) -> tuple[ScenarioPatch, list[str]]:
     """Auto-repair common LLM mistakes before validation.
 
-    Currently handles one case: the LLM sets ``target_element`` to an
-    individual resource name (e.g. "Alberto Duport") for a
-    ``resource_count`` or ``resource_cost`` modification, when the
-    merger expects the *role* name/id that the resource belongs to.
+    Role targets: for a ``resource_count``, ``resource_cost`` or
+    ``resource_calendar`` modification whose ``target_element`` is not a
+    role (nor, for a calendar, a timetable) but names one of a role's
+    resources (e.g. "Alberto Duport"), the stem the role's resource ids
+    share (e.g. ``POOL`` for ``POOL_1`` … ``POOL_n``, which SIMOD uses as
+    the resource-profile id), or a resource name with an index
+    (``Role X-000001``), the target is redirected to that role.
 
-    If the target does not match any role but does match a resource
-    inside some role, the target is silently redirected to that role.
+    ``resource_count`` with direction ``add_new`` on an existing role is
+    changed to ``increase``.
     """
     notes: list[str] = []
-
-    # Build index: lowercased resource id/name -> parent role
-    resource_to_role: dict[str, Any] = {}
-    for role in baseline.resourceParameters.roles:
-        for resource in role.resources:
-            for attr in ("id", "name"):
-                val = getattr(resource, attr, None)
-                if val:
-                    resource_to_role[str(val).lower()] = role
-
     roles = baseline.resourceParameters.roles
+    timetables = baseline.resourceParameters.timeTables
 
     for mod in patch.modifications:
-        if mod.parameter_type not in _ROLE_PARAM_TYPES:
+        if mod.parameter_type not in _ROLE_PARAM_TYPES | {PatchParameterType.RESOURCE_CALENDAR}:
             continue
-        # Already resolves to a known role — check for ADD_NEW direction fix.
-        resolved_role = _resolve(roles, mod.target_element)
-        if resolved_role is not None:
-            # Role exists but direction is ADD_NEW: correct it to INCREASE
-            # so the merger won't skip the existence check.
-            if (
-                mod.parameter_type == PatchParameterType.RESOURCE_COUNT
-                and mod.direction == ModificationDirection.ADD_NEW
-            ):
-                mod.direction = ModificationDirection.INCREASE
+        if _resolve(roles, mod.target_element) is None and not (
+            mod.parameter_type == PatchParameterType.RESOURCE_CALENDAR
+            and _resolve(timetables, mod.target_element) is not None
+        ):
+            parent_role = _role_for_name(roles, mod.target_element)
+            if parent_role is not None:
+                old_name = mod.target_element
+                mod.target_element = parent_role.id
                 notes.append(
-                    f"Auto-repaired: changed direction for resource_count "
-                    f"on existing role '{mod.target_element}' from "
-                    f"'add_new' to 'increase'."
+                    f"Auto-repaired: redirected {mod.parameter_type.value} "
+                    f"target from '{old_name}' (a resource id, id stem or "
+                    f"resource name) to role '{parent_role.id}'."
                 )
-            continue
-        # Check if it matches an individual resource.
-        parent_role = resource_to_role.get(mod.target_element.lower())
-        if parent_role is not None:
-            old_name = mod.target_element
-            mod.target_element = parent_role.id
+        # Role exists but direction is ADD_NEW: correct it to INCREASE
+        # so the merger won't skip the existence check.
+        if (
+            mod.parameter_type == PatchParameterType.RESOURCE_COUNT
+            and mod.direction == ModificationDirection.ADD_NEW
+            and _resolve(roles, mod.target_element) is not None
+        ):
+            mod.direction = ModificationDirection.INCREASE
             notes.append(
-                f"Auto-repaired: redirected {mod.parameter_type.value} "
-                f"target from individual resource '{old_name}' to "
-                f"parent role '{parent_role.id}'."
+                f"Auto-repaired: changed direction for resource_count "
+                f"on existing role '{mod.target_element}' from "
+                f"'add_new' to 'increase'."
             )
 
     return patch, notes

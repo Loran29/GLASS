@@ -216,6 +216,21 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 
 `tests/test_baseline_mismatch.py` covers the rejection, a close match, the unit case, the feedback text, the assignment check and the generator's retry. `goal_to_parameters/tests/test_patch_flow.py` now expects the rejection in tolerant mode.
 
+**Resource-id stems as role targets** (from the commit "Map resource-id stems to roles in patch targets").
+
+*Previous behaviour.* SIMOD gives each resource profile an id and a name. In the Procure2Pay baseline, for example, the profile id is `QBP_DEFAULT_RESOURCE`, the name is "Purchasing Agent", and the resources are `QBP_DEFAULT_RESOURCE_1` … `_n`. GLASS keys the role by the name, but the prompt showed the ids. A modification targeting `QBP_DEFAULT_RESOURCE` was therefore rejected as an unknown role. When the LLM repeated it on every retry, the run produced no scenario.
+
+*Now:*
+- **Repair step.** `patch_validator.repair_patch_against_baseline` redirects a `resource_count`, `resource_cost` or `resource_calendar` target that is not a role (nor, for a calendar, a timetable) to the role it names, through `scenario_merger._role_for_name`. A target can name the role in three ways:
+  - one of the role's resources, by id or name;
+  - the stem the role's resource ids share;
+  - a resource name with an index ("Purchasing Agent-000001").
+
+  A stem or index match must point to exactly one role. `add_new` on a role found this way becomes `increase`, as for a role named directly. Unknown names are still rejected.
+- **Prompt.** `payload_builder.simod_for_llm` gives the prompt a copy of the SIMOD parameters in which profile and resource ids are replaced by their names, wherever both exist and the name is unique. This includes references such as `task_resource_distribution[].resources[].resource_id`. Calendar ids are kept. The copy is used by the draft payload and by the patch generator. The baseline is still built from the original parameters. The legacy full-scenario generator is unchanged.
+
+`tests/test_resource_id_stems.py` covers stem, id and indexed-name resolution, the calendar target, `add_new`, an unknown name, the prompt copy, and the prompt the patch generator sends.
+
 ---
 
 ## Try it with the bundled examples

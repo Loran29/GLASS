@@ -677,17 +677,45 @@ def _check_element_kind(
 BASELINE_MISMATCH_TOLERANCE = 0.25  # relative; a larger deviation rejects the modification
 
 
+_INDEX_SUFFIX_RE = re.compile(r"[\s_\-]*\d+$")
+
+
+def _id_stem(text: str) -> str:
+    """``text`` without a trailing index: 'POOL_3' -> 'POOL', 'Clerk-000001' -> 'Clerk'."""
+    return _INDEX_SUFFIX_RE.sub("", text.strip()).strip()
+
+
 def _role_for_name(roles: list[Role], name: str) -> Role | None:
-    """The role a name refers to: the role's id/name, or the id/name of one of its resources."""
+    """The role a name refers to, or ``None``.
+
+    In order: the role's id/name; the id/name of one of its resources; the stem its
+    resource ids share (e.g. ``POOL`` for ``POOL_1`` … ``POOL_n``, as SIMOD names a
+    resource profile); the name without a trailing index (``Role X-000001``) resolved
+    the same way. A stem or index match must point to exactly one role.
+    """
     role = _resolve(roles, name)
     if role is not None:
         return role
     needle = (name or "").strip().lower()
+    if not needle:
+        return None
     for r in roles:
         if any(str(getattr(res, attr, None) or "").lower() == needle
                for res in r.resources for attr in ("id", "name")):
             return r
-    return None
+
+    def by_stem(stem: str) -> Role | None:
+        hits = [r for r in roles
+                if any(_id_stem(str(getattr(res, attr, None) or "")).lower() == stem
+                       for res in r.resources for attr in ("id", "name"))]
+        return hits[0] if len(hits) == 1 else None
+
+    found = by_stem(needle)
+    if found is None:
+        stripped = _id_stem(needle)
+        if stripped and stripped != needle:
+            found = _resolve(roles, stripped) or by_stem(stripped)
+    return found
 
 
 def _baseline_mismatch(mod: PatchModification, idx: int, quoted: str, actual: str, why: str) -> PatchDiagnostic:
