@@ -247,6 +247,18 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 - **Best iteration.** The best iteration is the one with the most achieved targets, then the most improved KPIs, then the existing score; ties keep the earlier iteration. This also applies without thresholds: an iteration that improves more KPIs now ranks above one with a higher score.
 - **Feedback.** For a KPI with a threshold, the feedback says either "improved but target not yet reached (current X, target Y)" or "target achieved", and gives the count ("Targets reached: k of n"). KPIs that improved but have not reached their target are listed under "TARGETS NOT YET REACHED", and alternative interventions are retrieved for them as for worsened KPIs.
 
+**Remaining gap and allowed range** (from the commit "Refinement feedback states the remaining gap and the allowed range"). Telling the LLM only that a target was "not yet reached" did not make it propose a larger change. A typical case: it added one resource to an overloaded role, utilization stayed far above the target, and the next iterations repeated the same change.
+
+For each KPI with a threshold that improved but did not reach it, the feedback now also states:
+- **The remaining gap.** It is given in absolute terms and relative to the current value, with the sentence "a larger change than in this proposal is needed to reach the target".
+- **The allowed range of each lever targeting the KPI** (modifications whose `kpi_reference` names it), taken from the operational-constraint summary that is also rendered into the prompt:
+  - capacity: how far staffing may be increased, what the proposal adds, and how many additions remain for the role;
+  - the global cap on additional resources and the relative budget limit, if they were stated;
+  - calendars: the allowed working-time extension per day.
+- **When no modification targets the KPI**, this is said, and the staffing limits are listed.
+
+KPIs that achieved their target, and KPIs without a threshold, get nothing extra. `tests/test_feedback_gap_range.py` covers these cases.
+
 **Where thresholds come from.** The UI's target builders do not set `threshold`, because the Stage 1 KPI schema has no numeric target. The behaviour above therefore applies when the caller sets it, as the Stage 2 batch evaluation does from its configuration.
 
 `tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.

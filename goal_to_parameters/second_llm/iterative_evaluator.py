@@ -13,6 +13,7 @@ goal-programming scoring function with prospect-theoretic loss aversion
 from __future__ import annotations
 
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -28,6 +29,7 @@ from second_llm.scenario_evaluation import (
     compare_kpis,
     targets_met,
 )
+from second_llm.context_summary import _same_role
 from second_llm.scenario_generator import ScenarioGenerationResult
 
 logger = logging.getLogger(__name__)
@@ -140,6 +142,93 @@ def _target_text(e: KPIComparisonEntry) -> str:
     if e.improved is True:
         return f"improved but target not yet reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
     return f"target not reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
+
+
+def _int(text: Any) -> int | None:
+    m = re.search(r"[-+]?\d+(?:\.\d+)?", str(text or ""))
+    return int(round(float(m.group()))) if m else None
+
+
+def _refers_to(kpi_ref: str, kpi_name: str) -> bool:
+    a, b = (kpi_ref or "").lower(), (kpi_name or "").lower()
+    return bool(a) and (a in b or b in a)
+
+
+def _gap_lines(e: KPIComparisonEntry, gen_result: ScenarioGenerationResult | None) -> list[str]:
+    """For a KPI with a threshold that improved but has not reached it: the remaining gap and the
+    allowed range of the levers targeting it, taken from the operational-constraint summary that
+    is also rendered into the prompt. Empty for any other KPI."""
+    if getattr(e, "threshold", None) is None or e.achieved is not False or e.improved is not True \
+            or e.proposed_value is None:
+        return []
+    cur, target = e.proposed_value, e.threshold
+    gap = cur - target if e.target_direction == "minimize" else target - cur
+    rel = f" ({abs(gap) / abs(cur):.1%} of the current value)" if cur else ""
+    lines = [f"Remaining gap: {_fmt(abs(gap))}{rel}; a larger change than in this proposal is needed to "
+             f"reach the target."]
+
+    summary = getattr(gen_result, "context_summary", None) if gen_result else None
+    proposal = getattr(gen_result, "proposal", None) if gen_result else None
+    mods = list(getattr(proposal, "modifications", None) or [])
+    levers = [m for m in mods if _refers_to(getattr(m, "kpi_reference", ""), e.kpi_name)]
+    if summary is None or getattr(summary, "is_empty", True):
+        if not levers:
+            lines.append("No modification in the current proposal targets this KPI.")
+        return lines
+
+    def overtime(role: str) -> float | None:
+        for name, info in summary.resource_constraints.items():
+            if _same_role(name, role) and isinstance(info, dict):
+                val = info.get("max_overtime_hours_per_day")
+                if val is not None:
+                    return float(val)
+        return None
+
+    added_total = 0
+    for m in mods:
+        if getattr(m, "parameter_type", "") == "resource_count":
+            n0, n1 = _int(m.baseline_value), _int(m.proposed_value)
+            if n0 is not None and n1 is not None and n1 > n0:
+                added_total += n1 - n0
+    capacity = False
+    for m in levers:
+        ptype, role = getattr(m, "parameter_type", ""), getattr(m, "target_element", "")
+        if ptype == "resource_count":
+            capacity = True
+            n0, n1 = _int(m.baseline_value), _int(m.proposed_value)
+            if n0 is None or n1 is None:
+                continue
+            if summary.is_role_fixed(role):
+                lines.append(f"Allowed range for '{role}': its staffing is fixed by the operational constraints.")
+                continue
+            ceiling = summary.get_effective_max_headcount(role, current_count=n0)
+            if ceiling is None:
+                lines.append(f"Allowed range for '{role}': no staffing limit was stated; the current proposal "
+                             f"changes its headcount from {n0} to {n1}.")
+            else:
+                lines.append(f"Allowed range for '{role}' (operational constraints): staffing may be increased by up "
+                             f"to +{max(0, ceiling - n0)} (to {ceiling}); the current proposal adds {n1 - n0:+d}, so "
+                             f"{max(0, ceiling - n1)} more addition(s) remain for this role.")
+        elif ptype == "resource_calendar":
+            hours = overtime(role)
+            if hours is not None:
+                lines.append(f"Allowed range for '{role}' (operational constraints): working time may be extended "
+                             f"by up to {hours:g} h per day.")
+    if capacity:
+        cap = summary.get_global_max_additional()
+        if cap is not None:
+            lines.append(f"Across all roles at most +{cap} additional resources are allowed; the current proposal "
+                         f"adds +{added_total}, so {max(0, cap - added_total)} more remain.")
+        pct = (summary.budget or {}).get("max_increase_pct")
+        if pct is not None:
+            lines.append(f"Total staff cost may increase by at most {float(pct):g} %.")
+    if not levers:
+        lines.append("No modification in the current proposal targets this KPI.")
+        limits = [f"'{name}' +{info['max_additional']}" for name, info in summary.resource_constraints.items()
+                  if isinstance(info, dict) and info.get("max_additional") is not None]
+        if limits:
+            lines.append("Staffing limits from the operational constraints: " + ", ".join(limits) + ".")
+    return lines
 
 
 def _build_evaluation_feedback(
@@ -277,6 +366,7 @@ def _build_evaluation_feedback(
         lines.append("TARGETS NOT YET REACHED (improved, but more change is needed):")
         for e in not_reached:
             lines.append(f"  • {e.kpi_name}: {_target_text(e)}.")
+            lines.extend(f"    {g}" for g in _gap_lines(e, gen_result))
         lines.append("")
 
     if achieved:
