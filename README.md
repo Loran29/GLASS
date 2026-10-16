@@ -259,6 +259,23 @@ For each KPI with a threshold that improved but did not reach it, the feedback n
 
 KPIs that achieved their target, and KPIs without a threshold, get nothing extra. `tests/test_feedback_gap_range.py` covers these cases.
 
+**Direction-aware strategy retrieval** (from the commit "Direction-aware knowledge-base retrieval").
+
+*Previously,* the "Literature-Backed Alternative Interventions" in the refinement feedback were chosen by text relevance only. A KPI to *minimize* utilization therefore received strategies whose stated effect is raising utilization ("Improve operator utilization rates …", "raised overall average utilization by 8.5 %").
+
+*Now* `knowledge/direction.py` derives each entry's stated effect on the KPI's metric from the entry's own text: the goal and parameter-change rationale and evidence of a mapping, the finding of a literature entry, or a PDF excerpt.
+- **How the effect is read.** An effect word near a word for the metric, in the same clause, gives the direction:
+  - "increase": raise, rise, higher, boost, maximize, upward, grow, "keep … high";
+  - "decrease": reduce, lower, minimize, cut, shorten, drop, fall, below, less, relieve, eliminate, and "without / avoid overloading" for utilization;
+  - "improve" means increase for metrics where higher is better (utilization, throughput) and decrease for time and cost metrics;
+  - a word for the inverse of the metric flips the direction ("reduce idle time" raises utilization).
+- **The rule for each problem KPI.** `minimize` wants a stated decrease, `maximize` a stated increase, and `maintain` is not filtered:
+  - an entry that states the opposite effect, or a mixed one, is dropped;
+  - an entry that states no effect on the metric is kept and ranked after the matching entries.
+- **Retrieval size.** More entries are retrieved than shown (10 mappings, 6 literature entries and 4 excerpts, of which at most 4, 3 and 2 are shown), so enough remain after filtering.
+
+No direction field is added to the knowledge-base entries; the rule is applied to their existing wording. It applies only to retrieval during refinement. The evidence retrieved for the initial proposal is unchanged. `tests/test_direction_aware_retrieval.py` covers the phrase rules and checks, on the bundled knowledge base, that a minimize-utilization KPI gets no strategy describing raising utilization and that a maximize one still does.
+
 **Where thresholds come from.** The UI's target builders do not set `threshold`, because the Stage 1 KPI schema has no numeric target. The behaviour above therefore applies when the caller sets it, as the Stage 2 batch evaluation does from its configuration.
 
 `tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.

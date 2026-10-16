@@ -390,15 +390,31 @@ def _retrieve_alternative_interventions(
     worsened_kpis: list[tuple[str, str, str]],
     violated_kpis: list[tuple[str, str, str]],
 ) -> str:
-    """Query the knowledge base for alternative interventions for problem KPIs."""
+    """Query the knowledge base for alternative interventions for problem KPIs.
+
+    Direction-aware (see :mod:`knowledge.direction`): an entry whose stated effect on a problem
+    KPI's metric is the opposite of the KPI's direction, or mixed, is dropped (a minimize KPI only
+    gets entries that state a decrease, and vice versa); entries that state no effect on the metric
+    are kept and ranked after those that state the wanted one. More entries are retrieved than
+    shown so that enough remain after filtering.
+    """
     problem_kpis = worsened_kpis + violated_kpis
     if not problem_kpis:
         return ""
 
     try:
+        from knowledge.direction import direction_rank
         from knowledge.retrieval import retrieve_for_second_llm
     except ImportError:
         return ""
+
+    def rank(text: str) -> int | None:
+        ranks = [direction_rank(text, _infer_category(name), direction) for name, _, direction in problem_kpis]
+        return None if any(r is None for r in ranks) else min(ranks)
+
+    def keep(items: list, text_of) -> list:
+        ranked = [(r, i, it) for i, it in enumerate(items) if (r := rank(text_of(it))) is not None]
+        return [it for _, _, it in sorted(ranked, key=lambda x: (x[0], x[1]))]
 
     kpi_dicts = []
     for name, _, direction in problem_kpis:
@@ -413,18 +429,24 @@ def _retrieve_alternative_interventions(
             goal_structured=f"Find alternative interventions to improve: {', '.join(name for name, _, _ in problem_kpis)}",
             kpis=kpi_dicts,
             context_profile=None,
-            top_k=12,
-            per_kind_caps={"mapping": 4, "literature": 3, "parameter": 3, "rule": 0, "pdf_chunk": 2},
+            top_k=24,
+            per_kind_caps={"mapping": 10, "literature": 6, "parameter": 3, "rule": 0, "pdf_chunk": 4},
         )
     except Exception as exc:
         logger.debug("KB retrieval for feedback failed: %s", exc)
         return ""
 
+    mappings = keep(result.goal_mappings, lambda m: " ".join(
+        [m.goal_description] + [f"{c.rationale} {c.quantitative_evidence}" for c in m.parameter_changes]))
+    literature = keep(result.literature, lambda lit: f"{lit.key_finding} {lit.quantitative_result}")
+    chunks = keep(list(zip(result.pdf_chunks, result.pdf_chunk_scores,
+                           result.pdf_chunk_paper_ids + ["?"] * len(result.pdf_chunks))), lambda c: c[0])
+
     lines: list[str] = []
 
-    if result.goal_mappings:
+    if mappings:
         lines.append("  Recommended strategies from BPS literature:")
-        for i, mapping in enumerate(result.goal_mappings[:4], 1):
+        for i, mapping in enumerate(mappings[:4], 1):
             lines.append(f"  {i}. {mapping.goal_description} (domain: {mapping.domain})")
             for change in mapping.parameter_changes[:3]:
                 evidence_str = f" — Evidence: {change.quantitative_evidence}" if change.quantitative_evidence else ""
@@ -434,22 +456,19 @@ def _retrieve_alternative_interventions(
                     f"{change.rationale}{evidence_str}{paper_str}"
                 )
 
-    if result.literature:
+    if literature:
         lines.append("")
         lines.append("  Supporting evidence:")
-        for lit in result.literature[:3]:
+        for lit in literature[:3]:
             lines.append(
                 f"  - {lit.authors} ({lit.year}): {lit.key_finding} "
                 f"Result: {lit.quantitative_result}"
             )
 
-    if result.pdf_chunks:
+    if chunks:
         lines.append("")
         lines.append("  Source excerpts (from indexed papers):")
-        for i, (chunk_text, score) in enumerate(
-            zip(result.pdf_chunks[:2], result.pdf_chunk_scores[:2]), 1
-        ):
-            paper_id = result.pdf_chunk_paper_ids[i - 1] if i - 1 < len(result.pdf_chunk_paper_ids) else "?"
+        for i, (chunk_text, score, paper_id) in enumerate(chunks[:2], 1):
             excerpt = chunk_text[:300].replace("\n", " ")
             lines.append(f"  {i}. [Paper {paper_id}, score={score:.3f}] {excerpt}")
 
