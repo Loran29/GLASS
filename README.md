@@ -233,6 +233,26 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 
 ---
 
+## Refinement: KPI improved vs target achieved
+
+**Previous behaviour.** `second_llm/iterative_evaluator.py` stopped refining as soon as every target KPI moved in its direction (overall status `improved`), and chose the final iteration by score alone. A KPI with a numeric target (`KPITarget.threshold`, until now used only for safeguards) counted as done after any improvement. For example, utilization falling from 0.99 to 0.98 under a target of "below 0.85" stopped the loop, and the feedback never told the LLM that the target was still far off.
+
+**What changed** (from the commit "Refinement: distinguish KPI improved from target achieved"):
+- **`achieved`.** For a target with a threshold, `achieved` says whether the value meets it in the KPI's direction: minimize, value ≤ threshold; maximize, value ≥ threshold. Maintain targets and targets without a threshold get `None`. The value is reported next to `improved` per KPI:
+  - in `compare_kpis` / `evaluate_scenarios` (`KPIComparisonEntry.threshold`, `.achieved`);
+  - in `evaluate_multi_seed`, on the mean over the seeds (`MultiSeedKPIComparison.threshold`, `.achieved`).
+
+  `EvaluationSummary.targets_achieved` is true when every target with a threshold is achieved, and `None` when no target has one.
+- **Stop rule.** The loop stops when every KPI with a threshold is achieved and every KPI without one is improved, with no safeguard violated (`scenario_evaluation.targets_met`). KPIs that cannot be computed are not counted, as before. Without thresholds the rule is the same as before.
+- **Best iteration.** The best iteration is the one with the most achieved targets, then the most improved KPIs, then the existing score; ties keep the earlier iteration. This also applies without thresholds: an iteration that improves more KPIs now ranks above one with a higher score.
+- **Feedback.** For a KPI with a threshold, the feedback says either "improved but target not yet reached (current X, target Y)" or "target achieved", and gives the count ("Targets reached: k of n"). KPIs that improved but have not reached their target are listed under "TARGETS NOT YET REACHED", and alternative interventions are retrieved for them as for worsened KPIs.
+
+**Where thresholds come from.** The UI's target builders do not set `threshold`, because the Stage 1 KPI schema has no numeric target. The behaviour above therefore applies when the caller sets it, as the Stage 2 batch evaluation does from its configuration.
+
+`tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.
+
+---
+
 ## Try it with the bundled examples
 
 **Stage 1 (Goal → KPI)** — paste JSON contents from any of:

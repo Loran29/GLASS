@@ -25,6 +25,7 @@ from second_llm.scenario_evaluation import (
     TargetDirection,
     _match_kpi_value,
     _strip_temporal_suffix,
+    _is_achieved,
     _is_improved,
     _is_safeguard_violated,
 )
@@ -76,6 +77,8 @@ class MultiSeedKPIComparison:
     violated_safeguard: bool | None
     p_value: float | None = None
     status: str = "computed"  # computed | not_computable | missing_baseline | missing_proposed
+    threshold: float | None = None  # the target's numeric threshold, if any
+    achieved: bool | None = None  # mean proposed value meets the threshold (None without one)
 
 
 @dataclass
@@ -402,6 +405,8 @@ def evaluate_multi_seed(
             improved=improved,
             violated_safeguard=violated,
             status=status,
+            threshold=target.threshold,
+            achieved=_is_achieved(target.direction, mean_p, target.threshold),
         )
         result.kpi_comparisons.append(comp)
 
@@ -448,12 +453,14 @@ def evaluate_multi_seed(
         OverallStatus.INVALID: "invalid_scenario",
     }[overall]
 
+    with_threshold = [c for c in result.kpi_comparisons if c.threshold is not None and not c.is_safeguard]
     result.summary = EvaluationSummary(
         target_kpis_improved=all_targets_improved if target_total > 0 else None,
         safeguards_respected=safeguards_ok if safeguard_total > 0 else None,
         overall_status=overall,
         trade_offs=trade_offs,
         recommendation=recommendation,
+        targets_achieved=all(c.achieved is True for c in with_threshold) if with_threshold else None,
     )
 
     result.simulation_settings = settings

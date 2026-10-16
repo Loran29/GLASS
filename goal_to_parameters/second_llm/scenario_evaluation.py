@@ -60,7 +60,7 @@ class KPITarget:
     category: str = ""
     is_safeguard: bool = False
     tolerance: float | None = None  # For maintain-direction: allowed % deviation
-    threshold: float | None = None  # Absolute threshold (e.g., max utilization 0.85)
+    threshold: float | None = None  # Absolute target value (e.g. utilization 0.85); see _is_achieved
     unit: str = ""
     measurable_as: str | None = None  # Exact computed KPI name from kpi_computation.py
     description: str = ""  # KPI description and suggested formula (role resolution for utilization)
@@ -83,6 +83,8 @@ class KPIComparisonEntry:
     violated_safeguard: bool | None  # True if safeguard was violated
     interpretation: str
     status: str = "computed"  # computed, not_computable, missing_baseline, missing_proposed
+    threshold: float | None = None  # the target's numeric threshold, if any
+    achieved: bool | None = None  # proposed value meets the threshold (None without a threshold)
 
 
 @dataclass
@@ -94,6 +96,8 @@ class EvaluationSummary:
     overall_status: OverallStatus
     trade_offs: list[str] = field(default_factory=list)
     recommendation: str = ""
+    # Every target with a threshold achieved (None when no target has one)
+    targets_achieved: bool | None = None
 
 
 @dataclass
@@ -153,6 +157,41 @@ def _is_improved(
             return pct_change <= tolerance
         return abs(proposed - baseline) < 1e-9
     return None
+
+
+def _is_achieved(
+    direction: TargetDirection,
+    proposed: float | None,
+    threshold: float | None,
+) -> bool | None:
+    """Whether a KPI value meets its numeric threshold in the KPI's direction.
+
+    minimize: value <= threshold; maximize: value >= threshold. ``None`` without a
+    threshold or a value, and for maintain (whose target is the baseline, see
+    ``tolerance``).
+    """
+    if threshold is None or proposed is None:
+        return None
+    if direction == TargetDirection.MINIMIZE:
+        return proposed <= threshold
+    if direction == TargetDirection.MAXIMIZE:
+        return proposed >= threshold
+    return None
+
+
+def targets_met(entries: list[Any]) -> bool:
+    """Every target KPI met: achieved where it has a threshold, improved where it has none.
+
+    ``entries`` are :class:`KPIComparisonEntry` or multi-seed comparisons. KPIs that
+    could not be computed are not counted (as in the overall status); at least one
+    target must be computed, and no safeguard may be violated.
+    """
+    if any(e.violated_safeguard is True for e in entries):
+        return False
+    targets = [e for e in entries if not e.is_safeguard and e.status == "computed"]
+    return bool(targets) and all(
+        (e.achieved is True) if e.threshold is not None else (e.improved is True) for e in targets
+    )
 
 
 def _is_safeguard_violated(
@@ -435,6 +474,8 @@ def compare_kpis(
             status = "missing_proposed"
 
         entry = KPIComparisonEntry(
+            threshold=target.threshold,
+            achieved=_is_achieved(target.direction, proposed_val, target.threshold),
             kpi_name=_strip_temporal_suffix(target.name),
             category=target.category,
             target_direction=target.direction.value,
@@ -522,12 +563,14 @@ def compare_kpis(
         OverallStatus.INVALID: "invalid_scenario",
     }[overall]
 
+    with_threshold = [e for e in result.kpi_comparisons if e.threshold is not None and not e.is_safeguard]
     result.summary = EvaluationSummary(
         target_kpis_improved=all_targets_improved if target_total > 0 else None,
         safeguards_respected=safeguards_ok if safeguard_total > 0 else None,
         overall_status=overall,
         trade_offs=trade_offs,
         recommendation=recommendation,
+        targets_achieved=all(e.achieved is True for e in with_threshold) if with_threshold else None,
     )
 
     return result

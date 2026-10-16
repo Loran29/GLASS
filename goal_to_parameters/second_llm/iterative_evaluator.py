@@ -1,11 +1,13 @@
 """Iterative evaluation loop — auto-refine scenarios via simulation feedback.
 
 Runs a generate→simulate→evaluate→feedback cycle until the proposed scenario
-achieves all target KPI improvements, or the max iteration count is reached.
+meets every target — a KPI with a numeric threshold has *achieved* it, a KPI
+without one has *improved* — or the max iteration count is reached.
 The best result across all iterations is returned.
 
-Iteration selection uses a goal-programming scoring function with
-prospect-theoretic loss aversion (Kahneman & Tversky, 1979; λ=2.25).
+Iteration selection: most achieved targets first, then most improved KPIs, then a
+goal-programming scoring function with prospect-theoretic loss aversion
+(Kahneman & Tversky, 1979; λ=2.25).
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from second_llm.scenario_evaluation import (
     OverallStatus,
     ScenarioEvaluationResult,
     compare_kpis,
+    targets_met,
 )
 from second_llm.scenario_generator import ScenarioGenerationResult
 
@@ -74,6 +77,25 @@ class IterationResult:
 
         return total
 
+    @property
+    def targets_met(self) -> bool:
+        """Every target KPI achieved (with a threshold) or improved (without one)."""
+        return self.eval_result is not None and self.eval_result.ok and targets_met(self.eval_result.kpi_comparisons)
+
+    @property
+    def achieved_count(self) -> int:
+        """Number of target KPIs (not safeguards) that achieved their threshold."""
+        if self.eval_result is None or not self.eval_result.ok:
+            return -1
+        return sum(e.achieved is True for e in self.eval_result.kpi_comparisons if not e.is_safeguard)
+
+    @property
+    def improved_count(self) -> int:
+        """Number of target KPIs (not safeguards) that improved."""
+        if self.eval_result is None or not self.eval_result.ok:
+            return -1
+        return sum(e.improved is True for e in self.eval_result.kpi_comparisons if not e.is_safeguard)
+
 
 @dataclass
 class IterativeEvaluationResult:
@@ -97,8 +119,27 @@ class IterativeEvaluationResult:
         return self.final_status == OverallStatus.IMPROVED
 
     @property
+    def targets_met(self) -> bool:
+        return self.best is not None and self.best.targets_met
+
+    @property
     def total_iterations(self) -> int:
         return len(self.iterations)
+
+
+def _fmt(value: float | None) -> str:
+    return "?" if value is None else f"{value:.4g}"
+
+
+def _target_text(e: KPIComparisonEntry) -> str:
+    """Per-KPI target status for a KPI with a threshold ("" without one)."""
+    if getattr(e, "threshold", None) is None:
+        return ""
+    if e.achieved is True:
+        return "target achieved"
+    if e.improved is True:
+        return f"improved but target not yet reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
+    return f"target not reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
 
 
 def _build_evaluation_feedback(
@@ -110,7 +151,8 @@ def _build_evaluation_feedback(
     """Build a structured feedback message enriched with causal attribution and KB evidence.
 
     Includes:
-      1. Quantitative simulation results per KPI
+      1. Quantitative simulation results per KPI (and, for a KPI with a threshold,
+         whether the target is achieved or only improved)
       2. Causal attribution: maps each worsened KPI to the specific modification that targeted it
       3. KB-retrieved alternative interventions for worsened KPIs
       4. Strategy guidance grounded in literature
@@ -120,6 +162,11 @@ def _build_evaluation_feedback(
     lines.append("")
     lines.append("Your proposed scenario was simulated using Prosimos (discrete-event simulation).")
     lines.append(f"Overall Result: {eval_result.summary.overall_status.value.upper()}")
+    with_threshold = [e for e in eval_result.kpi_comparisons
+                      if getattr(e, "threshold", None) is not None and not e.is_safeguard]
+    if with_threshold:
+        reached = sum(e.achieved is True for e in with_threshold)
+        lines.append(f"Targets reached: {reached} of {len(with_threshold)}")
     lines.append("")
 
     # --- Section 1: Quantitative KPI Results ---
@@ -128,6 +175,8 @@ def _build_evaluation_feedback(
     improved_kpis: list[str] = []
     worsened_kpis: list[tuple[str, str, str]] = []  # (name, pct, direction)
     violated_kpis: list[tuple[str, str, str]] = []
+    not_reached: list[KPIComparisonEntry] = []  # improved, threshold not yet reached
+    achieved: list[str] = []
 
     for e in eval_result.kpi_comparisons:
         if e.status != "computed":
@@ -151,7 +200,16 @@ def _build_evaluation_feedback(
         else:
             marker = "UNCHANGED"
 
-        lines.append(f"  - {e.kpi_name}: {baseline_str} → {proposed_str}{unit_str} ({pct_str}) — {marker}")
+        target = _target_text(e)
+        if getattr(e, "threshold", None) is not None and not e.is_safeguard:
+            if e.achieved is True:
+                achieved.append(e.kpi_name)
+            elif e.improved is True:
+                not_reached.append(e)
+        lines.append(
+            f"  - {e.kpi_name}: {baseline_str} → {proposed_str}{unit_str} ({pct_str}) — {marker}"
+            + (f"; {target}" if target else "")
+        )
 
     # --- Section 2: Causal Attribution (map modifications → KPI effects) ---
     proposal = gen_result.proposal if gen_result else None
@@ -190,7 +248,9 @@ def _build_evaluation_feedback(
             lines.append("  → REMOVE or REPLACE the modifications marked with '← LIKELY CAUSED DEGRADATION'.")
 
     # --- Section 3: KB-Retrieved Alternative Interventions ---
-    alternatives_text = _retrieve_alternative_interventions(worsened_kpis, violated_kpis)
+    alternatives_text = _retrieve_alternative_interventions(
+        worsened_kpis + [(e.kpi_name, "", e.target_direction) for e in not_reached], violated_kpis,
+    )
     if alternatives_text:
         lines.append("")
         lines.append("## Literature-Backed Alternative Interventions:")
@@ -211,6 +271,16 @@ def _build_evaluation_feedback(
         lines.append("WORSENED KPIs (must be fixed):")
         for name, pct, direction in worsened_kpis:
             lines.append(f"  • {name} degraded by {pct} — target was to {direction}.")
+        lines.append("")
+
+    if not_reached:
+        lines.append("TARGETS NOT YET REACHED (improved, but more change is needed):")
+        for e in not_reached:
+            lines.append(f"  • {e.kpi_name}: {_target_text(e)}.")
+        lines.append("")
+
+    if achieved:
+        lines.append("TARGETS ACHIEVED (keep them): " + ", ".join(f"{n}: target achieved" for n in achieved))
         lines.append("")
 
     if improved_kpis:
@@ -314,15 +384,23 @@ def _infer_category(kpi_name: str) -> str:
     return "processing_capacity"
 
 
+def _selection_key(it: IterationResult) -> tuple[int, int, float]:
+    return it.achieved_count, it.improved_count, it.score
+
+
 def _select_best_iteration(iterations: list[IterationResult]) -> int | None:
-    """Return the index of the best iteration by score."""
+    """Index of the best iteration: most achieved targets, then most improved KPIs, then score.
+
+    Ties keep the earlier iteration. Failed iterations rank last.
+    """
     if not iterations:
         return None
     best_idx = 0
-    best_score = iterations[0].score
+    best_key = _selection_key(iterations[0])
     for i, it in enumerate(iterations[1:], 1):
-        if it.score > best_score:
-            best_score = it.score
+        key = _selection_key(it)
+        if key > best_key:
+            best_key = key
             best_idx = i
     return best_idx
 
@@ -441,9 +519,10 @@ def run_iterative_evaluation(
 
         result.iterations.append(iter_result)
 
-        # Check if we're done
-        if iter_result.status == OverallStatus.IMPROVED:
-            _notify(i, "All KPIs improved! Stopping.")
+        # Done when every KPI with a threshold has achieved it and every KPI without
+        # one has improved (without thresholds: every computed KPI improved).
+        if iter_result.targets_met:
+            _notify(i, "All targets met! Stopping.")
             break
 
         # Build feedback and inject for next iteration
