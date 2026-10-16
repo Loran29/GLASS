@@ -49,7 +49,7 @@ def complete(path: Path, out: Path, config: dict) -> str:
     reset_workspace()
     orch = SecondLLMWorkspaceOrchestrator(provider=None)
     orch.parse_first_llm_json(json.dumps(inputs["stage1_result"], ensure_ascii=False))
-    eval_targets = _get_kpi_targets_from_workspace()
+    eval_targets = b.apply_thresholds(_get_kpi_targets_from_workspace(), inputs["kpi_thresholds"])
     baseline = b.load_scenario(inputs["sim_params_text"], inputs["bpmn"])
     base_json, cost_map = baseline.model_dump(mode="json"), _build_cost_map(baseline)
     shared = json.loads((out / "baseline_logs" / cid / "baseline.json").read_text(encoding="utf-8"))

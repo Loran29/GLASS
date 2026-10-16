@@ -8,6 +8,9 @@ as a library (nothing under goal_to_parameters/ is modified; nothing an LLM retu
   inputs     the KPI objects named in kpi_names_to_pass, taken from the Stage-1 record (first proposals:
              results/stage1_results_normalised/, so measurable_as is set); utilization KPIs get
              target_direction "minimize" and an overload sentence (lead author's interpretation, see README);
+             per-KPI inputs from the configuration's kpi_inputs (if any): description_append is appended to
+             the KPI description (so it reaches the Stage 2 prompt), target_threshold is set as
+             KPITarget.threshold on the loop's and the multi-seed evaluation's targets;
              the three business-context answers as the clarification chat (user turns); the log profile
   loop       iterative_evaluator.run_iterative_evaluation (max_iterations from the config) with the UI's
              KPI targets and cost map; iteration 1 = initial, the loop's best iteration = final
@@ -166,20 +169,37 @@ def load_inputs(cfg: dict, config: dict) -> dict:
     if null := [k["name"] for k in kept if not k.get("measurable_as")]:
         raise SystemExit(f"{cfg['config_id']}: measurable_as is null for {null} in {kpi_source(cfg)}")
     stage1_dirs = {k["name"]: k["target_direction"] for k in kept}
+    kpi_inputs = cfg.get("kpi_inputs") or {}
+    if unknown := [n for n in kpi_inputs if n not in cfg["kpi_names_to_pass"]]:
+        raise SystemExit(f"{cfg['config_id']}: kpi_inputs for KPI(s) not passed: {unknown}")
     util_kpis = []
     for k in kept:
         if k.get("category") == "utilization":
             k["target_direction"] = "minimize"
             k["description"] = f"{k['description'].rstrip()} {OVERLOAD_TEXT}"
             util_kpis.append(k["name"])
+        if extra := kpi_inputs.get(k["name"], {}).get("description_append"):
+            k["description"] = f"{k['description'].rstrip()} {extra}"
+    thresholds = {n: v["target_threshold"] for n, v in kpi_inputs.items() if v.get("target_threshold") is not None}
     stage1 = {"simulation_goal_structured": rec["result"]["simulation_goal_structured"],
               "kpis": kept, "reasoning": rec["result"]["reasoning"]}
     pool = config["expected_fix"][cfg["process"]]["G3"]["elements"][0] if util_kpis else None
     return {"sim_params": sim_params, "sim_params_text": json.dumps(sim_params, indent=1),
             "bpmn": (bdir / "model.bpmn").read_text(encoding="utf-8"), "stage1_result": stage1,
             "stage1_target_direction": stage1_dirs, "util_kpis": util_kpis, "util_pool": pool,
+            "kpi_thresholds": thresholds,
             "kpi_source_used": kpi_source(cfg),
             "chat": [bc["staffing"], bc["budget"], bc["immutable"]], "business_context": bc}
+
+
+def apply_thresholds(targets: list, thresholds: dict[str, float]) -> list:
+    """Set KPITarget.threshold from the configuration (each threshold must match exactly one target)."""
+    for name, value in thresholds.items():
+        hits = [t for t in targets if t.name == name]
+        if len(hits) != 1:
+            raise RuntimeError(f"threshold for {name!r} matches {len(hits)} KPI target(s)")
+        hits[0].threshold = value
+    return targets
 
 
 def load_scenario(sim_params_text: str, bpmn: str):
@@ -438,6 +458,7 @@ def kpi_table(res, util: dict | None, util_kpis: list[str]) -> list[dict]:
                      "pct_change": c.mean_percentage_change, "delta_ci": [c.ci_lower_change, c.ci_upper_change],
                      "p_value": c.p_value, "significant": c.statistically_significant,
                      "glass_improved": c.improved, "glass_violated_safeguard": c.violated_safeguard,
+                     "threshold": getattr(c, "threshold", None), "glass_achieved": getattr(c, "achieved", None),
                      "scored_by": "utilization_rule" if is_util else "glass",
                      "improved": util["improved"] if is_util else c.improved,
                      "baseline_values": b.values if b else [], "proposed_values": p.values if p else []})
@@ -557,7 +578,8 @@ def run_rep(job: dict) -> dict:
               "temperature_schedule": "GLASS run_iterative_evaluation: min(0.3 + 0.1 * (iteration - 1), 0.7)",
               "kpi_source_record": inputs["kpi_source_used"], "stage1_result_passed": inputs["stage1_result"],
               "stage1_target_direction": inputs["stage1_target_direction"], "util_kpis": inputs["util_kpis"],
-              "util_pool": inputs["util_pool"], "chat_user_turns": inputs["chat"],
+              "util_pool": inputs["util_pool"], "kpi_thresholds": inputs["kpi_thresholds"],
+              "chat_user_turns": inputs["chat"],
               "sim_params_with_costs": inputs["sim_params"],
               "baseline_logs_sha256": shared["baseline_logs_sha256"],
               "healthy_logs_sha256": job["healthy_sha"][cfg["process"]]}
@@ -575,7 +597,8 @@ def run_rep(job: dict) -> dict:
 
         baseline = load_scenario(inputs["sim_params_text"], inputs["bpmn"])
         base_json = baseline.model_dump(mode="json")
-        loop_targets, eval_targets = _get_evaluation_targets(), _get_kpi_targets_from_workspace()
+        loop_targets = apply_thresholds(_get_evaluation_targets(), inputs["kpi_thresholds"])
+        eval_targets = apply_thresholds(_get_kpi_targets_from_workspace(), inputs["kpi_thresholds"])
         cost_map = _build_cost_map(baseline)
         record.update({"loop_targets": dump(loop_targets), "eval_targets": dump(eval_targets), "cost_map": cost_map})
 
@@ -894,6 +917,10 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
         "resources' busy time over wall-clock time. The batch scores utilization KPIs with its own utilization rule "
         "on the target pool against its working time (see Scoring). GLASS's own verdicts are kept in each record "
         "(`glass_improved`).", "",
+        "Per-KPI inputs from the configuration (`kpi_inputs`, if set): `description_append` is appended to the KPI "
+        "description and `target_threshold` is passed as `KPITarget.threshold` to the loop and the multi-seed "
+        "evaluation (recorded per run as `kpi_thresholds`; GLASS's verdict per KPI as `glass_achieved`).",
+        "",
         "## Prosimos midnight end times (distance measures only)", "",
         "Prosimos logs a task that ends exactly at the end of a working interval (e.g. 17:00) with an end time of "
         "00:00 on the next day. Fixed durations proposed by patches hit that boundary regularly; the stochastic "

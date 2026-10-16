@@ -160,6 +160,12 @@
       "kpi_names_to_pass": [
         "Loan Officer Workload Distribution"
       ],
+      "kpi_inputs": {
+        "Loan Officer Workload Distribution": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "UT"
       ],
@@ -179,6 +185,12 @@
         "Average Loan Assessment Cycle Time",
         "Loan Officer Workload Utilization"
       ],
+      "kpi_inputs": {
+        "Loan Officer Workload Utilization": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "CT",
         "UT"
@@ -239,6 +251,12 @@
         "Average Wait Time Before Assessing Loan Risk",
         "Loan Officer Utilization Rate"
       ],
+      "kpi_inputs": {
+        "Loan Officer Utilization Rate": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "AW",
         "UT"
@@ -261,6 +279,12 @@
         "Average Wait Time Before Assessment Start",
         "Loan Officer Workload Utilization"
       ],
+      "kpi_inputs": {
+        "Loan Officer Workload Utilization": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "CT",
         "AW",
@@ -301,6 +325,12 @@
       "kpi_names_to_pass": [
         "Purchasing Agent Workload by Time of Day"
       ],
+      "kpi_inputs": {
+        "Purchasing Agent Workload by Time of Day": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "UT"
       ],
@@ -320,6 +350,12 @@
         "Average Cycle Time for Procure-to-Pay Process",
         "Average Resource Utilization of Purchasing Agents"
       ],
+      "kpi_inputs": {
+        "Average Resource Utilization of Purchasing Agents": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "CT",
         "UT"
@@ -342,6 +378,12 @@
         "Average Wait Time Before Invoice Release",
         "Purchasing Agent Workload Utilization"
       ],
+      "kpi_inputs": {
+        "Purchasing Agent Workload Utilization": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "CT",
         "AW",
@@ -386,6 +428,12 @@
         "Invoice Release Waiting Time from Prior Step",
         "Purchasing Agent Workload Distribution"
       ],
+      "kpi_inputs": {
+        "Purchasing Agent Workload Distribution": {
+          "target_threshold": 0.85,
+          "description_append": "Target: below 85 % of the available working time."
+        }
+      },
       "expected_kpi_kinds": [
         "AW",
         "UT"
