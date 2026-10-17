@@ -7,8 +7,12 @@ Checks
      evaluated phase, each matching the SHA-256 stored in the records
   2. GLASS commit: equal in every record and in README.md
   3. KPI objects: the objects passed equal the named objects of the source record, except that utilization
-     KPIs carry target_direction "minimize" and the overload sentence; stage1_target_direction equals the
+     KPIs carry target_direction "minimize" and the overload sentence (and, in records with kpi_thresholds,
+     i.e. batch v3, the configuration's kpi_inputs description_append); stage1_target_direction equals the
      source direction; measurable_as is non-null
+  3b. targets (records with kpi_thresholds): the recorded thresholds equal the configuration's kpi_inputs
+     and are set on the loop's and the multi-seed evaluation's targets; GLASS's achieved verdict per KPI is
+     recomputed from the stored means (minimize: proposed <= threshold, maximize: >=)
   4. re-merge: for initial and final, GLASS's apply_patch(baseline, stored patch) reproduces the stored merged
      scenario; differences between the merged and the simulated scenario are listed
   5. summary CSVs: rebuilt from the records with this script's own code and compared cell for cell, including
@@ -122,8 +126,22 @@ def own_summary_rows(rec: dict, cfg: dict) -> list[dict]:
         row["util_improved_glass"] = (u[0].get("glass_improved") is True) if u else ""
         row["util_improved_batch"] = (u[0].get("improved") is True) if u else ""
         row["all_kpis_improved_glass_rule"] = len(kpis) > 0 and all(k.get("glass_improved") is True for k in kpis)
+        for i in range(3):
+            k = kpis[i] if i < len(kpis) else {}
+            row[f"kpi{i + 1}_target_achieved"] = own_achieved(k) if k.get("threshold") is not None else ""
+        has_t = bool(u) and u[0].get("threshold") is not None
+        row["util_target_achieved_glass"] = own_achieved(u[0]) if has_t else ""
+        band = ev.get("utilization_rule") or {}
+        row["util_target_achieved_batch"] = (mean(band["proposed_per_seed"]) < LIMIT if band else "") if has_t else ""
         rows.append(row)
     return rows
+
+
+def own_achieved(k: dict) -> bool:
+    """GLASS's achieved rule, re-implemented on the stored mean of the proposed values."""
+    if k["direction"] == "minimize":
+        return k["proposed_mean"] <= k["threshold"]
+    return k["proposed_mean"] >= k["threshold"]
 
 
 def own_per_config(rows: list[dict], recs: list[dict], cfg: dict) -> dict:
@@ -153,6 +171,12 @@ def own_per_config(rows: list[dict], recs: list[dict], cfg: dict) -> dict:
             if has_util else ""
         out[f"{phase}_all_kpis_improved_glass_rule"] = sum(
             len(e.get("kpis") or []) > 0 and all(k.get("glass_improved") is True for k in e["kpis"]) for e in evs)
+        has_target = any(r.get("kpi_thresholds") for r in recs)
+        pr = [r for r in rows if r["phase"] == phase and r["status"] == "ok"]
+        out[f"{phase}_util_target_achieved_glass"] = sum(r["util_target_achieved_glass"] is True for r in pr) \
+            if has_target else ""
+        out[f"{phase}_util_target_achieved_batch"] = sum(r["util_target_achieved_batch"] is True for r in pr) \
+            if has_target else ""
     return out
 
 
@@ -306,9 +330,10 @@ def main() -> None:
     from second_llm.simod_input import accept_simod_raw_input
     from second_llm.simod_to_simubridge import build_baseline_scenario, build_flow_name_map
 
-    S = {k: [] for k in ("files", "commit", "kpis", "remerge", "csv", "limits", "band")}
+    S = {k: [] for k in ("files", "commit", "kpis", "targets", "remerge", "csv", "limits", "band")}
     notes, all_rows, per_config, commits = [], [], [], set()
-    counts = dict.fromkeys(("records", "remerged", "limits", "band", "band_from_logs", "midnight", "logs_hashed"), 0)
+    counts = dict.fromkeys(("records", "remerged", "limits", "band", "band_from_logs", "midnight", "logs_hashed",
+                            "achieved"), 0)
     for cfg in config["configurations"]:
         cid = cfg["config_id"]
         files = sorted((out / "raw" / cid).glob("rep_*.json"), key=lambda p: int(p.stem.split("_")[1]))
@@ -319,13 +344,21 @@ def main() -> None:
         src_path = cfg["kpi_source_record"].replace("results/stage1_results/", "results/stage1_results_normalised/")
         src = load(BASE / src_path)["result"]
         named = [next(k for k in src["kpis"] if k["name"] == n) for n in cfg["kpi_names_to_pass"]]
-        expected_kpis = []
-        for k in named:
-            k = json.loads(json.dumps(k))
-            if k["category"] == "utilization":
-                k["target_direction"] = "minimize"
-                k["description"] = k["description"].rstrip() + OVERLOAD_SENTENCE
-            expected_kpis.append(k)
+        kpi_inputs = cfg.get("kpi_inputs") or {}
+        cfg_thresholds = {n: v["target_threshold"] for n, v in kpi_inputs.items()
+                          if v.get("target_threshold") is not None}
+
+        def expected(with_inputs: bool) -> list[dict]:
+            out_k = []
+            for k in named:
+                k = json.loads(json.dumps(k))
+                if k["category"] == "utilization":
+                    k["target_direction"] = "minimize"
+                    k["description"] = k["description"].rstrip() + OVERLOAD_SENTENCE
+                if with_inputs and kpi_inputs.get(k["name"], {}).get("description_append"):
+                    k["description"] = k["description"].rstrip() + " " + kpi_inputs[k["name"]]["description_append"]
+                out_k.append(k)
+            return out_k
         bdir, bc = BASE / cfg["baseline_dir"], config["business_context"][cfg["process"]]
         base_meta = out / "baseline_logs" / cid / "baseline.json"
         if logs_present:
@@ -340,6 +373,16 @@ def main() -> None:
             if rec["status"] not in FINAL:
                 S["files"].append(f"{tag}: status {rec['status']} is not final")
             passed = rec["stage1_result_passed"]
+            v3 = "kpi_thresholds" in rec
+            expected_kpis = expected(v3)
+            if v3:
+                if rec["kpi_thresholds"] != cfg_thresholds:
+                    S["targets"].append(f"{tag}: kpi_thresholds {rec['kpi_thresholds']} differ from the config "
+                                        f"{cfg_thresholds}")
+                for key in ("loop_targets", "eval_targets"):
+                    got = {t["name"]: t["threshold"] for t in rec.get(key) or [] if t.get("threshold") is not None}
+                    if got != cfg_thresholds:
+                        S["targets"].append(f"{tag}: thresholds on {key} {got}, config {cfg_thresholds}")
             if rec.get("kpi_source_record") != src_path or passed["kpis"] != expected_kpis \
                     or passed["simulation_goal_structured"] != src["simulation_goal_structured"] \
                     or passed["reasoning"] != src["reasoning"]:
@@ -404,6 +447,12 @@ def main() -> None:
                     if own_counts != ev["midnight_ends_mapped_per_seed"]:
                         S["band"].append(f"{tag} {phase}: midnight mappings stored {ev['midnight_ends_mapped_per_seed']}, "
                                          f"recounted {own_counts}")
+                for k in ev.get("kpis") or []:
+                    if k.get("threshold") is not None:
+                        counts["achieved"] += 1
+                        if own_achieved(k) != k.get("glass_achieved"):
+                            S["targets"].append(f"{tag} {phase}: {k['kpi']} glass_achieved {k.get('glass_achieved')}, "
+                                                f"recomputed {own_achieved(k)}")
                 band = ev.get("utilization_rule")
                 if band:
                     counts["band"] += 1
@@ -440,6 +489,7 @@ def main() -> None:
     S["csv"] += compare_csv(out / "stage2_per_config.csv", per_config, ["config_id"])
 
     titles = {"files": "Files and log SHA-256", "commit": "GLASS commit", "kpis": "KPI objects passed",
+              "targets": "Target thresholds and achieved verdicts",
               "remerge": "Re-merge of initial/final scenarios", "csv": "Summary CSVs rebuilt cell for cell",
               "limits": "Business-context limits re-checked",
               "band": "Utilization rule and midnight mapping recomputed"}
@@ -447,7 +497,7 @@ def main() -> None:
              "Generated by `evaluation/loanapp_p2p/scripts/verify_stage2_results.py` (report only).", "",
              f"Records: {counts['records']}; scenarios re-merged: {counts['remerged']}; limit checks: {counts['limits']}; "
              f"utilization verdicts: {counts['band']} (from logs: {counts['band_from_logs']}); midnight-mapping "
-             f"checks: {counts['midnight']}; log files hashed: "
+             f"checks: {counts['midnight']}; achieved verdicts: {counts['achieved']}; log files hashed: "
              f"{counts['logs_hashed']}{'' if logs_present else ' (logs not present: log checks skipped)'}; "
              f"GLASS commit: {', '.join(sorted(map(str, commits)))}", ""]
     for key, title in titles.items():

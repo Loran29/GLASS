@@ -11,7 +11,13 @@ Adds to stage2_summary.csv (one value per run, repeated on its initial and final
                       CTD improvement ratio)
   loop_discarded_reason  which of those criteria hold, plus "GLASS utilization metric rose as backlog cleared"
                       when GLASS's utilization KPI rose for the initial scenario while the pool utilization fell
-and to stage2_per_config.csv: reps_loop_discarded_better_initial.
+  util_improved_glass / util_improved_batch / all_kpis_improved_glass_rule   both utilization verdicts
+  kpi<i>_target_achieved   GLASS's verdict whether KPI i met its numeric threshold (records with
+                      kpi_thresholds, i.e. batch v3; empty without a threshold), next to kpi<i>_improved
+  util_target_achieved_glass / util_target_achieved_batch   the utilization KPI's target achieved: GLASS's
+                      verdict (its utilization value <= threshold) / the target pool's utilization of working
+                      time below the batch limit (0.85); empty without a threshold
+and to stage2_per_config.csv: reps_loop_discarded_better_initial and the per-phase counts of the verdicts.
 Appends to README.md the finding "GLASS utilization metric" and a sensitivity line for the utilization limit
 (0.85 as scored vs 0.90, reported only). Scores and records are not changed.
 
@@ -63,6 +69,16 @@ def discarded(rec: dict) -> tuple[bool, str]:
     return True, "; ".join(reasons)
 
 
+def target_verdicts(ev: dict) -> tuple:
+    """(GLASS's achieved, batch achieved) for the phase's utilization KPI when it has a threshold, else ("", "")."""
+    util = next((k for k in ev.get("kpis") or [] if k.get("category") == "utilization"), None)
+    if util is None or util.get("threshold") is None:
+        return "", ""
+    rule = ev.get("utilization_rule") or {}
+    batch = rule["proposed_mean_utilization"] < rule["limit"] if rule else ""
+    return util.get("glass_achieved") is True, batch
+
+
 def util_verdicts(ev: dict) -> tuple:
     """(GLASS's verdict, batch verdict) for the phase's utilization KPI, and all KPIs improved under GLASS's rules."""
     kpis = ev.get("kpis") or []
@@ -91,6 +107,31 @@ def sensitivity(records: list[dict]) -> dict:
     return out
 
 
+def target_lines(counts: dict) -> list[str]:
+    """README section for a batch whose utilization KPIs carry a numeric target (kpi_thresholds)."""
+    return [
+        "## Finding: utilization KPI with numeric target", "",
+        "In this batch every utilization KPI carries a numeric target. Its description ends with \"Target: below "
+        "85 % of the available working time.\", and GLASS receives the threshold 0.85 as `KPITarget.threshold` "
+        "(records: `kpi_thresholds`). GLASS's loop stops only when that target is achieved and every other KPI "
+        "improved, and its feedback says \"improved but target not yet reached\" otherwise.",
+        "",
+        "Columns:",
+        "- `util_improved_glass`, `util_improved_batch`: the improved verdicts as before.",
+        "- `util_target_achieved_glass`: GLASS's achieved verdict (its role-resolved utilization, mean over the 10 "
+        "seeds, <= 0.85).",
+        "- `util_target_achieved_batch`: the target pool's utilization of working time below 0.85.",
+        "- `kpi<i>_target_achieved`: GLASS's achieved verdict per KPI.",
+        "",
+        "Runs with a utilization KPI (status ok):", "",
+        "| Phase | Runs | Improved, GLASS's rule | Target achieved, GLASS | Improved, batch rule (< 0.85) | "
+        "Target achieved, batch |",
+        "|---|---|---|---|---|---|",
+        *[f"| {ph} | {n} | {g} | {ta} | {b_} | {tb} |" for ph, (n, g, ta, b_, tb) in counts.items()],
+        "",
+    ]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", type=Path, default=BASE / "results" / "stage2_results")
@@ -102,20 +143,34 @@ def main() -> None:
 
     with open(out / "stage2_summary.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-    base_fields = [k for k in rows[0] if not k.startswith(("glass_utilization_", "loop_discarded_", "util_improved_",
-                                                           "all_kpis_improved_glass_rule"))]
+    added = ("glass_utilization_", "loop_discarded_", "util_improved_", "util_target_achieved_",
+             "all_kpis_improved_glass_rule")
+    base_fields = [k for k in rows[0] if not k.startswith(added) and not k.endswith("_target_achieved")]
     for row in rows:
         rec = records[(row["config_id"], row["rep"])]
         ev = (rec.get("evaluation") or {}).get(row["phase"]) or {}
         gb, gp = glass_util(ev)
         flag, reason = discarded(rec)
         ug, ub, ga = util_verdicts(ev)
+        tg, tb = target_verdicts(ev)
+        kpis = ev.get("kpis") or []
+        for i in range(3):
+            k = kpis[i] if i < len(kpis) else {}
+            row[f"kpi{i + 1}_target_achieved"] = (k.get("glass_achieved") is True) if k.get("threshold") is not None \
+                else ""
         row.update({"glass_utilization_baseline": gb, "glass_utilization_proposed": gp,
-                    "util_improved_glass": ug, "util_improved_batch": ub, "all_kpis_improved_glass_rule": ga,
+                    "util_improved_glass": ug, "util_improved_batch": ub,
+                    "util_target_achieved_glass": tg, "util_target_achieved_batch": tb,
+                    "all_kpis_improved_glass_rule": ga,
                     "loop_discarded_better_initial": flag, "loop_discarded_reason": reason})
-    fields = base_fields + ["glass_utilization_baseline", "glass_utilization_proposed", "util_improved_glass",
-                            "util_improved_batch", "all_kpis_improved_glass_rule",
-                            "loop_discarded_better_initial", "loop_discarded_reason"]
+    fields = []
+    for k in base_fields:                       # kpi<i>_target_achieved next to kpi<i>_improved
+        fields.append(k)
+        if k.endswith("_improved") and k.startswith("kpi") and k[3:-9].isdigit():
+            fields.append(k.replace("_improved", "_target_achieved"))
+    fields += ["glass_utilization_baseline", "glass_utilization_proposed", "util_improved_glass",
+               "util_improved_batch", "util_target_achieved_glass", "util_target_achieved_batch",
+               "all_kpis_improved_glass_rule", "loop_discarded_better_initial", "loop_discarded_reason"]
     with open(out / "stage2_summary.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
@@ -125,6 +180,7 @@ def main() -> None:
         per = list(csv.DictReader(f))
     extra = ["reps_loop_discarded_better_initial"] + [f"{ph}_{m}" for ph in ("initial", "final") for m in
                                                        ("util_improved_glass", "util_improved_batch",
+                                                        "util_target_achieved_glass", "util_target_achieved_batch",
                                                         "all_kpis_improved_glass_rule")]
     pfields = [k for k in per[0] if k not in extra]
     for row in per:
@@ -137,6 +193,10 @@ def main() -> None:
             row[f"{ph}_util_improved_glass"] = sum(x[0] is True for x in v) if has_util else ""
             row[f"{ph}_util_improved_batch"] = sum(x[1] is True for x in v) if has_util else ""
             row[f"{ph}_all_kpis_improved_glass_rule"] = sum(x[2] for x in v)
+            t = [target_verdicts((r.get("evaluation") or {}).get(ph) or {}) for r in recs if r.get("status") == "ok"]
+            has_target = any(r.get("kpi_thresholds") for r in recs)
+            row[f"{ph}_util_target_achieved_glass"] = sum(x[0] is True for x in t) if has_target else ""
+            row[f"{ph}_util_target_achieved_batch"] = sum(x[1] is True for x in t) if has_target else ""
     with open(out / "stage2_per_config.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=pfields + extra, extrasaction="ignore")
         w.writeheader()
@@ -156,6 +216,15 @@ def main() -> None:
     n_cap = sum("total additional resources across all roles" in b.lower() for bs in blocks for b in bs)
     n_cap_first = sum(bool(bs) and "total additional resources across all roles" in bs[0].lower() for bs in blocks)
     old_metric = all(str(r.get("glass_commit", "")).startswith("8039058") for r in records.values())
+    with_target = any(r.get("kpi_thresholds") for r in records.values())
+    target_counts = {}
+    for ph in ("initial", "final"):
+        evs = [(r.get("evaluation") or {}).get(ph) or {} for r in records.values() if r.get("status") == "ok"]
+        t = [target_verdicts(e) for e in evs]
+        u = [util_verdicts(e) for e in evs]
+        pairs = [(a, b_, g, bb) for (a, b_), (g, bb, _) in zip(t, u) if a != ""]
+        target_counts[ph] = (len(pairs), sum(x[2] is True for x in pairs), sum(x[0] is True for x in pairs),
+                             sum(x[3] is True for x in pairs), sum(x[1] is True for x in pairs))
     util_counts = {}
     for ph in ("initial", "final"):
         v = [util_verdicts((r.get("evaluation") or {}).get(ph) or {}) for r in records.values() if r.get("status") == "ok"]
@@ -187,6 +256,7 @@ def main() -> None:
         f"Across all runs: {n_disc} run(s); in {n_glass} of them GLASS's utilization metric rose while the pool's "
         f"utilization fell.",
         "",
+        *(target_lines(target_counts) if with_target else [
         "## Finding: utilization KPI without numeric target", "",
         "The validated utilization KPI tells GLASS to *minimize* utilization (\"bring its utilization down to a "
         "sustainable level without idling the team\") but carries no target value. GLASS's rule for minimize "
@@ -206,7 +276,7 @@ def main() -> None:
         *[f"| {ph} | {n} | {g} | {b_} | {gb} |" for ph, (n, g, b_, gb) in util_counts.items()],
         "",
         "A numeric target in the KPI text (e.g. below 85 % of available working time) is a protocol variant for a "
-        "possible later batch; it is not applied here.", "",
+        "possible later batch; it is not applied here.", ""]),
         "## Sensitivity: utilization limit (reported, not scored)", "",
         "Utilization verdicts \"improved\" (below the limit and lower than the baseline), from the stored per-seed "
         f"pool utilizations, with the scored limit 0.85 and with {SENSITIVITY_LIMIT:.2f}:",

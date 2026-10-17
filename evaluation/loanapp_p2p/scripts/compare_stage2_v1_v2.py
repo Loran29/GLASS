@@ -2,7 +2,9 @@
 Compare the Stage-2 batch v1 (GLASS 8039058) with v2 (GLASS 5112fbc: calendar-based, role-aware Resource
 Utilization) per configuration, from the verified per-configuration CSVs of both result folders.
 
-Writes results/stage2_v1_vs_v2.csv and results/stage2_v1_vs_v2.md. Configurations with a utilization KPI
+Writes results/stage2_v1_vs_v2.csv and results/stage2_v1_vs_v2.md, and results/stage2_v1_vs_v2_runs.csv (one row
+per run and version, final phase, with the flag unit_defect for the runs listed in results/unit_defect_runs_v1_v2.csv:
+hour values applied as seconds; their scores are kept as recorded). Configurations with a utilization KPI
 (expected_kpi_kinds contains "UT") are the ones the GLASS change targets; the others are the control.
 
 Control check: two-sided sign test over the non-utilization configurations on "valid and all KPIs improved
@@ -63,6 +65,22 @@ def main() -> None:
             vals = ctd_runs[v].get(cid, [])
             row["final_median_improvement_ratio_CTD"] = str(round(median(vals), 4)) if vals else ""
     num = lambda x: float(x) if x not in ("", None) else None
+    defect = {(r["version"], r["config_id"], r["rep"])
+              for r in csv.DictReader(open(RES / "unit_defect_runs_v1_v2.csv", encoding="utf-8"))}
+
+    run_rows = []                                   # per run: final phase, as recorded, plus the unit_defect flag
+    for v, f in FOLDERS.items():
+        for r in csv.DictReader(open(f / "stage2_summary.csv", encoding="utf-8")):
+            if r["phase"] == "final":
+                run_rows.append({"version": v, "config_id": r["config_id"], "rep": r["rep"], "status": r["status"],
+                                 "valid_final": r["valid"], "all_kpis_improved_final": r["all_kpis_improved"],
+                                 "recall_final": r["recall"], "improvement_ratio_CTD_final": r["improvement_ratio_CTD"],
+                                 "unit_defect": (v, r["config_id"], r["rep"]) in defect})
+    run_rows.sort(key=lambda x: (order.index(x["config_id"]), int(x["rep"]), x["version"]))
+    with open(RES / "stage2_v1_vs_v2_runs.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(run_rows[0]))
+        w.writeheader()
+        w.writerows(run_rows)
 
     rows = []
     for cid in order:
@@ -74,6 +92,8 @@ def main() -> None:
                 row[f"{m}_delta"] = round(row[f"{m}_v2"] - row[f"{m}_v1"], 3)
             else:
                 row[f"{m}_delta"] = None
+        for v in FOLDERS:
+            row[f"unit_defect_runs_{v}"] = sum(1 for d in defect if d[0] == v and d[1] == cid)
         rows.append(row)
 
     def group(rs, label):
@@ -90,6 +110,8 @@ def main() -> None:
             out[f"final_median_improvement_ratio_CTD_{v}"] = round(median(vals), 3) if vals else None
         a, b = out["final_median_improvement_ratio_CTD_v1"], out["final_median_improvement_ratio_CTD_v2"]
         out["final_median_improvement_ratio_CTD_delta"] = round(b - a, 3) if a is not None and b is not None else None
+        for v in FOLDERS:
+            out[f"unit_defect_runs_{v}"] = sum(r[f"unit_defect_runs_{v}"] for r in rs)
         return out
 
     with_u = [r for r in rows if r["has_utilization_kpi"]]
@@ -122,7 +144,10 @@ def main() -> None:
          "- **Same in both:** batch script, config, seeds and baseline logic (baselines recomputed for v2).",
          "- **Cells:** v1 / v2. Counts are out of 5 runs; recall and CTD ratio are means over the evaluated runs.",
          "- **Groups:** configurations with a utilization KPI are those the GLASS change targets; the others are "
-         "the control.", "",
+         "the control.",
+         "- **Hour values applied as seconds:** in the runs flagged `unit_defect` (`stage2_v1_vs_v2_runs.csv`; list "
+         "in `unit_defect_runs_v1_v2.csv`, see `VERSIONS.md`) a proposed duration meant in hours was applied in "
+         "seconds; their scores are kept as recorded and are included in all counts below.", "",
          "- **Two rules for utilization KPIs:** \"batch rule\" = target pool below 0.85 and lower than the "
          "baseline (the scored rule); \"GLASS rule\" = GLASS's own verdict (any decrease of GLASS's utilization "
          "value: all-resource mean of busy time ÷ span in v1, role-resolved working-time utilization in v2). "
@@ -131,12 +156,15 @@ def main() -> None:
          "All KPIs improved final | All KPIs improved initial (GLASS rule) | All KPIs improved final (GLASS rule) | "
          "Utilization improved final (GLASS rule) | Utilization improved final (batch rule) | "
          "Valid and improved final | Loop discarded better initial | Recall final | CTD ratio final (mean) | "
-         "CTD ratio final (median) |",
-         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+         "CTD ratio final (median) | Runs affected by the unit defect (v1 / v2) |",
+         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows + totals:
         L.append(f"| {r['config_id']} | {'yes' if r['has_utilization_kpi'] is True else ('no' if r['has_utilization_kpi'] is False else '')} | "
                  + " | ".join(cell(r, m) for m in COUNTS) + " | "
-                 + " | ".join(cell(r, m, 2) for m in MEANS) + " |")
+                 + " | ".join(cell(r, m, 2) for m in MEANS)
+                 + f" | {r['unit_defect_runs_v1']} / {r['unit_defect_runs_v2']} |")
+    flagged = sorted({d for d in defect}, key=lambda d: (d[0], order.index(d[1]), int(d[2])))
+    L += ["", "Runs flagged `unit_defect`: " + "; ".join(f"{v} {c} rep {k}" for v, c, k in flagged) + "."]
     d_u, d_c = totals[1], totals[2]
     L += ["", "**Per-group delta (v2 − v1)**", "",
           "| Group | Valid and improved final | Loop discarded better initial | Recall final | CTD ratio final (mean) | "
