@@ -85,6 +85,7 @@ class KPIComparisonEntry:
     status: str = "computed"  # computed, not_computable, missing_baseline, missing_proposed
     threshold: float | None = None  # the target's numeric threshold, if any
     achieved: bool | None = None  # proposed value meets the threshold (None without a threshold)
+    measurable_as: str | None = None  # the target's computed-KPI name (metric of the KPI)
 
 
 @dataclass
@@ -474,6 +475,7 @@ def compare_kpis(
             status = "missing_proposed"
 
         entry = KPIComparisonEntry(
+            measurable_as=target.measurable_as,
             threshold=target.threshold,
             achieved=_is_achieved(target.direction, proposed_val, target.threshold),
             kpi_name=_strip_temporal_suffix(target.name),

@@ -18,6 +18,11 @@ A word for the inverse of the metric flips the vote (for utilization: "idle", so
 as increasing utilization). The entry's direction is "increase" or "decrease" when all votes agree, "mixed"
 when they disagree, and ``None`` when the text states no effect on the metric.
 
+Which metric a KPI measures comes from :func:`kpi_metric`: the KPI's category decides (utilization,
+cost, throughput; for time, ``measurable_as`` or the name only tells waiting from processing time); a
+KPI without a category is classified by ``measurable_as``; the name is the last fallback, used only
+when both are missing.
+
 ``direction_rank`` turns this into a ranking for a KPI: 0 = the stated effect is the one the KPI's
 direction asks for, 1 = no derivable direction (kept, ranked last), ``None`` = the opposite or a mixed
 effect (dropped).
@@ -45,6 +50,44 @@ _NO_OVERLOAD = re.compile(r"\b(without|avoid\w*|prevent\w*|no)\b(\s+\w+)?\s+over
 _KEEP_HIGH = re.compile(r"\b(keep|kept|keeping|maintain\w*|stay\w*)\b(\s+\w+){0,3}\s+(high|higher)\b", re.I)
 _CLAUSE = re.compile(r"(?<!\d)[.;!?](?!\d)|\s[—–-]\s|[()]|,|\bwhile\b|\bbut\b|\bwhereas\b", re.I)
 _TOKEN = re.compile(r"[A-Za-z][A-Za-z\-]*")
+
+
+_CATEGORY_METRIC = {
+    "utilization": "resource_utilisation", "utilisation": "resource_utilisation",
+    "resource_utilisation": "resource_utilisation", "resource_utilization": "resource_utilisation",
+    "cost": "cost", "throughput": "throughput",
+    "waiting_time": "waiting_time", "processing_time": "processing_time",
+}
+_TEXT_METRIC = [  # (pattern on measurable_as or name, metric), first match wins
+    (r"utili[sz]|workload|occupancy", "resource_utilisation"),
+    (r"wait|queu", "waiting_time"),
+    (r"cost", "cost"),
+    (r"throughput|cases per|completed", "throughput"),
+    (r"cycle|lead|processing|duration|turnaround|time", "processing_time"),
+]
+
+
+def _metric_from_text(text: str | None) -> str | None:
+    t = (text or "").lower()
+    return next((m for pat, m in _TEXT_METRIC if re.search(pat, t)), None) if t else None
+
+
+def kpi_metric(category: str | None = None, measurable_as: str | None = None, name: str | None = None) -> str | None:
+    """The metric a KPI measures (a key of ``METRICS``), or None.
+
+    The category decides; for the category ``time`` the waiting/processing distinction comes from
+    ``measurable_as`` (else the name). Without a category, ``measurable_as`` decides; the name is used
+    only when both are missing. A known category without a metric here (e.g. quality) gives None.
+    """
+    cat = (category or "").strip().lower()
+    if cat in _CATEGORY_METRIC:
+        return _CATEGORY_METRIC[cat]
+    if cat == "time":
+        sub = _metric_from_text(measurable_as) or _metric_from_text(name)
+        return sub if sub in ("waiting_time", "processing_time") else "processing_time"
+    if cat:
+        return None
+    return _metric_from_text(measurable_as) or _metric_from_text(name)
 
 
 def _matches(pattern: str, token: str) -> bool:

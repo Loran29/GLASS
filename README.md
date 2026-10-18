@@ -274,6 +274,15 @@ KPIs that achieved their target, and KPIs without a threshold, get nothing extra
   - an entry that states no effect on the metric is kept and ranked after the matching entries.
 - **Retrieval size.** More entries are retrieved than shown (10 mappings, 6 literature entries and 4 excerpts, of which at most 4, 3 and 2 are shown), so enough remain after filtering.
 
+**Metric from the category** (from the commit "Direction-aware retrieval: use the KPI category, not the name"). The first version read a problem KPI's metric from its name, looking for "utiliz". A utilization KPI called e.g. "Purchasing Agent Workload Distribution" was therefore read as a capacity KPI, and nothing was filtered for it. In the Stage 2 batch v3 this showed in Procure2Pay_G3.
+
+`knowledge.direction.kpi_metric(category, measurable_as, name)` now decides:
+- **Category known:** the category gives the metric (utilization, cost, throughput). For `time`, `measurable_as` (or, without it, the name) tells waiting time from processing time.
+- **Category unknown** (e.g. quality): no metric is derived, and nothing is filtered.
+- **No category:** `measurable_as` decides. The name is used only when both are missing.
+
+The refinement feedback passes each KPI's category and `measurable_as` to the retrieval (`KPIComparisonEntry.measurable_as` is new). The knowledge-base query uses the same metric. `tests/test_direction_by_category.py` checks that a utilization KPI with such a name gets no strategy raising utilization, directly and through the feedback.
+
 No direction field is added to the knowledge-base entries; the rule is applied to their existing wording. It applies only to retrieval during refinement. The evidence retrieved for the initial proposal is unchanged. `tests/test_direction_aware_retrieval.py` covers the phrase rules and checks, on the bundled knowledge base, that a minimize-utilization KPI gets no strategy describing raising utilization and that a maximize one still does.
 
 **Where thresholds come from.** The UI's target builders do not set `threshold`, because the Stage 1 KPI schema has no numeric target. The behaviour above therefore applies when the caller sets it, as the Stage 2 batch evaluation does from its configuration.

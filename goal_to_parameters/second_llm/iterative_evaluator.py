@@ -339,6 +339,8 @@ def _build_evaluation_feedback(
     # --- Section 3: KB-Retrieved Alternative Interventions ---
     alternatives_text = _retrieve_alternative_interventions(
         worsened_kpis + [(e.kpi_name, "", e.target_direction) for e in not_reached], violated_kpis,
+        kpi_info={e.kpi_name: (getattr(e, "category", ""), getattr(e, "measurable_as", None))
+                  for e in eval_result.kpi_comparisons},
     )
     if alternatives_text:
         lines.append("")
@@ -389,6 +391,7 @@ def _build_evaluation_feedback(
 def _retrieve_alternative_interventions(
     worsened_kpis: list[tuple[str, str, str]],
     violated_kpis: list[tuple[str, str, str]],
+    kpi_info: dict[str, tuple[str, str | None]] | None = None,
 ) -> str:
     """Query the knowledge base for alternative interventions for problem KPIs.
 
@@ -397,19 +400,29 @@ def _retrieve_alternative_interventions(
     gets entries that state a decrease, and vice versa); entries that state no effect on the metric
     are kept and ranked after those that state the wanted one. More entries are retrieved than
     shown so that enough remain after filtering.
+
+    The metric of each problem KPI comes from its category and ``measurable_as`` (``kpi_info``:
+    name -> (category, measurable_as)) via :func:`knowledge.direction.kpi_metric`; the name is used
+    only when neither is known.
     """
     problem_kpis = worsened_kpis + violated_kpis
     if not problem_kpis:
         return ""
 
     try:
-        from knowledge.direction import direction_rank
+        from knowledge.direction import direction_rank, kpi_metric
         from knowledge.retrieval import retrieve_for_second_llm
     except ImportError:
         return ""
 
+    info = kpi_info or {}
+
+    def metric(name: str) -> str | None:
+        category, measurable_as = info.get(name, ("", None))
+        return kpi_metric(category, measurable_as, name)
+
     def rank(text: str) -> int | None:
-        ranks = [direction_rank(text, _infer_category(name), direction) for name, _, direction in problem_kpis]
+        ranks = [direction_rank(text, metric(name) or "", direction) for name, _, direction in problem_kpis]
         return None if any(r is None for r in ranks) else min(ranks)
 
     def keep(items: list, text_of) -> list:
@@ -420,7 +433,7 @@ def _retrieve_alternative_interventions(
     for name, _, direction in problem_kpis:
         kpi_dicts.append({
             "name": name,
-            "category": _infer_category(name),
+            "category": metric(name) or _infer_category(name),
             "target_direction": direction,
         })
 
