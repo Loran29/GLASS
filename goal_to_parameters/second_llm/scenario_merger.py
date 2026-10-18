@@ -558,13 +558,81 @@ def parse_calendar_text(text: str, current: list[TimetableItem]) -> list[Timetab
     return [it.model_copy(update={"endTime": it.endTime + int(hours)}) for it in current]
 
 
+_CLOCK_RE = re.compile(r"(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?")
+
+
+def _clock_hour(value: Any) -> int | None:
+    """Whole hour of a Prosimos clock time ("09:00:00", "19:00:00.000"); "23:59:59" ends the day (24)."""
+    if isinstance(value, int) and 0 <= value <= 24:
+        return value
+    m = _CLOCK_RE.fullmatch(str(value).strip())
+    if not m:
+        return None
+    h, mi, sec = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
+    if (h, mi, sec) == (23, 59, 59):
+        return 24
+    return h if mi == 0 and sec == 0 and h <= 24 else None
+
+
+def normalise_calendar_items(items: list[Any]) -> tuple[list[TimetableItem] | None, str]:
+    """Timetable items from GLASS's form (startWeekday/endWeekday/startTime/endTime) or Prosimos's
+    period form (from/to/beginTime/endTime, e.g. {"from": "MONDAY", "to": "FRIDAY", "beginTime":
+    "09:00:00", "endTime": "19:00:00"}). Returns (items, "") or (None, reason) when an item is
+    ambiguous: unknown keys, a weekday that is not a day name, a time that is not a whole hour, or an
+    end not after the start."""
+    out: list[TimetableItem] = []
+    if not items:
+        return None, "the list of items is empty"
+    for k, it in enumerate(items, 1):
+        if not isinstance(it, dict):
+            return None, f"item {k} is not an object"
+        if {"from", "to"} <= it.keys() or "beginTime" in it:
+            try:
+                start_day, end_day = _day(str(it.get("from", ""))), _day(str(it.get("to", "")))
+            except ValueError:
+                return None, f"item {k}: weekdays {it.get('from')!r}-{it.get('to')!r} are not day names"
+            start, end = _clock_hour(it.get("beginTime")), _clock_hour(it.get("endTime"))
+            if start is None or end is None:
+                return None, (f"item {k}: times {it.get('beginTime')!r}-{it.get('endTime')!r} are not whole hours")
+            if end <= start:
+                return None, f"item {k}: the end {it.get('endTime')!r} is not after the start {it.get('beginTime')!r}"
+            out.append(TimetableItem(startWeekday=start_day, endWeekday=end_day, startTime=start, endTime=end))
+            continue
+        try:
+            out.append(TimetableItem.model_validate(it))
+        except Exception as exc:
+            return None, f"item {k}: {str(exc).splitlines()[0]}"
+    return out, ""
+
+
+def _structured_items(mod: PatchModification) -> list[Any] | None:
+    if isinstance(mod.proposed_structured, dict):
+        raw = mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items")
+        if isinstance(raw, list):
+            return raw
+    return None
+
+
 def calendar_text_issue(scenario: SimuBridgeScenario, mod: PatchModification, idx: int) -> PatchDiagnostic | None:
-    """Error for a resource_calendar modification given only as text that cannot be parsed."""
+    """Error for a resource_calendar modification that cannot be read: structured items that are
+    ambiguous in either accepted form, or a text that cannot be parsed."""
     if mod.parameter_type != PatchParameterType.RESOURCE_CALENDAR:
         return None
-    if isinstance(mod.proposed_structured, dict) and isinstance(
-            mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items"), list):
-        return None
+    raw_items = _structured_items(mod)
+    if raw_items is not None:
+        items, reason = normalise_calendar_items(raw_items)
+        if items is not None:
+            return None
+        return PatchDiagnostic(
+            severity="error", category="calendar_unparsed",
+            message=(
+                f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
+                f"timeTableItems cannot be read ({reason}). Give items as {{startWeekday, endWeekday, "
+                f"startTime, endTime}} with whole hours (e.g. Monday, Friday, 9, 19), or as {{from, to, "
+                f"beginTime, endTime}} (e.g. MONDAY, FRIDAY, 09:00:00, 19:00:00)."
+            ),
+            modification_index=idx, element=mod.target_element,
+        )
     targets = _role_timetables(scenario, mod.target_element)
     if not targets:
         return None                                       # left to the existence check
@@ -597,11 +665,7 @@ def _apply_resource_calendar(
         ))
         return False
 
-    items_payload: list[Any] | None = None
-    if isinstance(mod.proposed_structured, dict):
-        raw = mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items")
-        if isinstance(raw, list):
-            items_payload = raw
+    items_payload: list[Any] | None = _structured_items(mod)
     if items_payload is None:
         parsed = parse_calendar_text(mod.proposed_value, tt.timeTableItems)
         if parsed is None:
@@ -621,14 +685,11 @@ def _apply_resource_calendar(
             modification_index=idx, element=mod.target_element,
         ))
         items_payload = [it.model_dump(mode="json") for it in parsed]
-    try:
-        new_items = [TimetableItem.model_validate(it) for it in items_payload]
-        if not new_items:
-            raise ValueError("timeTableItems cannot be empty")
-    except Exception as exc:
-        diag.append(PatchDiagnostic(
-            severity="error", category="invalid_value",
-            message=f"Timetable '{mod.target_element}': invalid timeTableItems ({exc}).",
+    new_items, reason = normalise_calendar_items(items_payload)
+    if new_items is None:
+        diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
+            severity="error", category="calendar_unparsed",
+            message=f"Timetable '{mod.target_element}': not applied; timeTableItems cannot be read ({reason}).",
             modification_index=idx, element=mod.target_element,
         ))
         return False

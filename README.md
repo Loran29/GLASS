@@ -164,6 +164,14 @@ What happens to the modification:
   - `validate_patch` reports it, so the retry prompt carries it.
   - On the generator's last attempt only that modification is dropped (noted as `[patch-reject]`), as for baseline mismatches.
 
+**Prosimos period format** (from the commit "Accept calendar modifications given in Prosimos period format").
+
+Structured items may also be given in Prosimos's form, e.g. `{"from": "MONDAY", "to": "FRIDAY", "beginTime": "09:00:00", "endTime": "19:00:00"}`. `scenario_merger.normalise_calendar_items` maps them to GLASS's form (`startWeekday`, `endWeekday`, `startTime`, `endTime`); "23:59:59" is read as the end of the day.
+- **Genuinely ambiguous items** are not mapped: times that are not whole hours, weekdays that are not day names, unknown keys, or an end not after the start.
+- **Rejection:** such items are errors with category `calendar_unparsed`. The message gives the reason and both accepted forms. Previously they appeared only as a skipped `invalid_value`.
+
+`tests/test_calendar_prosimos_format.py` covers a Prosimos item (applied and exported unchanged in Prosimos form), the GLASS form, and an ambiguous item (rejected with feedback).
+
 **Nothing skipped silently.** Every modification the merger skips in tolerant mode is now noted as `[merge-skip]`. The refinement feedback lists all `[patch-reject]` and `[merge-skip]` notes under "MODIFICATIONS NOT APPLIED", so the LLM learns in the next iteration that they are not in the simulated scenario.
 
 `tests/test_calendar_text.py` covers:
