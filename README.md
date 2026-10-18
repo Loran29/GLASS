@@ -164,7 +164,18 @@ Scenarios whose resources share their role's calendar are unchanged. `tests/test
 - **Role-name matching:** role names are matched case-insensitively, with `_` and `-` read as spaces and a plural "s" ignored.
 - **Tests:** `tests/test_context_summary_flexibility.py` holds deterministic tests and a live test of the summariser on the three LoanApp business-context answers. The live test runs only with `GLASS_LIVE_LLM_TESTS=1` and an API key.
 
-**Known limitation.** `budget.max_increase_pct` is shown to the LLM but not enforced by GLASS's validators, which check `additional_monthly` only.
+**Relative budget limit enforced** (from the commit "Enforce relative budget limits from the business context").
+
+*Previously,* `budget.max_increase_pct` was shown to the LLM, but GLASS's validators checked only `additional_monthly`. In the Stage 2 batches, finals raised the staff cost by up to 57 % against a stated limit of 35 %.
+
+*Now* `validation.validate_proposal`, when given the baseline (the patch generator passes it), compares the merged scenario's total staff cost per week with the baseline's.
+- **Cost:** each resource's hourly cost times its weekly working hours, from its own calendar or its role's schedule. Added resources and extended calendars both count.
+- **Above the limit:** the proposal gets an error with category `budget_exceeded`, as for absolute budgets. Its message states the limit, the baseline cost, the proposed cost and the allowed maximum.
+- **Retry:** the generator's budget retry ("YOUR PREVIOUS PATCH EXCEEDS THE STATED BUDGET") forwards the message to the LLM.
+- **Last attempt:** as with absolute budgets, if the last attempt still exceeds the limit, the generator returns it as the best available proposal, with the error recorded in its validation.
+- **Unchanged:** absolute budgets (`additional_monthly`), and calls without a baseline.
+
+`tests/test_relative_budget.py` covers the cost (headcount and hours), a +39 % proposal (rejected, with the figures in the message), a +30 % proposal (accepted) and the unchanged absolute check.
 
 ---
 

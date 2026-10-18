@@ -954,6 +954,67 @@ def _check_budget_exceeded(
     return issues
 
 
+_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+def _weekly_hours(items: list[Any]) -> float:
+    """Working hours per week of a timetable (each item: weekdays start..end, hours start..end)."""
+    total = 0.0
+    for it in items:
+        start = _WEEKDAYS.index(getattr(it.startWeekday, "value", it.startWeekday))
+        end = _WEEKDAYS.index(getattr(it.endWeekday, "value", it.endWeekday))
+        days = (end - start) % 7 + 1
+        span = it.endTime - it.startTime if it.endTime > it.startTime else 24 - it.startTime + it.endTime
+        total += days * span
+    return total
+
+
+def staff_cost_per_week(scenario: Any) -> float:
+    """Total staff cost per week: for every resource, its role's hourly cost times its weekly working
+    hours (its own calendar, else the role's schedule). Headcount and calendar extensions both count."""
+    rp = scenario.resourceParameters
+    tables = {t.id: t.timeTableItems for t in rp.timeTables}
+    total = 0.0
+    for role in rp.roles:
+        for res in role.resources:
+            total += float(role.costHour) * _weekly_hours(tables.get(res.calendar or role.schedule, []))
+    return total
+
+
+def _check_relative_budget(
+    proposal: ScenarioProposal,
+    context_summary: Any,
+    baseline: Any,
+) -> list[ValidationIssue]:
+    """Reject a proposal whose staff cost exceeds a relative limit stated in the clarification
+    context (``budget.max_increase_pct``), compared with the baseline scenario."""
+    if baseline is None or context_summary is None or getattr(context_summary, "is_empty", True):
+        return []
+    pct = (getattr(context_summary, "budget", {}) or {}).get("max_increase_pct")
+    try:
+        limit = float(pct)
+    except (TypeError, ValueError):
+        return []
+    base_cost = staff_cost_per_week(baseline)
+    prop_cost = staff_cost_per_week(proposal.scenario)
+    if base_cost <= 0:
+        return []
+    increase = (prop_cost - base_cost) / base_cost * 100.0
+    if increase <= limit + 1e-9:
+        return []
+    return [ValidationIssue(
+        category="budget_exceeded",
+        severity="error",
+        message=(
+            f"Total staff cost would rise by {increase:.1f} %, above the stated limit of +{limit:g} %: "
+            f"baseline {base_cost:,.0f} per week, proposed {prop_cost:,.0f} per week (each resource's hourly "
+            f"cost times its weekly working hours, so added resources and extended calendars both count; "
+            f"allowed at most {base_cost * (1 + limit / 100):,.0f} per week). You MUST reduce the cost of your "
+            f"proposed changes, e.g. fewer additional resources or smaller calendar extensions."
+        ),
+    )]
+
+
 # ===================================================================
 # 4. Public API
 # ===================================================================
@@ -961,6 +1022,7 @@ def _check_budget_exceeded(
 def validate_proposal(
     proposal: ScenarioProposal,
     context_summary: Any = None,
+    baseline: Any = None,
 ) -> ValidationResult:
     """Run all post-schema validation checks on a ScenarioProposal.
 
@@ -972,6 +1034,9 @@ def validate_proposal(
         An :class:`OperationalContextSummary` from the context
         summarisation step (optional).  When provided, feasibility
         checks are run against user-stated operational constraints.
+    baseline:
+        The baseline scenario (optional). When provided with a relative budget limit in the
+        context summary, the proposal's total staff cost is checked against it.
 
     Returns a ValidationResult collecting all issues found.
     """
@@ -997,5 +1062,6 @@ def validate_proposal(
         result.issues.extend(_check_overtime_constraints(proposal, context_summary))
         result.issues.extend(_check_shift_extension(proposal, context_summary))
         result.issues.extend(_check_budget_exceeded(proposal, context_summary))
+        result.issues.extend(_check_relative_budget(proposal, context_summary, baseline))
 
     return result

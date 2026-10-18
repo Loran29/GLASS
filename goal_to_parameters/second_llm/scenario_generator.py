@@ -749,7 +749,7 @@ def generate_scenario_patch(
         for rn in budget_repair_notes:
             notes.append(f"[budget-repair] {rn}")
 
-        vr = validate_proposal(proposal, context_summary=ctx_summary)
+        vr = validate_proposal(proposal, context_summary=ctx_summary, baseline=baseline)
         result.validation = vr
         last_valid_proposal = proposal  # track best schema-valid+merged proposal
         last_valid_vr = vr
