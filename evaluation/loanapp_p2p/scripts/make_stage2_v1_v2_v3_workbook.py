@@ -142,7 +142,9 @@ def main() -> None:
         + target_figures("final_util_target_achieved_glass")
         + ". Both figures hold under GLASS's flag (at most 0.85) and under our rule (below 0.85).",
         "Known defect: direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline "
-        "already below 0.85; no score change; to be fixed in the next version).",
+        "already below 0.85; no score change; to be fixed in the next version). Scoring does not use the filter, so "
+        "no score was altered; but the LLM in those 5 runs was shown unfiltered advice, so whether their outcomes "
+        "would differ with the fix can only be determined by a re-run in the next version.",
         "Runs affected by the unit defect (v1 / v2): a proposed duration meant in hours was applied in seconds. "
         "Their scores are kept as recorded and are included in all counts (see VERSIONS.md). v3 rejects such "
         "modifications.",

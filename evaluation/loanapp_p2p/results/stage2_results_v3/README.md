@@ -108,7 +108,7 @@ Both figures hold under GLASS's flag (≤ 0.85) and under our rule (< 0.85).
 
 ## Finding: direction filter reads the metric from the KPI name
 
-**Known defect:** direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline already below 0.85; no score change; to be fixed in the next version).
+**Known defect:** direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline already below 0.85; no score change; to be fixed in the next version). Scoring does not use the filter, so no score was altered; but the LLM in those 5 runs was shown unfiltered advice, so whether their outcomes would differ with the fix can only be determined by a re-run in the next version.
 
 The direction-aware retrieval (`3f722a5`) decides a problem KPI's metric with `_infer_category(kpi_name)`, which looks for "utiliz" in the name. Three of the eight utilization KPIs have other names:
 - "Loan Officer Workload Distribution" (LoanApp_G3);
