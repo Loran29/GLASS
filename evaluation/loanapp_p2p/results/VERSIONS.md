@@ -15,7 +15,13 @@ All three batches use the same 14 configurations × 5 repetitions, the same mode
 - **Direction-aware retrieval.**
   - *What the records show:* refinement feedback for a KPI to *minimize* utilization recommends raising utilization. This happened in 61 feedback texts in 28 v1 runs and 18 feedback texts in 10 v2 runs. Examples: v1 LoanApp_G1G3 rep 1, iteration 1: "Improve operator utilization rates to achieve more balanced workload distribution", "raised overall average utilization by 8.5%", "utilization improves as a side-effect"; v2 LoanApp_G2G3 rep 5: "Increase the utilization rate of MRI scanners to reduce idle time".
 
-**Known limitation of `3f722a5` (found in v3).** The direction filter reads a problem KPI's metric from the KPI's *name*. Three of the eight utilization KPIs do not contain "utilization" in their name (LoanApp_G3, Procure2Pay_G2G3, Procure2Pay_G3), so no entry was filtered for them. This mattered only in Procure2Pay_G3: in 12 feedback texts (all five runs), strategies raising utilization were still shown. In the 26 other feedback texts where utilization was a problem KPI, none was shown. Fix, not applied: use the KPI's category. See the v3 README.
+**Known defect:** direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline already below 0.85; no score change; to be fixed in the next version). In detail: the direction filter (`3f722a5`) reads a problem KPI's metric from the KPI's *name*. Three of the eight utilization KPIs do not contain "utilization" in their name (LoanApp_G3, Procure2Pay_G2G3, Procure2Pay_G3), so no entry was filtered for them. This mattered only in Procure2Pay_G3: in 12 feedback texts (all five runs), strategies raising utilization were still shown. In the 26 other feedback texts where utilization was a problem KPI, none was shown. Fix, not applied: use the KPI's category. See the v3 README.
+
+**Utilization target achieved (v3, after refinement):**
+- target achieved where the baseline was overloaded (>0.85): 25 of 25 (LoanApp_G3, LoanApp_G1G3, LoanApp_G1G2G3, Procure2Pay_G1G3, Procure2Pay_G1G2G3);
+- all 40 utilization runs: 40 of 40, of which 15 already below 0.85 at baseline (LoanApp_G2G3, Procure2Pay_G3, Procure2Pay_G2G3).
+
+Both figures hold under GLASS's flag (≤ 0.85) and under our rule (< 0.85).
 
 **Target already met by the baseline (v3).** The target pool's baseline utilization is below 0.85 in LoanApp_G2G3 (0.849), Procure2Pay_G3 (0.838) and Procure2Pay_G2G3 (0.827). There, "utilization target achieved" holds without any change; the scored rule also requires a decrease.
 

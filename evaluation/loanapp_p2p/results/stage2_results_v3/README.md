@@ -96,11 +96,19 @@ v1 and v2 are not re-scored; these runs' scores are kept as recorded. The same s
 
 ## Finding: utilization target achieved, at most vs below 0.85
 
+**Utilization target achieved (v3, after refinement):**
+- target achieved where the baseline was overloaded (>0.85): 25 of 25 (LoanApp_G3, LoanApp_G1G3, LoanApp_G1G2G3, Procure2Pay_G1G3, Procure2Pay_G1G2G3);
+- all 40 utilization runs: 40 of 40, of which 15 already below 0.85 at baseline (LoanApp_G2G3, Procure2Pay_G3, Procure2Pay_G2G3).
+
+Both figures hold under GLASS's flag (≤ 0.85) and under our rule (< 0.85).
+
 - **≤ vs <.** GLASS's `achieved` flag for a minimize KPI is value ≤ threshold. The batch rule (`util_target_achieved_batch`, and the scored rule) is pool utilization < 0.85. They can differ only for a value of exactly 0.85; no v3 final has one.
 - **Different values.** GLASS evaluates its role-resolved utilization, and the batch the target pool's utilization of working time; both are means over 10 seeds and normally close.
 - **Target already met by the baseline.** The target pool's baseline utilization is already below 0.85 in three configurations: LoanApp_G2G3 (0.849), Procure2Pay_G3 (0.838) and Procure2Pay_G2G3 (0.827). There, "target achieved" holds without any change. The scored rule also requires the value to be lower than the baseline. In 3 Procure2Pay_G3 finals the utilization did not fall: GLASS counts them as achieved, the scored rule as not improved.
 
 ## Finding: direction filter reads the metric from the KPI name
+
+**Known defect:** direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline already below 0.85; no score change; to be fixed in the next version).
 
 The direction-aware retrieval (`3f722a5`) decides a problem KPI's metric with `_infer_category(kpi_name)`, which looks for "utiliz" in the name. Three of the eight utilization KPIs have other names:
 - "Loan Officer Workload Distribution" (LoanApp_G3);

@@ -100,6 +100,16 @@ def main() -> None:
     ws = wb.active
     ws.title = "v1 v2 v3 per configuration"
     w1.header(ws, 1, ["Configuration", "Has a utilization KPI"] + [h for _, h, _ in CMP_COLS])
+    util_rows = [x for x in cmp_rows if x["has_utilization_kpi"] == "True"]
+    over = [x for x in util_rows if float(x["baseline_pool_utilization"]) > 0.85]
+
+    def target_figures(m: str) -> str:
+        """Target achieved split by baseline: overloaded (> 0.85) vs already below 0.85."""
+        n = lambda rs: int(sum(float(x[f"{m}_v3"]) for x in rs))
+        return (f"target achieved where the baseline was overloaded (>0.85): {n(over)} of {5 * len(over)}; "
+                f"all {5 * len(util_rows)} utilization runs: {n(util_rows)} of {5 * len(util_rows)}, of which "
+                f"{5 * (len(util_rows) - len(over))} already below 0.85 at baseline")
+
     r = 2
     for row in cmp_rows:
         util = row["has_utilization_kpi"]
@@ -109,7 +119,10 @@ def main() -> None:
             if kind == "defect":
                 cells.append(f"{fmt(row['unit_defect_runs_v1'], 0)} / {fmt(row['unit_defect_runs_v2'], 0)}")
             elif kind == "v3":
-                cells.append("–" if util == "False" else fmt(row[f"{m}_v3"], 0))
+                if util == "" and "without" not in row["config_id"]:      # total row and utilization group
+                    cells.append(target_figures(m))
+                else:
+                    cells.append("–" if util == "False" else fmt(row[f"{m}_v3"], 0))
             else:
                 cells.append(" / ".join(fmt(row[f"{m}_{v}"], nd) for v in VERSIONS))
         put(ws, r, cells)
@@ -125,9 +138,11 @@ def main() -> None:
         "below 0.85. The two differ at exactly 0.85 only, and use different (normally close) utilization values.",
         "Target already met by the baseline: " + md3.split("**Target already met by the baseline:** ", 1)[1].split("\n")[0]
         .replace("`", ""),
-        "Direction filter (v3): it reads the metric from the KPI name, so for the three utilization KPIs without "
-        "\"utilization\" in their name nothing was filtered; in Procure2Pay_G3 (12 feedback texts) strategies raising "
-        "utilization were still shown. See VERSIONS.md and the v3 README.",
+        "Utilization target achieved (v3, after refinement): "
+        + target_figures("final_util_target_achieved_glass")
+        + ". Both figures hold under GLASS's flag (at most 0.85) and under our rule (below 0.85).",
+        "Known defect: direction filter reads KPI name instead of category (affects Procure2Pay_G3 only; baseline "
+        "already below 0.85; no score change; to be fixed in the next version).",
         "Runs affected by the unit defect (v1 / v2): a proposed duration meant in hours was applied in seconds. "
         "Their scores are kept as recorded and are included in all counts (see VERSIONS.md). v3 rejects such "
         "modifications.",
