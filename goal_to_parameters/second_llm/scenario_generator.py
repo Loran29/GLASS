@@ -673,9 +673,9 @@ def generate_scenario_patch(
         # Pre-merge validation
         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
         if (pv.has_errors and attempt == max_retries
-                and all(e.category == "baseline_mismatch" for e in pv.errors)):
+                and all(e.category in ("baseline_mismatch", "calendar_unparsed") for e in pv.errors)):
             # Last attempt: reject only the modifications whose quoted baseline value does
-            # not match the model and keep the rest of the patch.
+            # not match the model, or whose calendar text cannot be read, and keep the rest.
             rejected = {e.modification_index for e in pv.errors}
             for e in pv.errors:
                 notes.append(f"[patch-reject] {e.message}")
@@ -702,6 +702,9 @@ def generate_scenario_patch(
         merge_result = apply_patch(baseline, patch, strict=strict_merge, element_name_map=flow_name_map)
         for w in merge_result.warning_messages:
             notes.append(f"[merge warning] {w}")
+        if not strict_merge:
+            for err in merge_result.error_messages:          # skipped in tolerant mode: reported, not silent
+                notes.append(f"[merge-skip] {err}")
         if merge_result.has_errors and strict_merge:
             last_error = (
                 "Merge failed in strict mode: "

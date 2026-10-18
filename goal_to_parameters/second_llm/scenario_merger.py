@@ -492,6 +492,95 @@ def _role_timetables(scenario: SimuBridgeScenario, target: str) -> list[Any]:
     return [by_id[i] for i in ids if i in by_id]
 
 
+_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+_DAY = r"(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?"
+_TO = r"\s*(?:-|–|—|to|through|until|bis)\s*"
+_TIME_RANGE_RE = re.compile(r"(?<![\d:])(\d{1,2})(?::(\d{2}))?\s*h?" + _TO + r"(\d{1,2})(?::(\d{2}))?\s*h?(?![\d:])", re.I)
+_DAY_RANGE_RE = re.compile(r"\b" + _DAY + _TO + _DAY, re.I)
+_EXTEND_RE = re.compile(
+    r"(?:extend\w*|lengthen\w*|longer|additional|extra|more|\+)\D{0,25}?(\d+(?:\.\d+)?)\s*(?:h\b|hrs?\b|hours?\b)|"
+    r"(\d+(?:\.\d+)?)\s*(?:h|hrs?|hours?)\s*(?:longer|more|extra|additional)", re.I)
+CALENDAR_TEXT_FORMATS = ("proposed_structured.timeTableItems, or a proposed_value such as "
+                         "'09:00-19:00 Mon-Fri' (a working-time window, optionally with a weekday range) "
+                         "or 'extend by 2 hours' (later end of every working period)")
+
+
+def _day(token: str) -> Weekday:
+    return Weekday(_DAYS[[d[:3] for d in _DAYS].index(token[:3].lower())].capitalize())
+
+
+def parse_calendar_text(text: str, current: list[TimetableItem]) -> list[TimetableItem] | None:
+    """Turn a calendar change given as text into timetable items, or None when it is not unambiguous.
+
+    Accepted: exactly one working-time window in whole hours ("09:00-19:00", "9-19 h"), optionally with
+    one weekday range ("Mon-Fri", "Monday to Saturday"), "weekdays" or "daily" (without one, each
+    current period keeps its weekdays); or an extension by whole hours ("extend by 2 hours", "+2 h",
+    "2 hours longer"), which moves the end of every current period. Anything else gives None.
+    """
+    text = (text or "").strip()
+    if not text:
+        return None
+    # A window needs a clock marker ("09:00" or "9 h"): a bare "8 to 10" may mean hours per day.
+    ranges = [m for m in _TIME_RANGE_RE.finditer(text)
+              if 0 <= int(m.group(1)) <= 24 and 0 <= int(m.group(3)) <= 24
+              and (":" in m.group(0) or re.search(r"\d\s*h\b", m.group(0), re.I))]
+    if len(ranges) == 1:
+        m = ranges[0]
+        if (m.group(2) or "00") != "00" or (m.group(4) or "00") != "00":
+            return None                                   # calendars are whole hours
+        start, end = int(m.group(1)), int(m.group(3))
+        if end <= start:
+            return None
+        days = _DAY_RANGE_RE.findall(text)
+        if len(days) > 1:
+            return None
+        if days:
+            spans = [(_day(days[0][0]), _day(days[0][1]))]
+        elif re.search(r"\bweekdays?\b", text, re.I):
+            spans = [(Weekday.MONDAY, Weekday.FRIDAY)]
+        elif re.search(r"\b(daily|every day|7 days)\b", text, re.I):
+            spans = [(Weekday.MONDAY, Weekday.SUNDAY)]
+        elif current:
+            spans = list(dict.fromkeys((it.startWeekday, it.endWeekday) for it in current))
+        else:
+            return None
+        return [TimetableItem(startWeekday=a, endWeekday=b, startTime=start, endTime=end) for a, b in spans]
+    if ranges:
+        return None                                       # several windows: ambiguous
+    ext = [m for m in _EXTEND_RE.finditer(text)]
+    if len(ext) != 1 or not current:
+        return None
+    hours = float(ext[0].group(1) or ext[0].group(2))
+    if hours != int(hours) or hours <= 0:
+        return None
+    if any(it.endTime + int(hours) > 24 for it in current):
+        return None
+    return [it.model_copy(update={"endTime": it.endTime + int(hours)}) for it in current]
+
+
+def calendar_text_issue(scenario: SimuBridgeScenario, mod: PatchModification, idx: int) -> PatchDiagnostic | None:
+    """Error for a resource_calendar modification given only as text that cannot be parsed."""
+    if mod.parameter_type != PatchParameterType.RESOURCE_CALENDAR:
+        return None
+    if isinstance(mod.proposed_structured, dict) and isinstance(
+            mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items"), list):
+        return None
+    targets = _role_timetables(scenario, mod.target_element)
+    if not targets:
+        return None                                       # left to the existence check
+    if parse_calendar_text(mod.proposed_value, targets[0].timeTableItems) is not None:
+        return None
+    return PatchDiagnostic(
+        severity="error", category="calendar_unparsed",
+        message=(
+            f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
+            f"proposed_value '{mod.proposed_value}' cannot be read as a working-time change. Give "
+            f"{CALENDAR_TEXT_FORMATS}."
+        ),
+        modification_index=idx, element=mod.target_element,
+    )
+
+
 def _apply_resource_calendar(
     scenario: SimuBridgeScenario,
     mod: PatchModification,
@@ -514,16 +603,24 @@ def _apply_resource_calendar(
         if isinstance(raw, list):
             items_payload = raw
     if items_payload is None:
+        parsed = parse_calendar_text(mod.proposed_value, tt.timeTableItems)
+        if parsed is None:
+            diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
+                severity="error", category="calendar_unparsed",
+                message=f"Timetable '{mod.target_element}': not applied; give {CALENDAR_TEXT_FORMATS}.",
+                modification_index=idx, element=mod.target_element,
+            ))
+            return False
         diag.append(PatchDiagnostic(
-            severity="error", category="invalid_value",
+            severity="warning", category="calendar_parsed",
             message=(
-                f"Timetable '{mod.target_element}': resource_calendar "
-                f"modifications require proposed_structured.timeTableItems "
-                f"as a list of TimetableItem dicts."
+                f"Timetable '{mod.target_element}': proposed_value '{mod.proposed_value}' read as "
+                + "; ".join(f"{it.startWeekday.value}-{it.endWeekday.value} {it.startTime:02d}:00-"
+                            f"{it.endTime:02d}:00" for it in parsed) + "."
             ),
             modification_index=idx, element=mod.target_element,
         ))
-        return False
+        items_payload = [it.model_dump(mode="json") for it in parsed]
     try:
         new_items = [TimetableItem.model_validate(it) for it in items_payload]
         if not new_items:

@@ -147,6 +147,32 @@ Together these made simulated cycle and waiting times differ from the baseline b
 
 Scenarios whose resources share their role's calendar are unchanged. `tests/test_role_calendars.py` covers the import and the patch.
 
+**Calendar changes given as text** (from the commit "Calendar modifications given as text are parsed or reported").
+
+*Previously,* a `resource_calendar` modification needed `proposed_structured.timeTableItems`. When the LLM gave only text ("09:00-17:00 → 09:00-19:00"), the merger skipped it in tolerant mode, and nobody was told. In the Stage 2 batch v3 the same change was therefore proposed again in 22 iterations.
+
+*Now* `scenario_merger.parse_calendar_text` reads an unambiguous text into timetable items:
+- **One working-time window in whole hours, with a clock marker** ("09:00-19:00", "8h-18h"):
+  - with one weekday range ("Mon–Fri", "Monday to Saturday"), "weekdays" or "daily";
+  - without one, each current period of the role keeps its weekdays.
+- **An extension by whole hours** ("extend by 2 hours", "+2 h", "2 hours longer"), which moves the end of every current period.
+- **Anything else is not parsed:** a bare "8 to 10" (which may mean hours per day), several windows, half hours, or an extension beyond midnight.
+
+What happens to the modification:
+- **Parsed:** it is applied to the role, with a `calendar_parsed` note.
+- **Not parsed:** it is an error with category `calendar_unparsed`. The message says the change was not applied and gives the expected formats.
+  - `validate_patch` reports it, so the retry prompt carries it.
+  - On the generator's last attempt only that modification is dropped (noted as `[patch-reject]`), as for baseline mismatches.
+
+**Nothing skipped silently.** Every modification the merger skips in tolerant mode is now noted as `[merge-skip]`. The refinement feedback lists all `[patch-reject]` and `[merge-skip]` notes under "MODIFICATIONS NOT APPLIED", so the LLM learns in the next iteration that they are not in the simulated scenario.
+
+`tests/test_calendar_text.py` covers:
+- the two text patterns;
+- texts that are not parsed;
+- applying a parsed text, and rejecting an unparsable one with its message;
+- the generator's retry and last attempt;
+- the feedback section.
+
 ---
 
 ## Clarification-context summary

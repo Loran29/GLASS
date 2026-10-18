@@ -364,6 +364,14 @@ def _build_evaluation_feedback(
             lines.append(f"  • {name} degraded by {pct} — target was to {direction}.")
         lines.append("")
 
+    not_applied = [n.split("] ", 1)[1] for n in (getattr(gen_result, "generation_notes", None) or [])
+                   if n.startswith(("[patch-reject]", "[merge-skip]"))]
+    if not_applied:
+        lines.append("MODIFICATIONS NOT APPLIED (the simulated scenario does not contain them):")
+        for n in dict.fromkeys(not_applied):
+            lines.append(f"  • {n}")
+        lines.append("")
+
     if not_reached:
         lines.append("TARGETS NOT YET REACHED (improved, but more change is needed):")
         for e in not_reached:

@@ -40,6 +40,7 @@ from second_llm.scenario_merger import (
     _detect_conflicts,
     _resolve,
     _role_for_name,
+    calendar_text_issue,
 )
 from second_llm.validation import _extract_first_number  # reused
 
@@ -299,6 +300,9 @@ def _check_baseline_faithfulness(
         val_issue = _check_baseline_value_match(baseline, mod, i)
         if val_issue is not None:
             out.append(val_issue)
+        cal_issue = calendar_text_issue(baseline, mod, i)
+        if cal_issue is not None:
+            out.append(cal_issue)
     return out
 
 
