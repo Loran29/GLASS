@@ -73,3 +73,6 @@ These runs simulated near-zero durations for the affected activities. That short
 - `stage2_v1_vs_v2_runs.csv`: per run for v1 and v2, with `unit_defect`.
 - `unit_defect_runs_v1_v2.csv`, `unit_defect_runs_v3.csv`, `unit_defect_runs_v3_1.csv`: hour values applied as seconds (`scripts/find_unit_defect_runs.py`; v3 and v3.1: none).
 - `stage2_v1_v2_v3_v31.csv` / `.md`: all four batches with the v3.1 fix counts and the control check v3 → v3.1 (`scripts/compare_stage2_v31.py`); per run: `stage2_v1_v2_v3_v31_runs.csv`.
+
+**Open items after v3.1.**
+- Warning-level merger skips are not listed under MODIFICATIONS NOT APPLIED (affects gateway changes aimed at an activity name); to be fixed in the next version.

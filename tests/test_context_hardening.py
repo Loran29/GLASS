@@ -895,7 +895,7 @@ class SchemaHardeningTests(unittest.TestCase):
 
 
 class SemanticValidationHardeningTests(unittest.TestCase):
-    def test_unsupported_context_condition_becomes_error(self) -> None:
+    def test_unsupported_context_condition_is_dropped_with_warning(self) -> None:
         result = KPIGenerationResult.model_validate(
             {
                 "simulation_goal_structured": "Reduce cycle time.",
@@ -938,10 +938,15 @@ class SemanticValidationHardeningTests(unittest.TestCase):
             context_evidence=context_evidence,
         )
 
+        # The KPI is kept with its plain target: the unsupported segmentation is dropped and
+        # reported as a warning (not an error).
         matching_issue = next(
-            issue for issue in validation.issues if issue.code == "unsupported_context_condition"
+            issue for issue in validation.issues if issue.code == "unsupported_context_condition_dropped"
         )
-        self.assertEqual(matching_issue.severity, "error")
+        self.assertEqual(matching_issue.severity, "warning")
+        self.assertIn("Cycle Time by Claim Type", matching_issue.kpi_names)
+        self.assertEqual(result.kpis[0].context_segmentation, [])
+        self.assertFalse(any(issue.code == "unsupported_context_condition" for issue in validation.issues))
 
     def test_mismatched_evidence_factor_metric_pair_fails_validation(self) -> None:
         result = KPIGenerationResult.model_validate(

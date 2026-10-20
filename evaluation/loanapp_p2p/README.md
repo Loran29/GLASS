@@ -378,6 +378,23 @@ modification behind each case and the average cycle time of each log.
 - LoanApp baseline (healthy, no modification): `bps_models/LoanApp_original.bpmn` with log `input_logs/LoanApp_ground_truth_0.csv`. Not used as input to GLASS; kept as the reference for baseline comparisons.
 - Procure2Pay baseline (healthy, no modification): `bps_models/Procure2Pay_original.bpmn` with log `input_logs/Procure2Pay_ground_truth_0.csv`. Not used as input to GLASS; kept as the reference for baseline comparisons.
 
+## Regression check
+
+On 2026-10-20 (GLASS at `897544c`), the earlier material was re-run against the GLASS changes made for this evaluation (`4c8dbaf` … `01f76d6`), without changing the repository:
+
+- **Test suites.** Both test suites ran. `goal_to_parameters/tests` passes. In `tests/`, the only failures left are 2 unrelated tests that already failed before `4c8dbaf` (hybrid retrieval, chatbot readiness). A third, stale after `4c8dbaf`'s intended change to unsupported segmentation, was updated in the commit "Update stale segmentation test; record regression check".
+- **Thesis Stage 1.** One repetition on BPIC 2012 (`evaluate_one_run`, same model, output redirected to a scratch folder) ran end to end. Its KPI JSON has the stored schema plus the optional `measurable_as_raw` from `4c8dbaf`.
+- **Shipped Stage 2 example.** The purchasing example (`goal_to_parameters/examples/data/purchasing/`) ran as the app drives it, with one refinement loop and a 3-seed multi-seed evaluation:
+  - the calendars and the 20 timers were preserved;
+  - patches were generated and validated, and the merged scenario simulated;
+  - the calendar-based Resource Utilization of the baseline was 0.285 (mean over 3 seeds);
+  - there were no exceptions.
+- **Thesis Stage 2 ablation.** Imported, `--help` run, and the three thesis baselines built with its own loaders (no LLM call).
+
+**Result.** The thesis outputs are byte-identical, and all components run on the current code.
+
+**Known gap.** Warning-level merger skips are not listed under MODIFICATIONS NOT APPLIED (affects gateway changes aimed at an activity name); to be fixed in the next version.
+
 ## Notes
 
 - **Config version.** `setup/stage1_config.json` is the configuration the runs used: temperature 0.2,
