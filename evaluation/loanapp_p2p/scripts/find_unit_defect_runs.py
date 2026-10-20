@@ -16,8 +16,9 @@ For each run the script reports every iteration with such a modification and whe
 (iteration 1) or final (best iteration) scenario contains it.
 
 Writes results/unit_defect_runs_v1_v2.csv (one row per modification) and prints a per-run summary. When
-results/stage2_results_v3/ exists, the same search runs over it and writes results/unit_defect_runs_v3.csv (v3
-rejects mismatched modifications, so it is expected to be empty).
+results/stage2_results_v3/ (or _v3_1/) exists, the same search runs over it and writes
+results/unit_defect_runs_v3.csv (or _v3_1.csv); v3 and later reject mismatched modifications, so these are
+expected to be empty.
 Usage (repo root): python evaluation/loanapp_p2p/scripts/find_unit_defect_runs.py
 """
 from __future__ import annotations
@@ -30,7 +31,8 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent.parent
 RES = BASE / "results"
 FOLDERS = {"v1": RES / "stage2_results", "v2": RES / "stage2_results_v2"}
-V3 = {"v3": RES / "stage2_results_v3"}
+LATER = {"v3": (RES / "stage2_results_v3", "unit_defect_runs_v3.csv"),
+         "v3.1": (RES / "stage2_results_v3_1", "unit_defect_runs_v3_1.csv")}
 FACTORS = {60: "minutes", 3600: "hours", 86400: "days"}
 UNIT_WORDS = {"minutes": r"\bmin(ute)?s?\b", "hours": r"\b(h|hrs?|hours?)\b", "days": r"\bdays?\b"}
 NUM = re.compile(r"[-+]?\d*\.?\d+")
@@ -149,8 +151,9 @@ def write(rows: list[dict], out: Path) -> None:
 
 def main() -> None:
     write(scan(FOLDERS), RES / "unit_defect_runs_v1_v2.csv")
-    if (V3["v3"] / "raw").exists():
-        write(scan(V3), RES / "unit_defect_runs_v3.csv")
+    for version, (folder, name) in LATER.items():
+        if (folder / "raw").exists():
+            write(scan({version: folder}), RES / name)
 
 
 if __name__ == "__main__":
