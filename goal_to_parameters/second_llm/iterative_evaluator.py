@@ -8,6 +8,10 @@ The best result across all iterations is returned.
 Iteration selection: most achieved targets first, then most improved KPIs, then a
 goal-programming scoring function with prospect-theoretic loss aversion
 (Kahneman & Tversky, 1979; λ=2.25).
+
+``legacy_refinement=True`` restores the earlier rules for comparison (ablation): stop at the
+first iteration whose overall status is ``improved``, and select the best iteration by score
+alone. Off by default.
 """
 
 from __future__ import annotations
@@ -518,17 +522,19 @@ def _selection_key(it: IterationResult) -> tuple[int, int, float]:
     return it.achieved_count, it.improved_count, it.score
 
 
-def _select_best_iteration(iterations: list[IterationResult]) -> int | None:
-    """Index of the best iteration: most achieved targets, then most improved KPIs, then score.
+def _select_best_iteration(iterations: list[IterationResult], by_score_only: bool = False) -> int | None:
+    """Index of the best iteration: most achieved targets, then most improved KPIs, then score
+    (``by_score_only``: score alone, the earlier rule).
 
     Ties keep the earlier iteration. Failed iterations rank last.
     """
     if not iterations:
         return None
+    key_of = (lambda it: (it.score,)) if by_score_only else _selection_key
     best_idx = 0
-    best_key = _selection_key(iterations[0])
+    best_key = key_of(iterations[0])
     for i, it in enumerate(iterations[1:], 1):
-        key = _selection_key(it)
+        key = key_of(it)
         if key > best_key:
             best_key = key
             best_idx = i
@@ -549,6 +555,7 @@ def run_iterative_evaluation(
     on_iteration: Callable[[int, str], None] | None = None,
     log_profile: dict[str, Any] | None = None,
     context_profile: dict[str, Any] | None = None,
+    legacy_refinement: bool = False,
 ) -> IterativeEvaluationResult:
     """Run the iterative generate→simulate→evaluate→feedback loop.
 
@@ -578,6 +585,11 @@ def run_iterative_evaluation(
         Event-log profile dict passed to generate_scenario for RAG retrieval.
     context_profile
         Context profile dict passed to generate_scenario for evidence filtering.
+    legacy_refinement
+        Use the earlier refinement rules (for ablation): stop at the first iteration whose
+        overall status is ``improved``, and select the best iteration by score alone.
+        Default False: stop when the targets are met; select by achieved targets, then
+        improved KPIs, then score.
     """
     t0 = time.time()
     result = IterativeEvaluationResult()
@@ -651,7 +663,11 @@ def run_iterative_evaluation(
 
         # Done when every KPI with a threshold has achieved it and every KPI without
         # one has improved (without thresholds: every computed KPI improved).
-        if iter_result.targets_met:
+        # Earlier rule (legacy_refinement): overall status improved.
+        if legacy_refinement and iter_result.status == OverallStatus.IMPROVED:
+            _notify(i, "All KPIs improved! Stopping.")
+            break
+        if not legacy_refinement and iter_result.targets_met:
             _notify(i, "All targets met! Stopping.")
             break
 
@@ -664,7 +680,7 @@ def run_iterative_evaluation(
             _notify(i, f"Result: {status_label} — refining...")
 
     # --- Step 3: Select best ---
-    result.best_iteration_idx = _select_best_iteration(result.iterations)
+    result.best_iteration_idx = _select_best_iteration(result.iterations, by_score_only=legacy_refinement)
     if result.best is not None:
         result.final_status = result.best.status
 

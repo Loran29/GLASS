@@ -334,6 +334,8 @@ No direction field is added to the knowledge-base entries; the rule is applied t
 
 `tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.
 
+**Earlier rules, for ablation.** `run_iterative_evaluation(..., legacy_refinement=True)` restores the previous behaviour: stop at the first iteration whose overall status is `improved`, and choose the best iteration by score alone. It is off by default. The UI never sets it; it exists so evaluations can compare the two rules. `tests/test_legacy_refinement.py` covers it.
+
 ---
 
 ## Try it with the bundled examples
