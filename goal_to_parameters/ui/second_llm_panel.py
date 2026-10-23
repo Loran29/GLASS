@@ -764,6 +764,7 @@ def _get_evaluation_targets() -> list:
             category=kpi.get("category", ""),
             is_safeguard=(direction == TargetDirection.MAINTAIN),
             unit=kpi.get("unit", ""),
+            measurable_as=kpi.get("measurable_as") or None,
             description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
         ))
     return targets

@@ -334,6 +334,8 @@ No direction field is added to the knowledge-base entries; the rule is applied t
 
 `tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.
 
+**The loop measures the KPI it was given.** The loop's targets (`ui/second_llm_panel._get_evaluation_targets`) now carry each KPI's `measurable_as`, as the multi-seed evaluation's targets (`ui/evaluation_panel._get_kpi_targets_from_workspace`) already did. Before, the loop matched a KPI by its name: "Average Waiting Time Before Review" resolved to the process-wide "Average Waiting Time" instead of "Review Waiting Time". The loop's stop rule, its choice of the best iteration and its feedback could then rest on a different metric than the final evaluation. `tests/test_loop_targets_measurable_as.py` covers this.
+
 **Earlier rules, for ablation.** `run_iterative_evaluation(..., legacy_refinement=True)` restores the previous behaviour: stop at the first iteration whose overall status is `improved`, and choose the best iteration by score alone. It is off by default. The UI never sets it; it exists so evaluations can compare the two rules. `tests/test_legacy_refinement.py` covers it.
 
 ---
