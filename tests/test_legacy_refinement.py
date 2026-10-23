@@ -38,8 +38,11 @@ class LegacyRefinement(unittest.TestCase):
         legacy, current = run(series, targets(None), True), run(series, targets(None), False)
         self.assertEqual(len(legacy.iterations), 4)
         self.assertGreater(legacy.iterations[1].score, legacy.iterations[0].score)
-        self.assertEqual(legacy.best_iteration_idx, 1)      # highest score, no KPI improved
-        self.assertEqual(current.best_iteration_idx, 0)     # one KPI improved
+        # No iteration has a positive score, so both keep the baseline; the selection shows in the
+        # candidate attached for inspection.
+        self.assertTrue(legacy.no_improving_scenario and current.no_improving_scenario)
+        self.assertEqual(legacy.best_candidate_idx, 1)      # highest score, no KPI improved
+        self.assertEqual(current.best_candidate_idx, 0)     # one KPI improved
 
     def test_default_is_current_rule(self):
         series = [kpis(0.92, 80.0), kpis(0.80, 85.0), kpis(0.70, 60.0)]
