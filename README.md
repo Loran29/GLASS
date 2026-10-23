@@ -276,6 +276,8 @@ Structured items may also be given in Prosimos's form, e.g. `{"from": "MONDAY", 
 
 `tests/test_resource_id_stems.py` covers stem, id and indexed-name resolution, the calendar target, `add_new`, an unknown name, the prompt copy, and the prompt the patch generator sends.
 
+**Direction must match the values.** The validator compares a modification's stated direction (`increase` / `decrease`) with its numeric baseline and proposed values; a contradiction (`direction_inconsistent`) is now an error, not a warning. Before, a "decrease" whose proposed value lay far above the baseline was merged and simulated as a large increase. This happened in the real-life ablation study: after its baseline quote was corrected, the LLM kept a target value meant for a timer, so a task of 825.5 s became 180,000 s. The retry feedback now states the direction, the baseline value and the proposed value, and asks for a value consistent with the direction. On the generator's last attempt only that modification is dropped, as for a baseline mismatch. `tests/test_direction_consistency.py` covers this.
+
 ---
 
 ## Refinement: KPI improved vs target achieved

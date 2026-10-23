@@ -673,9 +673,11 @@ def generate_scenario_patch(
         # Pre-merge validation
         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
         if (pv.has_errors and attempt == max_retries
-                and all(e.category in ("baseline_mismatch", "calendar_unparsed") for e in pv.errors)):
+                and all(e.category in ("baseline_mismatch", "calendar_unparsed", "direction_inconsistent")
+                        for e in pv.errors)):
             # Last attempt: reject only the modifications whose quoted baseline value does
-            # not match the model, or whose calendar text cannot be read, and keep the rest.
+            # not match the model, whose calendar text cannot be read, or whose stated
+            # direction contradicts their values, and keep the rest.
             rejected = {e.modification_index for e in pv.errors}
             for e in pv.errors:
                 notes.append(f"[patch-reject] {e.message}")
