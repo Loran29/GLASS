@@ -1,0 +1,4 @@
+# Store every file in this folder byte for byte (no end-of-line conversion on commit or checkout).
+# The SHA-256 values recorded in results/, the result READMEs and the verifiers refer to the exact
+# bytes of the logs, configs, raw records and patches, on every platform.
+* -text

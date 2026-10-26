@@ -1,0 +1,147 @@
+{
+ "meta": {
+  "glass_commit": "4e737882962ee59d8f785f05734489cd4e6f390a",
+  "prosimos": "2.1.0",
+  "python": "3.11.13"
+ },
+ "datasets": {
+  "AcademicCredentials": {
+   "variant": "complex_hyperopt_holdout_after_enhanced",
+   "selection_ctd_mean": 52.0671,
+   "import_ok": true,
+   "import_errors": [],
+   "timers": {
+    "bpmn_timer_events": 15,
+    "event_distribution_source": 15,
+    "imported_intermediate_events": 15,
+    "event_distribution_exported": 15
+   },
+   "timers_preserved": true,
+   "calendar_rounding": {
+    "resources": 306,
+    "resources_in_export": 306,
+    "weekly_available_hours_before": 3318.0,
+    "weekly_available_hours_after": 3545.0,
+    "change_pct": 6.84,
+    "arrival_calendar_hours_before": 100.0,
+    "arrival_calendar_hours_after": 100.0
+   },
+   "simulation": {
+    "cases_requested": 398,
+    "start": "2016-04-15 23:47:55+00:00",
+    "seed": 42,
+    "ok": true,
+    "error": null,
+    "seconds": 1.9
+   },
+   "test_log": {
+    "cases": 398,
+    "events": 1788,
+    "events_per_case": 4.492,
+    "mean_cycle_time_s": 661658.5
+   },
+   "package_sim_mean_cycle_time_s": 751023.2,
+   "glass_run": {
+    "cases": 398,
+    "events": 1852,
+    "events_per_case": 4.653,
+    "mean_cycle_time_s": 765415.3,
+    "ctd_to_test": 48.9397
+   },
+   "glass_vs_test_pct": 15.7,
+   "glass_vs_package_pct": 1.9
+  },
+  "BPIC_2012_W": {
+   "variant": "complex_hyperopt_holdout_after_enhanced",
+   "selection_ctd_mean": 23.8813,
+   "import_ok": true,
+   "import_errors": [],
+   "timers": {
+    "bpmn_timer_events": 6,
+    "event_distribution_source": 6,
+    "imported_intermediate_events": 6,
+    "event_distribution_exported": 6
+   },
+   "timers_preserved": true,
+   "calendar_rounding": {
+    "resources": 47,
+    "resources_in_export": 47,
+    "weekly_available_hours_before": 3002.6,
+    "weekly_available_hours_after": 3047.0,
+    "change_pct": 1.48,
+    "arrival_calendar_hours_before": 75.0,
+    "arrival_calendar_hours_after": 75.0
+   },
+   "simulation": {
+    "cases_requested": 2976,
+    "start": "2012-01-07 09:04:12.635000+00:00",
+    "seed": 42,
+    "ok": true,
+    "error": null,
+    "seconds": 11.7
+   },
+   "test_log": {
+    "cases": 2976,
+    "events": 18568,
+    "events_per_case": 6.239,
+    "mean_cycle_time_s": 638259.2
+   },
+   "package_sim_mean_cycle_time_s": 587882.2,
+   "glass_run": {
+    "cases": 2976,
+    "events": 11706,
+    "events_per_case": 3.933,
+    "mean_cycle_time_s": 568189.3,
+    "ctd_to_test": 28.4267
+   },
+   "glass_vs_test_pct": -11.0,
+   "glass_vs_package_pct": -3.3
+  },
+  "BPIC_2017_W": {
+   "variant": "complex_hyperopt_holdout_after_enhanced",
+   "selection_ctd_mean": 21.6944,
+   "import_ok": true,
+   "import_errors": [],
+   "timers": {
+    "bpmn_timer_events": 7,
+    "event_distribution_source": 7,
+    "imported_intermediate_events": 7,
+    "event_distribution_exported": 7
+   },
+   "timers_preserved": true,
+   "calendar_rounding": {
+    "resources": 105,
+    "resources_in_export": 105,
+    "weekly_available_hours_before": 7331.6,
+    "weekly_available_hours_after": 7449.0,
+    "change_pct": 1.6,
+    "arrival_calendar_hours_before": 83.0,
+    "arrival_calendar_hours_after": 83.0
+   },
+   "simulation": {
+    "cases_requested": 7376,
+    "start": "2016-09-17 06:07:22+00:00",
+    "seed": 42,
+    "ok": true,
+    "error": null,
+    "seconds": 27.5
+   },
+   "test_log": {
+    "cases": 7376,
+    "events": 52010,
+    "events_per_case": 7.051,
+    "mean_cycle_time_s": 918463.6
+   },
+   "package_sim_mean_cycle_time_s": 982933.8,
+   "glass_run": {
+    "cases": 7376,
+    "events": 27250,
+    "events_per_case": 3.694,
+    "mean_cycle_time_s": 919629.3,
+    "ctd_to_test": 28.6276
+   },
+   "glass_vs_test_pct": 0.1,
+   "glass_vs_package_pct": -6.4
+  }
+ }
+}
