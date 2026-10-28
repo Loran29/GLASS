@@ -5,8 +5,8 @@ event log. Stage 2 runs in six variants, each switching off one component, on th
 the Zenodo package 10.5281/zenodo.10435849.
 
 - Stage 1: 3 datasets × 3 goals × 2 variants × 5 repetitions = 90 LLM calls.
-- Stage 2: 3 datasets × 3 goals × 6 variants × 3 repetitions = 162 runs. Repetitions 4–5 (108 runs) follow as a
-  second pass with the same script and settings.
+- Stage 2: 3 datasets × 3 goals × 6 variants × 5 repetitions = 270 runs: repetitions 1–3 (162 runs), then
+  repetitions 4–5 (108 runs) as a second pass with the same script, settings and seeds.
 
 Contents:
 - [Layout](#layout)
@@ -19,7 +19,7 @@ Contents:
 - [Stage 2 variants](#stage-2-variants)
 - [Scoring](#scoring)
 - [GLASS version and the runs before the batch](#glass-version-and-the-runs-before-the-batch)
-- [Stage 2 results (repetitions 1–3)](#stage-2-results-repetitions-13)
+- [Stage 2 results (five repetitions)](#stage-2-results-five-repetitions)
 - [GLASS behaviour observed](#glass-behaviour-observed)
 - [Reproduction](#reproduction)
 
@@ -45,7 +45,7 @@ Contents:
 | Refinement | `max_iterations` 4 (V_no_refine: 1) |
 | Evaluation | 10 seeds (42–51), paired with a cached 10-seed baseline per dataset; the loop runs at seed 42 |
 | Cases and start | Test log's case count and first start: AcademicCredentials 398 / 2016-04-15 23:47:55; BPIC_2012_W 2,976 / 2012-01-07 09:04:12.635; BPIC_2017_W 7,376 / 2016-09-17 06:07:22 (UTC) |
-| Repetitions | 5; first pass 1–3 (this commit), second pass 4–5 |
+| Repetitions | 5; first pass 1–3, second pass 4–5 |
 
 ## Data and baselines
 
@@ -283,78 +283,92 @@ Runs before the batch, none of them reported:
 
 The batch then restarted from scratch on v3.2; only the cached baseline runs were reused.
 
-During the batch the computer went into standby twice. Runs paused and continued; two runs failed with
-connection errors (`llm_error`) and were re-run. All 162 records have a final status.
+During the first pass the computer went into standby twice. Runs paused and continued; two runs failed with
+connection errors (`llm_error`) and were re-run.
 
-## Stage 2 results (repetitions 1–3)
+**Second pass (repetitions 4–5).** Same script, configuration, KPI objects and seeds; GLASS code unchanged. The
+records show `glass_commit` `07fa5f7`, the commit that added this study's first-pass results; `goal_to_parameters/`
+is identical to `c2f7f53` (`git diff c2f7f53 07fa5f7 -- goal_to_parameters` is empty). The pass was interrupted
+by the session ending and by standby (lid closed) and resumed each time; runs paused, none failed. After 76 of
+the 108 runs it was restarted with 4 workers instead of 2. Each run is an independent process with its own fixed
+seeds, and the Python Prosimos backend has no timeout, so the worker count changes only the run order and
+`elapsed_s`.
 
-The batch produced 162 records, all with status `ok` after the completion step. Seven runs had
-`status_at_run = no_initial_proposal`: six were completed with their final (iteration 2) and one with a kept
-baseline. The verifier recomputes everything listed under Scoring and finds 0 mismatches
-(`results/stage2/verification.md`), including the distances recomputed from the logs for a sample of three runs.
-A tampered copy (a validity flag, an NIS value and a switch changed) was detected.
+## Stage 2 results (five repetitions)
 
-**Per variant** (`results/stage2/ablation_per_variant.csv`; 27 runs per variant). The p-value compares each
+The two passes produced 270 records, all with status `ok` after the completion step. Twelve runs had
+`status_at_run = no_initial_proposal` (7 in repetitions 1–3, 5 in 4–5): nine were completed with their final
+(iteration 2) and three with a kept baseline. The verifier recomputes everything listed under Scoring and finds
+0 mismatches (`results/stage2/verification.md`), including the distances recomputed from the logs for a sample of
+three runs. A tampered copy (a validity flag, an NIS value and a switch changed) was detected.
+
+**Per variant** (`results/stage2/ablation_per_variant.csv`; 45 runs per variant). The p-value compares each
 variant with V_full: Fisher's exact test for rates, a paired sign test for means. Rates count all runs. Means
 (DHR, NIS, distances, merge stability) are over the runs with a final scenario.
 
 | Measure | V_full | V_no_log | V_no_context | V_no_kb | V_no_refine | V_old_refine |
 |---|---|---|---|---|---|---|
-| Scenario produced | 22/27 | 16/27 (p 0.135) | 24/27 (p 0.704) | 24/27 (p 0.704) | 16/27 (p 0.135) | 25/27 (p 0.420) |
-| Valid | 21/27 | 16/27 (p 0.241) | 24/27 (p 0.467) | 24/27 (p 0.467) | 16/27 (p 0.241) | 25/27 (p 0.250) |
-| Executable | 22/27 | 16/27 (p 0.135) | 24/27 (p 0.704) | 24/27 (p 0.704) | 16/27 (p 0.135) | 25/27 (p 0.420) |
-| Merge stability > 0 | 22/27 | 16/27 (p 0.135) | 24/27 (p 0.704) | 24/27 (p 0.704) | 16/27 (p 0.135) | 25/27 (p 0.420) |
-| All KPIs improved | 11/27 | 9/27 (p 0.779) | 11/27 (p 1.000) | 17/27 (p 0.173) | 10/27 (p 1.000) | 12/27 (p 1.000) |
-| DHR | 0.57 | 0.59 (p 1.000) | 0.48 (p 1.000) | 0.75 (p 0.109) | 0.72 (p 0.625) | 0.54 (p 0.754) |
-| NIS | 2.63 | 3.50 (p 0.790) | 4.22 (p 0.332) | 11.54 (p 0.263) | 4.95 (p 0.774) | 3.63 (p 1.000) |
-| Admissible (valid, executable, merge stability > 0) | 21/27 | 16/27 (p 0.241) | 24/27 (p 0.467) | 24/27 (p 0.467) | 16/27 (p 0.241) | 25/27 (p 0.250) |
-| Admissible and all KPIs improved | 10/27 | 9/27 (p 1.000) | 11/27 (p 1.000) | 17/27 (p 0.102) | 10/27 (p 1.000) | 12/27 (p 0.782) |
-| Average Cycle Time improved (G1, G1G2) | 8/18 | 5/18 (p 0.489) | 8/18 (p 1.000) | 13/18 (p 0.176) | 7/18 (p 1.000) | 8/18 (p 1.000) |
-| X waiting time improved (G2, G1G2) | 10/18 | 9/18 (p 1.000) | 9/18 (p 1.000) | 12/18 (p 0.733) | 10/18 (p 1.000) | 12/18 (p 0.733) |
-| At least one KPI improved with p < 0.05 | 5/27 | 4/27 (p 1.000) | 4/27 (p 1.000) | 13/27 (p 0.042) | 6/27 (p 1.000) | 6/27 (p 1.000) |
-| Loop kept the baseline (no_improving_scenario) | 5/27 | 11/27 (p 0.135) | 3/27 (p 0.704) | 3/27 (p 0.704) | 11/27 (p 0.135) | 2/27 (p 0.420) |
-| Loop discarded a better initial | 1/27 | 3/27 (p 0.610) | 1/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) | 2/27 (p 1.000) |
-| At least one direction_inconsistent rejection | 8/27 | 9/27 (p 1.000) | 7/27 (p 1.000) | 2/27 (p 0.076) | 5/27 (p 0.526) | 6/27 (p 0.757) |
-| direction_inconsistent rejections per run | 1.48 | 1.11 (p 0.727) | 1.04 (p 0.219) | 0.22 (p 0.070) | 0.30 (p 0.008) | 0.74 (p 0.289) |
-| Merge stability (applied / proposed) | 0.88 | 0.86 (p 1.000) | 0.84 (p 1.000) | 0.98 (p 0.375) | 0.86 (p 1.000) | 0.87 (p 0.625) |
-| Merge stability, GLASS's value | 0.98 | 1.00 | 0.99 (p 1.000) | 1.00 (p 1.000) | 1.00 (p 1.000) | 1.00 (p 1.000) |
-| Share of modifications on X | 0.56 | 0.35 (p 0.039) | 0.56 (p 0.688) | 0.31 (p 0.039) | 0.54 (p 0.375) | 0.51 (p 1.000) |
-| Modifications | 2.18 | 2.00 (p 1.000) | 2.00 (p 0.375) | 2.21 (p 1.000) | 2.19 (p 1.000) | 2.12 (p 1.000) |
-| Iterations used | 2.15 | 2.56 (p 0.302) | 1.89 (p 0.607) | 1.52 (p 0.238) | 1.00 (p 0.000) | 1.74 (p 0.302) |
-| CTD to the test log | 42.32 | 39.59 (p 0.424) | 40.40 (p 0.143) | 53.50 (p 0.503) | 45.94 (p 0.774) | 41.63 (p 1.000) |
-| RED to the test log | 65.26 | 61.16 (p 0.790) | 65.20 (p 0.332) | 68.18 (p 0.263) | 60.73 (p 0.388) | 65.27 (p 1.000) |
-| CWD to the test log | 2.03 | 1.85 (p 0.424) | 1.99 (p 1.000) | 1.98 (p 0.503) | 2.00 (p 0.146) | 2.01 (p 1.000) |
-| inter_arrival_time proposed (skipped by the merger) | 0/27 | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) |
-| Hourly rate changed | 0/27 | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) | 0/27 (p 1.000) |
+| Scenario produced | 36/45 | 32/45 (p 0.462) | 38/45 (p 0.784) | 40/45 (p 0.384) | 31/45 (p 0.334) | 41/45 (p 0.230) |
+| Valid | 35/45 | 32/45 (p 0.629) | 38/45 (p 0.591) | 40/45 (p 0.258) | 31/45 (p 0.475) | 41/45 (p 0.144) |
+| Executable | 36/45 | 32/45 (p 0.462) | 38/45 (p 0.784) | 40/45 (p 0.384) | 31/45 (p 0.334) | 41/45 (p 0.230) |
+| Merge stability > 0 | 36/45 | 32/45 (p 0.462) | 38/45 (p 0.784) | 40/45 (p 0.384) | 31/45 (p 0.334) | 41/45 (p 0.230) |
+| All KPIs improved | 18/45 | 16/45 (p 0.828) | 19/45 (p 1.000) | 28/45 (p 0.057) | 19/45 (p 1.000) | 19/45 (p 1.000) |
+| DHR | 0.54 | 0.53 (p 1.000) | 0.53 (p 1.000) | 0.75 (p 0.035) | 0.69 (p 0.219) | 0.52 (p 1.000) |
+| NIS | 2.67 | 1.48 (p 1.000) | 3.54 (p 0.093) | 11.02 (p 0.728) | 4.48 (p 0.503) | 3.02 (p 1.000) |
+| Admissible (valid, executable, merge stability > 0) | 35/45 | 32/45 (p 0.629) | 38/45 (p 0.591) | 40/45 (p 0.258) | 31/45 (p 0.475) | 41/45 (p 0.144) |
+| Admissible and all KPIs improved | 17/45 | 16/45 (p 1.000) | 19/45 (p 0.830) | 28/45 (p 0.034) | 19/45 (p 0.830) | 19/45 (p 0.830) |
+| Average Cycle Time improved (G1, G1G2) | 13/30 | 10/30 (p 0.596) | 15/30 (p 0.796) | 23/30 (p 0.017) | 15/30 (p 0.796) | 12/30 (p 1.000) |
+| X waiting time improved (G2, G1G2) | 15/30 | 14/30 (p 1.000) | 15/30 (p 1.000) | 19/30 (p 0.435) | 17/30 (p 0.796) | 18/30 (p 0.604) |
+| At least one KPI improved with p < 0.05 | 7/45 | 5/45 (p 0.758) | 6/45 (p 1.000) | 21/45 (p 0.003) | 11/45 (p 0.430) | 9/45 (p 0.784) |
+| Loop kept the baseline (no_improving_scenario) | 9/45 | 13/45 (p 0.462) | 7/45 (p 0.784) | 5/45 (p 0.384) | 14/45 (p 0.334) | 4/45 (p 0.230) |
+| Loop discarded a better initial | 1/45 | 3/45 (p 0.616) | 1/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) | 2/45 (p 1.000) |
+| At least one direction_inconsistent rejection | 14/45 | 14/45 (p 1.000) | 13/45 (p 1.000) | 3/45 (p 0.006) | 10/45 (p 0.475) | 11/45 (p 0.638) |
+| direction_inconsistent rejections per run | 1.33 | 1.04 (p 1.000) | 1.09 (p 0.344) | 0.18 (p 0.007) | 0.40 (p 0.003) | 0.71 (p 0.180) |
+| Merge stability (applied / proposed) | 0.89 | 0.85 (p 0.289) | 0.82 (p 0.508) | 0.97 (p 0.180) | 0.88 (p 1.000) | 0.85 (p 0.727) |
+| Merge stability, GLASS's value | 0.98 | 1.00 (p 1.000) | 0.96 (p 1.000) | 1.00 (p 0.500) | 1.00 (p 0.500) | 1.00 (p 0.500) |
+| Share of modifications on X | 0.53 | 0.40 (p 0.031) | 0.56 (p 0.754) | 0.31 (p 0.041) | 0.54 (p 0.549) | 0.54 (p 0.790) |
+| Modifications | 2.22 | 2.09 (p 1.000) | 2.00 (p 0.070) | 2.23 (p 1.000) | 2.32 (p 0.754) | 2.05 (p 0.424) |
+| Iterations used | 2.18 | 2.22 (p 0.839) | 1.98 (p 0.405) | 1.71 (p 0.296) | 1.00 (p 0.000) | 1.91 (p 0.572) |
+| CTD to the test log | 39.54 | 38.46 (p 0.839) | 39.35 (p 0.405) | 52.42 (p 0.035) | 45.08 (p 0.263) | 42.35 (p 0.557) |
+| RED to the test log | 66.55 | 63.52 (p 0.839) | 63.78 (p 0.678) | 67.05 (p 0.163) | 62.95 (p 1.000) | 63.05 (p 0.845) |
+| CWD to the test log | 1.93 | 1.86 (p 0.541) | 1.98 (p 1.000) | 1.98 (p 0.296) | 1.97 (p 0.115) | 2.08 (p 0.845) |
+| inter_arrival_time proposed (skipped by the merger) | 0/45 | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) |
+| Hourly rate changed | 0/45 | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) | 0/45 (p 1.000) |
 
-**Reading the table (repetitions 1–3 only)**
+**Reading the table**
 
 - **Primary measures.** No variant is significantly worse than V_full on any primary measure, and V_full is not
   ahead on any of them.
-  - V_no_log and V_no_refine produce a scenario least often: 16 of 27, against 22 for V_full. In 11 runs each,
-    the loop kept the baseline because no iteration improved on it. Neither difference is significant (p = 0.135).
-  - V_no_kb improves most often: all KPIs in 17 of 27 runs, at least one KPI significantly in 13 of 27 against
-    5 for V_full (p = 0.042). It also has the highest NIS (+11.5 against +2.6).
+  - V_no_refine and V_no_log produce a scenario least often: 31 and 32 of 45, against 36 for V_full. The loop
+    kept the baseline in 14 and 13 runs. Neither difference is significant.
+  - V_no_kb improves most often: all KPIs in 28 of 45 runs against 18 (p = 0.057), admissible and all KPIs
+    improved 28 against 17 (p = 0.034), at least one KPI significantly in 21 against 7 (p = 0.003), DHR 0.75
+    against 0.54 (p = 0.035). It also has the highest NIS (+11.0 against +2.7; p = 0.728).
   - With knowledge-base material, the model more often states changes whose direction contradicts their values:
-    1.48 rejections per run for V_full against 0.22 for V_no_kb (p = 0.070). V_no_kb also aims fewer changes at
-    X: a share of 0.31 against 0.56 (p = 0.039).
-- **Log evidence aims changes at X.** Without it (V_no_log), the share of modifications on X falls from 0.56 to
-  0.35 (p = 0.039).
+    1.33 rejections per run for V_full against 0.18 for V_no_kb (p = 0.007). V_no_kb also aims fewer changes at
+    X: a share of 0.31 against 0.53 (p = 0.041).
+  - V_no_kb's final logs are further from the real test log in control flow (CTD 52.4 against 39.5, p = 0.035).
+- **Log evidence aims changes at X.** Without it (V_no_log), the share of modifications on X falls from 0.53 to
+  0.40 (p = 0.031).
 - **Refinement.**
-  - V_old_refine (the v2 rules) ends with an admissible scenario most often (25 of 27), with no more
+  - V_old_refine (the v2 rules) ends with an admissible scenario most often (41 of 45), with no more
     improvements than V_full.
-  - "Loop discarded a better initial" is rare in all variants (0–3 of 27).
-- **Validity.** Only one final scenario that was produced is not valid: V_full, AcademicCredentials_G1G2 rep 2.
-  The model extended working hours on 10183_profile. That profile's calendar is shared by 289 of the 306
-  resources, so the change applied to all of them and staff cost rose by +311 %. GLASS's budget check rejected
-  the scenario, but GLASS returned it after three attempts as the best available proposal. The batch scores it
-  not valid.
+  - "Loop discarded a better initial" is rare in all variants (0–3 of 45).
+- **Validity.** Only one final scenario that was produced is not valid, the same as after repetitions 1–3:
+  V_full, AcademicCredentials_G1G2 rep 2. The model extended working hours on 10183_profile. That profile's
+  calendar is shared by 289 of the 306 resources, so the change applied to all of them and staff cost rose by
+  +311 %. GLASS's budget check rejected the scenario, but GLASS returned it after three attempts as the best
+  available proposal. The batch scores it not valid. Every produced final was executable.
 - **Constraints never broken.** No final changed demand or an hourly rate.
-- **By dataset.** Runs with a significant KPI improvement: AcademicCredentials 25 of 54, BPIC_2012_W 6 of 54,
-  BPIC_2017_W 7 of 54. On AcademicCredentials, the levers that work shorten the timer before X; activity
-  durations of seconds barely move cycle times of days. The loop kept the baseline in 17, 14 and 4 runs.
-- **Power.** With 27 runs per variant, most differences are not significant. Repetitions 4–5 (Phase 7) add 18
-  runs per variant.
+- **By dataset.** Runs with a significant KPI improvement: AcademicCredentials 39 of 90, BPIC_2012_W 12 of 90,
+  BPIC_2017_W 8 of 90. On AcademicCredentials, the levers that work shorten the timer before X; activity
+  durations of seconds barely move cycle times of days. The loop kept the baseline in 27, 20 and 5 runs.
+- **The two passes agree** on V_no_kb's lead: DHR 0.75 in both; NIS +11.5 and +10.2; at least one KPI
+  significantly improved in 13 of 27 and 8 of 18 runs, against 5 of 27 and 2 of 18 for V_full. The other
+  variants change places between passes. V_no_log kept the baseline in 11 of 27 runs in repetitions 1–3 and in 2
+  of 18 in repetitions 4–5; its NIS was +3.5 and −0.6.
+- **Power.** With 45 runs per variant, only V_no_kb's differences reach p < 0.05 on the primary measures. The
+  other differences among V_full, V_no_log, V_no_context and V_old_refine are within run-to-run variation.
 
 ## GLASS behaviour observed
 
@@ -368,9 +382,12 @@ These are reported as findings; GLASS was changed only where noted.
   (e.g. 235,566 s) as an activity's processing time (825.5 s). After GLASS's baseline check corrected the quote,
   it kept its target value, so a "decrease" became an increase of up to 218×. This was found in the first batch
   attempt; since `19c8478` such a modification is rejected (`direction_inconsistent`).
-- **Timer changes aimed at the activity name.** In the 7 `no_initial_proposal` runs, iteration 1 changed a
-  timer's duration with the following activity's name as the target ("W_Call after offers"), although the
-  prompt lists the timers, some named "Timer before W_Call after offers". GLASS rejected every attempt.
+- **Why iteration 1 produced no scenario.** GLASS rejected every attempt of iteration 1 in the 12
+  `no_initial_proposal` runs:
+  - in 8, the model changed a timer's duration with the following activity's name as the target ("W_Call after
+    offers"), although the prompt lists the timers, some named "Timer before W_Call after offers";
+  - in 3 (AcademicCredentials_G2), it "decreased" an instantaneous activity's duration from 0 s to 0 s (no-op);
+  - in 1, it used direction "differentiate" without a context condition.
 - **The loop's single seed misleads.** The loop judges a proposal on one run (seed 42); the final evaluation uses
   10 seeds. Adding one person to a one-person profile often "improves" at seed 42 and is slightly worse over 10
   seeds.
@@ -388,6 +405,7 @@ python evaluation/real_life_ablation/scripts/compute_waiting_times.py
 python evaluation/real_life_ablation/scripts/build_config.py
 python evaluation/real_life_ablation/scripts/run_stage1_ablation.py
 python evaluation/real_life_ablation/scripts/run_ablation_batch.py --reps 1,2,3 --workers 2
+python evaluation/real_life_ablation/scripts/run_ablation_batch.py --reps 4,5 --workers 2
 python evaluation/real_life_ablation/scripts/complete_ablation_records.py
 python evaluation/real_life_ablation/scripts/ablation_reporting.py
 python evaluation/real_life_ablation/scripts/verify_ablation.py
