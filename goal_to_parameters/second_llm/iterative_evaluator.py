@@ -3,11 +3,17 @@
 Runs a generate→simulate→evaluate→feedback cycle until the proposed scenario
 meets every target — a KPI with a numeric threshold has *achieved* it, a KPI
 without one has *improved* — or the max iteration count is reached.
-The best result across all iterations is returned.
+The best result across all iterations is returned. When no iteration improves on the
+baseline (no positive score), the baseline is kept: the result says so
+(``no_improving_scenario``) and carries the best iteration for inspection only.
 
 Iteration selection: most achieved targets first, then most improved KPIs, then a
 goal-programming scoring function with prospect-theoretic loss aversion
 (Kahneman & Tversky, 1979; λ=2.25).
+
+``legacy_refinement=True`` restores the earlier rules for comparison (ablation): stop at the
+first iteration whose overall status is ``improved``, and select the best iteration by score
+alone. Off by default.
 """
 
 from __future__ import annotations
@@ -109,6 +115,23 @@ class IterativeEvaluationResult:
     total_time_seconds: float = 0.0
     baseline_kpis: KPIComputationResult | None = None
     error: str | None = None
+    # No iteration improved on the baseline (no positive score): the baseline is kept,
+    # best_iteration_idx is None and the best iteration is attached for inspection only.
+    no_improving_scenario: bool = False
+    best_candidate_idx: int | None = None
+
+    @property
+    def outcome(self) -> str:
+        """"no_improving_scenario" when the baseline is kept, else "scenario" (or "error")."""
+        if self.error:
+            return "error"
+        return "no_improving_scenario" if self.no_improving_scenario else "scenario"
+
+    @property
+    def best_candidate(self) -> IterationResult | None:
+        if self.best_candidate_idx is not None and self.best_candidate_idx < len(self.iterations):
+            return self.iterations[self.best_candidate_idx]
+        return None
 
     @property
     def best(self) -> IterationResult | None:
@@ -518,17 +541,19 @@ def _selection_key(it: IterationResult) -> tuple[int, int, float]:
     return it.achieved_count, it.improved_count, it.score
 
 
-def _select_best_iteration(iterations: list[IterationResult]) -> int | None:
-    """Index of the best iteration: most achieved targets, then most improved KPIs, then score.
+def _select_best_iteration(iterations: list[IterationResult], by_score_only: bool = False) -> int | None:
+    """Index of the best iteration: most achieved targets, then most improved KPIs, then score
+    (``by_score_only``: score alone, the earlier rule).
 
     Ties keep the earlier iteration. Failed iterations rank last.
     """
     if not iterations:
         return None
+    key_of = (lambda it: (it.score,)) if by_score_only else _selection_key
     best_idx = 0
-    best_key = _selection_key(iterations[0])
+    best_key = key_of(iterations[0])
     for i, it in enumerate(iterations[1:], 1):
-        key = _selection_key(it)
+        key = key_of(it)
         if key > best_key:
             best_key = key
             best_idx = i
@@ -549,6 +574,7 @@ def run_iterative_evaluation(
     on_iteration: Callable[[int, str], None] | None = None,
     log_profile: dict[str, Any] | None = None,
     context_profile: dict[str, Any] | None = None,
+    legacy_refinement: bool = False,
 ) -> IterativeEvaluationResult:
     """Run the iterative generate→simulate→evaluate→feedback loop.
 
@@ -578,6 +604,11 @@ def run_iterative_evaluation(
         Event-log profile dict passed to generate_scenario for RAG retrieval.
     context_profile
         Context profile dict passed to generate_scenario for evidence filtering.
+    legacy_refinement
+        Use the earlier refinement rules (for ablation): stop at the first iteration whose
+        overall status is ``improved``, and select the best iteration by score alone.
+        Default False: stop when the targets are met; select by achieved targets, then
+        improved KPIs, then score.
     """
     t0 = time.time()
     result = IterativeEvaluationResult()
@@ -651,7 +682,11 @@ def run_iterative_evaluation(
 
         # Done when every KPI with a threshold has achieved it and every KPI without
         # one has improved (without thresholds: every computed KPI improved).
-        if iter_result.targets_met:
+        # Earlier rule (legacy_refinement): overall status improved.
+        if legacy_refinement and iter_result.status == OverallStatus.IMPROVED:
+            _notify(i, "All KPIs improved! Stopping.")
+            break
+        if not legacy_refinement and iter_result.targets_met:
             _notify(i, "All targets met! Stopping.")
             break
 
@@ -664,7 +699,15 @@ def run_iterative_evaluation(
             _notify(i, f"Result: {status_label} — refining...")
 
     # --- Step 3: Select best ---
-    result.best_iteration_idx = _select_best_iteration(result.iterations)
+    best_idx = _select_best_iteration(result.iterations, by_score_only=legacy_refinement)
+    if best_idx is not None and not any(it.score > 0 for it in result.iterations):
+        # No iteration improves on the baseline by the score: keep the baseline and attach
+        # the best iteration for inspection instead of returning it as the final scenario.
+        result.no_improving_scenario = True
+        result.best_candidate_idx = best_idx
+        _notify(len(result.iterations), "No iteration improved on the baseline; keeping the baseline.")
+    else:
+        result.best_iteration_idx = best_idx
     if result.best is not None:
         result.final_status = result.best.status
 

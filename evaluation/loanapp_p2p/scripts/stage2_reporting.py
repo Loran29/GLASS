@@ -8,7 +8,9 @@ Adds to stage2_summary.csv (one value per run, repeated on its initial and final
   loop_discarded_better_initial   the loop's final (best iteration) differs from iteration 1 and the initial
                       scenario scores better than the final under the primary rules (initial valid, and the
                       final invalid or with fewer KPIs improved) or the secondary ones (higher recall or higher
-                      CTD improvement ratio)
+                      CTD improvement ratio). GLASS v3.2 can keep the baseline (loop.no_improving_scenario, no
+                      final scenario): such a run counts only if the initial was valid and improved at least one
+                      KPI (reason "primary: final not valid (baseline kept)")
   loop_discarded_reason  which of those criteria hold, plus "GLASS utilization metric rose as backlog cleared"
                       when GLASS's utilization KPI rose for the initial scenario while the pool utilization fell
   util_improved_glass / util_improved_batch / all_kpis_improved_glass_rule   both utilization verdicts
@@ -48,6 +50,11 @@ def discarded(rec: dict) -> tuple[bool, str]:
     ev = rec.get("evaluation") or {}
     ini, fin = ev.get("initial") or {}, ev.get("final") or {}
     if rec.get("status") != "ok" or not ini.get("kpis") or fin.get("same_as_initial") or fin.get("iteration") == 1:
+        return False, ""
+    if (rec.get("loop") or {}).get("no_improving_scenario"):
+        # GLASS v3.2 kept the baseline: discarded only if the initial was valid and improved a KPI (10 seeds)
+        if ini.get("valid") is True and n_improved(ini) > 0:
+            return True, f"primary: final not valid (baseline kept), KPIs improved {n_improved(ini)}/0"
         return False, ""
     reasons = []
     if ini.get("valid") is True and (fin.get("valid") is not True or n_improved(ini) > n_improved(fin)):

@@ -764,6 +764,7 @@ def _get_evaluation_targets() -> list:
             category=kpi.get("category", ""),
             is_safeguard=(direction == TargetDirection.MAINTAIN),
             unit=kpi.get("unit", ""),
+            measurable_as=kpi.get("measurable_as") or None,
             description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
         ))
     return targets
@@ -836,6 +837,12 @@ def _run_iterative_optimization(orch, ws, total_cases: int = 1000) -> None:
 
     if iter_result.error:
         status_container.update(label="Optimization failed", state="error")
+    elif iter_result.no_improving_scenario:
+        status_container.update(
+            label=f"No iteration improved on the baseline after {iter_result.total_iterations} iteration(s); "
+                  "the baseline is kept",
+            state="complete",
+        )
     elif iter_result.improved:
         status_container.update(
             label=f"All KPIs improved after {iter_result.total_iterations} iteration(s)!",
@@ -951,6 +958,17 @@ def _render_iterative_optimization_result() -> None:
             # Bump the nonce so the dataframe re-renders with no row selected.
             st.session_state["_iter_optim_select_nonce"] = _select_nonce + 1
             st.rerun()
+
+    if iter_result.no_improving_scenario:
+        cand = iter_result.best_candidate
+        st.warning(
+            "No iteration improved on the baseline, so no scenario is proposed and the baseline is kept."
+            + (f" The least worse iteration (#{cand.iteration}, score {cand.score:.1f}) is shown below for "
+               "inspection only." if cand is not None else "")
+        )
+        if cand is not None and cand.eval_result and cand.eval_result.ok:
+            with st.expander(f"Iteration #{cand.iteration} KPI comparison (not adopted)", expanded=False):
+                _render_kpi_comparison_lines(cand.eval_result.kpi_comparisons)
 
     # Best result KPI details
     best = iter_result.best

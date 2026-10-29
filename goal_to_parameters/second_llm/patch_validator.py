@@ -139,24 +139,24 @@ def _check_direction_consistency(
             ),
             modification_index=idx, element=mod.target_element,
         )
-    if mod.direction == ModificationDirection.INCREASE and prop < base:
-        return PatchDiagnostic(
-            severity="warning", category="direction_inconsistent",
-            message=(
-                f"Modification #{idx} on '{mod.target_element}' claims "
-                f"direction='increase' but proposed ({prop}) < baseline ({base})."
-            ),
-            modification_index=idx, element=mod.target_element,
-        )
-    if mod.direction == ModificationDirection.DECREASE and prop > base:
-        return PatchDiagnostic(
-            severity="warning", category="direction_inconsistent",
-            message=(
-                f"Modification #{idx} on '{mod.target_element}' claims "
-                f"direction='decrease' but proposed ({prop}) > baseline ({base})."
-            ),
-            modification_index=idx, element=mod.target_element,
-        )
+    # A stated direction that contradicts the values is an error: the modification is rejected
+    # (e.g. a "decrease" whose proposed value is far above the baseline would otherwise be applied
+    # as a large increase).
+    for stated, wrong, relation, wanted in (
+        (ModificationDirection.INCREASE, prop < base, "smaller", "above"),
+        (ModificationDirection.DECREASE, prop > base, "larger", "below"),
+    ):
+        if mod.direction == stated and wrong:
+            return PatchDiagnostic(
+                severity="error", category="direction_inconsistent",
+                message=(
+                    f"Modification #{idx} on '{mod.target_element}' was rejected: it states "
+                    f"direction='{stated.value}', but the proposed value ({prop:g}) is {relation} than "
+                    f"the baseline value ({base:g}). Propose a value {wanted} {base:g} for a "
+                    f"{stated.value}, or state the direction that matches the change."
+                ),
+                modification_index=idx, element=mod.target_element,
+            )
     return None
 
 

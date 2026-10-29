@@ -1,0 +1,461 @@
+{
+  "AcademicCredentials_G1": {
+    "source_cell": "AcademicCredentials_G1__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "AcademicCredentials_G1__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Case Cycle Time",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce the overall time taken to complete academic credential requests while identifying and addressing potential bottlenecks in the process.",
+      "kpis": [
+        {
+          "name": "Average Case Cycle Time",
+          "description": "The average time taken from the initiation of a credential request to its completion.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total elapsed time for each credential request case.",
+            "measurable": "Computed as the average of the cycle time hours derived from the first and last timestamps per case.",
+            "achievable": "The target can be realistically reduced through process optimization and efficiency improvements.",
+            "relevant": "Directly addresses the goal of completing requests sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": "case_cycle_time_hours"
+        }
+      ],
+      "reasoning": "This KPI set is designed to directly address the goal of completing credential requests sooner by measuring overall cycle time, identifying waiting bottlenecks before key activities, and providing context-aware targets based on day of the week and hour of the day. Each KPI is grounded in the provided event log evidence, ensuring they are measurable and relevant to the process's performance. The context segmentation reflects significant relationships identified in the evidence, allowing for targeted improvements."
+    }
+  },
+  "AcademicCredentials_G2": {
+    "source_cell": "AcademicCredentials_G2__full",
+    "sources": [
+      {
+        "expected": "Notificacion estudiante cancelacion soli Waiting Time",
+        "source_cell": "AcademicCredentials_G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Waiting Time Before Cancellation Notification",
+        "measurable_as": "Notificacion estudiante cancelacion soli Waiting Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce waiting times for credential requests before notifying students of cancellations, ensuring that requests do not sit idle during processing.",
+      "kpis": [
+        {
+          "name": "Average Waiting Time Before Cancellation Notification",
+          "description": "Average time spent waiting before notifying students of cancellation after the request has been cancelled.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the waiting time from the cancellation of a request to the notification of the student.",
+            "measurable": "Computed from the timestamps of Cancelar Solicitud and Notificacion estudiante cancelacion soli. Unit: hours.",
+            "achievable": "Reducing this waiting time is realistic through process improvements and better resource allocation.",
+            "relevant": "Directly addresses the goal of preventing requests from sitting idle before student notification.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(start_time('Notificacion estudiante cancelacion soli') - complete_time('Cancelar Solicitud')) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Notificacion estudiante cancelacion soli Waiting Time",
+          "measurable_as_raw": "activity_wait_time_hours"
+        }
+      ],
+      "reasoning": "This KPI set aligns with the simulation goal by focusing on reducing waiting times and ensuring timely notifications for cancelled requests. Each KPI is measurable based on the event log evidence, with clear definitions and formulas grounded in the process description. The set includes a direct measure of waiting time, a quality metric for notification efficiency, and a duration KPI for the validation process, all of which are essential for improving the overall efficiency of the credential requests process."
+    }
+  },
+  "AcademicCredentials_G1G2": {
+    "source_cell": "AcademicCredentials_G1G2__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "AcademicCredentials_G1G2__full",
+        "rep": 3,
+        "match": "strict",
+        "name": "Average Cycle Time for Credential Requests",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": false
+      },
+      {
+        "expected": "Notificacion estudiante cancelacion soli Waiting Time",
+        "source_cell": "AcademicCredentials_G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Waiting Time Before Cancellation Notification",
+        "measurable_as": "Notificacion estudiante cancelacion soli Waiting Time",
+        "from_own_cell": false,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce delays in the academic credentials process while ensuring that requests do not remain waiting before notifying students of cancellations.",
+      "kpis": [
+        {
+          "name": "Average Cycle Time for Credential Requests",
+          "description": "Average elapsed time from request initiation to case closure for completed credential requests.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total time taken to process credential requests from start to finish.",
+            "measurable": "Computed as the average time from the first event timestamp to the last event timestamp for each case. Unit: hours.",
+            "achievable": "A reduction target is realistic based on current process performance and potential for efficiency improvements.",
+            "relevant": "Directly addresses the goal of completing credential requests sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": "case_cycle_time_hours"
+        },
+        {
+          "name": "Average Waiting Time Before Cancellation Notification",
+          "description": "Average time spent waiting before notifying students of cancellation after the request has been cancelled.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the waiting time from the cancellation of a request to the notification of the student.",
+            "measurable": "Computed from the timestamps of Cancelar Solicitud and Notificacion estudiante cancelacion soli. Unit: hours.",
+            "achievable": "Reducing this waiting time is realistic through process improvements and better resource allocation.",
+            "relevant": "Directly addresses the goal of preventing requests from sitting idle before student notification.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(start_time('Notificacion estudiante cancelacion soli') - complete_time('Cancelar Solicitud')) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Notificacion estudiante cancelacion soli Waiting Time",
+          "measurable_as_raw": "activity_wait_time_hours"
+        }
+      ],
+      "reasoning": "This KPI set aligns with the simulation goal of reducing delays in the academic credentials process while ensuring timely notifications for cancellations. The first KPI measures overall cycle time, while the second focuses on minimizing waiting times specifically before cancellation notifications. The third KPI targets the validation step, which is critical for processing speed. The fourth KPI identifies potential bottlenecks in course recognition by day of the week, allowing for targeted improvements based on context evidence. All KPIs are grounded in the provided event log evidence and are measurable based on the available metrics."
+    }
+  },
+  "BPIC_2012_W_G1": {
+    "source_cell": "BPIC_2012_W_G1__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "BPIC_2012_W_G1__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Loan Application Cycle Time",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce the overall cycle time for loan applications by optimizing processing steps and minimizing delays in the application workflow.",
+      "kpis": [
+        {
+          "name": "Average Loan Application Cycle Time",
+          "description": "The average time taken from application arrival to case completion across all loan applications.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total elapsed time for loan applications from arrival to completion.",
+            "measurable": "Computed as the average time difference between the first and last timestamps for each case. Unit: hours.",
+            "achievable": "A reduction in cycle time is realistic through improved processing efficiency and reduced delays.",
+            "relevant": "Directly addresses the goal of completing loan applications sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": "case_cycle_time_hours"
+        }
+      ],
+      "reasoning": "This KPI set effectively targets the simulation goal of reducing loan application cycle time by focusing on overall cycle time, average wait times before key activities, and specific bottlenecks in the process. The KPIs are grounded in the provided event log evidence, ensuring they are measurable and relevant. The context segmentation for the wait time KPI allows for targeted improvements based on application variants, which is supported by the statistical evidence."
+    }
+  },
+  "BPIC_2012_W_G2": {
+    "source_cell": "BPIC_2012_W_G2__full",
+    "sources": [
+      {
+        "expected": "W_Nabellen offertes Waiting Time",
+        "source_cell": "BPIC_2012_W_G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Waiting Time Before Follow-Up Calls",
+        "measurable_as": "W_Nabellen offertes Waiting Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Minimize waiting times for follow-up calls on loan offers by ensuring that loan applications do not experience unnecessary delays in the processing steps.",
+      "kpis": [
+        {
+          "name": "Average Waiting Time Before Follow-Up Calls",
+          "description": "Average time spent waiting before making follow-up calls on offers after completing the application.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the waiting time from the completion of the application to the follow-up call on offers.",
+            "measurable": "Computed as the average elapsed time between the completion of the application and the follow-up call on offers across all cases. Unit: hours.",
+            "achievable": "Reducing waiting time is realistic through better scheduling and prioritization of follow-up calls.",
+            "relevant": "Directly addresses the goal of minimizing waiting times before follow-up calls.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(start_time('W_Nabellen offertes') - complete_time('W_Completeren aanvraag')) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "activity_level",
+          "context_segmentation": [],
+          "measurable_as": "W_Nabellen offertes Waiting Time",
+          "measurable_as_raw": null
+        }
+      ],
+      "reasoning": "This KPI set is designed to address the simulation goal of minimizing waiting times before follow-up calls on loan offers. The first KPI measures the average waiting time specifically for follow-up calls, while the second KPI maintains the overall case cycle time to ensure timely processing. The third KPI segments waiting times by application variant, providing insights into how different variants impact delays. All KPIs are grounded in the event log evidence, ensuring they are measurable and relevant to the process."
+    }
+  },
+  "BPIC_2012_W_G1G2": {
+    "source_cell": "BPIC_2012_W_G1G2__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "BPIC_2012_W_G1G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Loan Application Cycle Time",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      },
+      {
+        "expected": "W_Nabellen offertes Waiting Time",
+        "source_cell": "BPIC_2012_W_G1G2__full",
+        "rep": 3,
+        "match": "strict",
+        "name": "Average Waiting Time Before Follow-Up Calls",
+        "measurable_as": "W_Nabellen offertes Waiting Time",
+        "from_own_cell": true,
+        "from_rep_1": false
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce the overall cycle time for loan applications while minimizing waiting times before follow-up calls on offers.",
+      "kpis": [
+        {
+          "name": "Average Loan Application Cycle Time",
+          "description": "The average time taken from application arrival to case completion, measured in hours.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total time taken for loan applications to be completed.",
+            "measurable": "Computed as the average of the case_cycle_time_hours derived from the event log.",
+            "achievable": "Reducing cycle time is realistic through process improvements and better resource allocation.",
+            "relevant": "Directly addresses the goal of completing loan applications sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": null
+        },
+        {
+          "name": "Average Waiting Time Before Follow-Up Calls",
+          "description": "The average waiting time before the follow-up call on offers after application completion.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the elapsed time from W_Completeren aanvraag to W_Nabellen offertes.",
+            "measurable": "Computed as the average of the waiting times derived from the timestamps of these two activities.",
+            "achievable": "Reducing waiting time is feasible through better scheduling and resource allocation.",
+            "relevant": "Directly addresses the goal of minimizing delays before follow-up calls.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(start_time('W_Nabellen offertes') - end_time('W_Completeren aanvraag')) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "activity_level",
+          "context_segmentation": [],
+          "measurable_as": "W_Nabellen offertes Waiting Time",
+          "measurable_as_raw": null
+        }
+      ],
+      "reasoning": "This KPI set is designed to address the simulation goal of reducing loan application cycle times and minimizing waiting times before follow-up calls. The first KPI measures overall cycle time, while the second focuses on waiting times before follow-up calls, ensuring timely customer engagement. The third KPI targets waiting times specifically for leads handling, segmented by process variants, allowing for targeted improvements based on evidence-supported relationships. All KPIs are grounded in the event log data, ensuring they are measurable and relevant."
+    }
+  },
+  "BPIC_2017_W_G1": {
+    "source_cell": "BPIC_2017_W_G1__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "BPIC_2017_W_G1__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Loan Application Cycle Time",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce the overall cycle time for loan applications by optimizing the completion process while minimizing delays caused by customer follow-ups and validations.",
+      "kpis": [
+        {
+          "name": "Average Loan Application Cycle Time",
+          "description": "The average time taken from the start of the loan application process to its completion.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total cycle time for loan applications from start to finish.",
+            "measurable": "Computed as the average of case_cycle_time_hours derived from the first and last timestamps per case. Unit: hours.",
+            "achievable": "A reduction target is realistic based on current process performance and potential improvements identified.",
+            "relevant": "Directly addresses the goal of completing loan applications sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": null
+        }
+      ],
+      "reasoning": "This KPI set is designed to address the goal of reducing loan application cycle times by focusing on overall cycle time, specific waiting times before validation, and the duration of the validation step itself. Each KPI is measurable based on the provided event log evidence, with the third KPI leveraging context evidence to segment performance by variant, allowing for targeted improvements. The set provides a comprehensive view of the process, identifying bottlenecks and opportunities for efficiency gains."
+    }
+  },
+  "BPIC_2017_W_G2": {
+    "source_cell": "BPIC_2017_W_G2__full",
+    "sources": [
+      {
+        "expected": "W_Validate application Waiting Time",
+        "source_cell": "BPIC_2017_W_G2__full",
+        "rep": 3,
+        "match": "strict",
+        "name": "Average Waiting Time Before Validation",
+        "measurable_as": "W_Validate application Waiting Time",
+        "from_own_cell": true,
+        "from_rep_1": false
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce waiting times before application validation in the loan application process while ensuring efficient handling of applications.",
+      "kpis": [
+        {
+          "name": "Average Waiting Time Before Validation",
+          "description": "The average waiting time before the application validation step in the loan application process.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the time spent waiting before the W_Validate application activity.",
+            "measurable": "Computed as the average of activity_wait_time_hours derived from the elapsed time between events leading to W_Validate application. Unit: hours.",
+            "achievable": "Reducing waiting times is feasible through better case management and prioritization.",
+            "relevant": "Directly addresses the goal of minimizing delays before application validation.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(activity_wait_time_hours) for W_Validate application across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "activity_level",
+          "context_segmentation": [],
+          "measurable_as": "W_Validate application Waiting Time",
+          "measurable_as_raw": null
+        }
+      ],
+      "reasoning": "This KPI set effectively targets the simulation goal of reducing waiting times before application validation. The first KPI measures overall case cycle time, while the second focuses specifically on waiting times before validation. The third KPI segments waiting times by application variant, allowing for targeted improvements based on evidence of variant performance differences. All KPIs are grounded in the event log evidence, ensuring they are measurable and relevant to the process."
+    }
+  },
+  "BPIC_2017_W_G1G2": {
+    "source_cell": "BPIC_2017_W_G1G2__full",
+    "sources": [
+      {
+        "expected": "Average Cycle Time",
+        "source_cell": "BPIC_2017_W_G1G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Loan Application Cycle Time",
+        "measurable_as": "Average Cycle Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      },
+      {
+        "expected": "W_Validate application Waiting Time",
+        "source_cell": "BPIC_2017_W_G1G2__full",
+        "rep": 1,
+        "match": "strict",
+        "name": "Average Waiting Time Before Validation",
+        "measurable_as": "W_Validate application Waiting Time",
+        "from_own_cell": true,
+        "from_rep_1": true
+      }
+    ],
+    "stage1_result": {
+      "simulation_goal_structured": "Reduce the waiting time for loan applications before validation while ensuring overall application completion is expedited.",
+      "kpis": [
+        {
+          "name": "Average Loan Application Cycle Time",
+          "description": "The average time taken from the start of the loan application process to its completion.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the total cycle time for completed loan applications.",
+            "measurable": "Computed as the average time from the first event (W_Handle leads) to the last event (case completion). Unit: hours.",
+            "achievable": "A reduction target is realistic based on the current cycle time median of 202.27 hours.",
+            "relevant": "Directly addresses the goal of completing loan applications sooner.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(case_cycle_time_hours) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "end_to_end",
+          "context_segmentation": [],
+          "measurable_as": "Average Cycle Time",
+          "measurable_as_raw": "case_cycle_time_hours"
+        },
+        {
+          "name": "Average Waiting Time Before Validation",
+          "description": "The average waiting time for loan applications before the validation step.",
+          "category": "time",
+          "smart_breakdown": {
+            "specific": "Measures the time between the last activity before validation and the start of the validation activity.",
+            "measurable": "Computed as the average time between the last event (W_Call after offers) and the start of W_Validate application. Unit: hours.",
+            "achievable": "Reducing this waiting time is feasible based on current process patterns.",
+            "relevant": "Directly supports the goal of reducing delays before application validation.",
+            "time_bound": "Evaluated across all simulated cases in the run"
+          },
+          "target_direction": "minimize",
+          "suggested_formula": "AVG(start_time('W_Validate application') - end_time('W_Call after offers')) across completed cases",
+          "supported_by_log": true,
+          "evidence_basis": "event_log_only",
+          "process_scope": "activity_level",
+          "context_segmentation": [],
+          "measurable_as": "W_Validate application Waiting Time",
+          "measurable_as_raw": "activity_wait_time_hours"
+        }
+      ],
+      "reasoning": "This KPI set effectively addresses the simulation goal by focusing on reducing waiting times before validation and overall cycle times for loan applications. The first KPI measures the average cycle time, while the second KPI specifically targets waiting times before validation. The third KPI segments waiting times by application variant, allowing for targeted improvements based on evidence-supported differences. All KPIs are grounded in the provided event log evidence, ensuring they are measurable and relevant."
+    }
+  }
+}

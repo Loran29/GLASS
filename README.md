@@ -276,6 +276,8 @@ Structured items may also be given in Prosimos's form, e.g. `{"from": "MONDAY", 
 
 `tests/test_resource_id_stems.py` covers stem, id and indexed-name resolution, the calendar target, `add_new`, an unknown name, the prompt copy, and the prompt the patch generator sends.
 
+**Direction must match the values.** The validator compares a modification's stated direction (`increase` / `decrease`) with its numeric baseline and proposed values; a contradiction (`direction_inconsistent`) is now an error, not a warning. Before, a "decrease" whose proposed value lay far above the baseline was merged and simulated as a large increase. This happened in the real-life ablation study: after its baseline quote was corrected, the LLM kept a target value meant for a timer, so a task of 825.5 s became 180,000 s. The retry feedback now states the direction, the baseline value and the proposed value, and asks for a value consistent with the direction. On the generator's last attempt only that modification is dropped, as for a baseline mismatch. `tests/test_direction_consistency.py` covers this.
+
 ---
 
 ## Refinement: KPI improved vs target achieved
@@ -333,6 +335,12 @@ No direction field is added to the knowledge-base entries; the rule is applied t
 **Where thresholds come from.** The UI's target builders do not set `threshold`, because the Stage 1 KPI schema has no numeric target. The behaviour above therefore applies when the caller sets it, as the Stage 2 batch evaluation does from its configuration.
 
 `tests/test_target_achieved.py` covers `achieved` in single-run and multi-seed comparisons, the stop rule with and without thresholds, the best-iteration order and the feedback text, using synthetic KPI series.
+
+**The loop measures the KPI it was given.** The loop's targets (`ui/second_llm_panel._get_evaluation_targets`) now carry each KPI's `measurable_as`, as the multi-seed evaluation's targets (`ui/evaluation_panel._get_kpi_targets_from_workspace`) already did. Before, the loop matched a KPI by its name: "Average Waiting Time Before Review" resolved to the process-wide "Average Waiting Time" instead of "Review Waiting Time". The loop's stop rule, its choice of the best iteration and its feedback could then rest on a different metric than the final evaluation. `tests/test_loop_targets_measurable_as.py` covers this.
+
+**Keeping the baseline.** When no iteration reaches a positive score, the loop now keeps the baseline: no KPI improved without another getting worse, by the existing goal-programming score. The result has `no_improving_scenario = True` (`outcome` `"no_improving_scenario"`) and `best_iteration_idx = None`. The iteration the selection rule would have picked is attached as `best_candidate_idx`, for inspection only. Before, the best of only-worse iterations was returned as the final scenario, even one that tripled the cycle time. The UI reports that the baseline is kept and shows the candidate's KPI comparison marked "not adopted". This applies with and without `legacy_refinement`, which changes only the stop and selection rules. `tests/test_keep_baseline.py` covers this.
+
+**Earlier rules, for ablation.** `run_iterative_evaluation(..., legacy_refinement=True)` restores the previous behaviour: stop at the first iteration whose overall status is `improved`, and choose the best iteration by score alone. It is off by default. The UI never sets it; it exists so evaluations can compare the two rules. `tests/test_legacy_refinement.py` covers it.
 
 ---
 
