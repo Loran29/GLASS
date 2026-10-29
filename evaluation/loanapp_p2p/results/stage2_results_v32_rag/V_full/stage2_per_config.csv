@@ -1,0 +1,15 @@
+config_id,process,goal_config,injected_problems,reps,reps_ok,mean_iterations_used,initial_valid,initial_all_kpis_improved,initial_valid_and_improved,initial_addressed_G1,initial_mean_precision,initial_mean_recall,initial_mean_improvement_ratio_CTD,initial_mean_improvement_ratio_RED,initial_mean_improvement_ratio_CWD,initial_mean_improvement_ratio_NGD,final_valid,final_all_kpis_improved,final_valid_and_improved,final_addressed_G1,final_mean_precision,final_mean_recall,final_mean_improvement_ratio_CTD,final_mean_improvement_ratio_RED,final_mean_improvement_ratio_CWD,final_mean_improvement_ratio_NGD,initial_addressed_G2,final_addressed_G2,initial_addressed_G3,final_addressed_G3,reps_loop_discarded_better_initial,initial_util_improved_glass,initial_util_improved_batch,initial_util_target_achieved_glass,initial_util_target_achieved_batch,initial_all_kpis_improved_glass_rule,final_util_improved_glass,final_util_improved_batch,final_util_target_achieved_glass,final_util_target_achieved_batch,final_all_kpis_improved_glass_rule
+LoanApp_G1,LoanApp,G1,G1,5,5,1,5,5,5,5,0.7,0.2,0.115,0.182,0.002,-0.046,5,5,5,5,0.7,0.2,0.115,0.182,0.002,-0.046,,,,,0,,,,,5,,,,,5
+LoanApp_G2,LoanApp,G2,G2,5,5,1,5,4,4,,0.267,0.2,0.177,0.149,0.009,-0.134,5,4,4,,0.267,0.2,0.177,0.149,0.009,-0.134,4,4,,,0,,,,,4,,,,,4
+LoanApp_G3,LoanApp,G3,G3,5,5,1,5,5,5,,0.5,1.0,0.791,0.698,-0.213,0.058,5,5,5,,0.5,1.0,0.791,0.698,-0.213,0.058,,,5,5,0,5,5,5,5,5,5,5,5,5,5
+LoanApp_G1G3,LoanApp,G1G3,G1|G3,5,5,3.2,5,0,0,4,0.633,0.18,0.812,0.812,-0.006,0.008,5,4,4,3,1.0,0.16,0.993,0.991,0.047,0.023,,,5,5,2,5,0,0,0,5,5,4,4,4,5
+Procure2Pay_G1,Procure2Pay,G1,G1,5,5,1,5,4,4,2,0.167,0.036,0.086,0.153,-4.738,-0.01,5,4,4,2,0.167,0.036,0.086,0.153,-4.738,-0.01,,,,,0,,,,,4,,,,,4
+LoanApp_G1G2,LoanApp,G1G2,G1|G2,5,5,1.6,5,5,5,4,0.683,0.169,0.15,0.128,0.026,-0.182,5,5,5,4,0.683,0.169,0.15,0.128,0.026,-0.182,4,4,,,0,,,,,5,,,,,5
+LoanApp_G2G3,LoanApp,G2G3,G2|G3,5,5,1,5,5,5,,0.567,0.28,0.219,0.202,0.067,0.046,5,5,5,,0.567,0.28,0.219,0.202,0.067,0.046,2,2,5,5,0,5,5,5,5,5,5,5,5,5,5
+LoanApp_G1G2G3,LoanApp,G1G2G3,G1|G2|G3,5,5,2.2,5,0,0,3,0.833,0.186,0.736,0.733,0.047,-0.061,5,5,5,3,1.0,0.129,0.986,0.983,0.139,0.024,4,0,4,5,3,4,0,0,0,4,5,5,5,5,5
+Procure2Pay_G2,Procure2Pay,G2,G2,5,5,1,5,5,5,,0.467,0.143,0.287,0.282,-0.05,-0.019,5,5,5,,0.467,0.143,0.287,0.282,-0.05,-0.019,5,5,,,0,,,,,5,,,,,5
+Procure2Pay_G3,Procure2Pay,G3,G3,5,5,1,5,5,5,,0.2,0.2,0.507,0.585,-3.441,0.006,5,5,5,,0.2,0.2,0.507,0.585,-3.441,0.006,,,1,1,0,5,5,5,5,5,5,5,5,5,5
+Procure2Pay_G1G3,Procure2Pay,G1G3,G1|G3,5,5,2.8,5,2,2,5,1.0,0.25,0.534,0.596,0.13,0.003,5,5,5,2,0.9,0.15,0.568,0.669,-1.389,0.011,,,5,5,3,5,2,2,2,5,5,5,5,5,5
+Procure2Pay_G1G2G3,Procure2Pay,G1G2G3,G1|G2|G3,5,4,4,4,0,0,2,0.75,0.092,0.582,0.676,-1.916,-0.033,0,0,0,0,,,,,,,0,0,4,0,4,4,4,4,4,0,0,0,0,0,0
+Procure2Pay_G1G2,Procure2Pay,G1G2,G1|G2,5,5,1.8,5,1,1,0,0.167,0.022,-0.024,0.165,-3.084,0.0,5,2,2,1,0.5,0.056,0.021,0.03,-0.07,-0.003,2,2,,,0,,,,,1,,,,,2
+Procure2Pay_G2G3,Procure2Pay,G2G3,G2|G3,5,5,2.2,5,3,3,,0.9,0.2,0.134,0.148,0.007,0.001,5,4,4,,1.0,0.225,0.178,0.195,0.02,0.004,4,5,4,4,0,4,4,5,5,3,4,4,5,5,4

@@ -71,6 +71,9 @@ def own_discarded(rec: dict) -> tuple[bool, str]:
     if rec.get("status") != "ok" or not a.get("kpis") or b.get("same_as_initial") or b.get("iteration") == 1:
         return False, ""
     imp = lambda e: len([k for k in e.get("kpis") or [] if k.get("improved") is True])
+    if (rec.get("loop") or {}).get("no_improving_scenario"):
+        kept = a.get("valid") is True and imp(a) > 0
+        return kept, f"primary: final not valid (baseline kept), KPIs improved {imp(a)}/0" if kept else ""
     why = []
     if a.get("valid") is True and (b.get("valid") is not True or imp(a) > imp(b)):
         why.append(f"primary: valid {a.get('valid')}/{b.get('valid')}, KPIs improved {imp(a)}/{imp(b)}")

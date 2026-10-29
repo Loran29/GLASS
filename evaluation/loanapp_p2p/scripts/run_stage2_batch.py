@@ -20,8 +20,14 @@ Records go to <out>/raw/<id>/rep_<k>.json; reruns resume (final statuses are ski
 Simulated logs are written next to the records but kept out of git (SHA-256 in the records, zipped per
 configuration in <out>/log_archives/).
 
+Variant (--variant, default V_full = the batch as before): V_no_kb switches the knowledge base off in generation
+and feedback with the real-life ablation's switch (evaluation/real_life_ablation/scripts/run_ablation_batch.py,
+disable_kb); the record gets variant, switches and kb_switch (stub call counts). GLASS v3.2 can keep the
+baseline (no_improving_scenario): the record's loop gets no_improving_scenario and best_candidate_iteration.
+
 Usage (repo root, Python environment with Prosimos, see stage2/README.md):
   python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
+         [--variant V_full|V_no_kb] [--out DIR]
 
 SCORING (analysis only; the recording is never changed by scoring)
 Primary
@@ -100,6 +106,7 @@ IMMUTABLE_STEPS = {"LoanApp": ["AML check", "Approve loan offer"],
                    "Procure2Pay": ["Authorize Supplier's Invoice payment"]}
 MAX_ADDED_PER_ROLE, MAX_COST_FACTOR, MAX_EXTRA_HOURS_PER_DAY = 3, 1.35, 2
 MEASURES = ("CTD", "RED", "CWD", "NGD")
+VARIANTS = {"V_full": {"use_kb": True}, "V_no_kb": {"use_kb": False}}
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
@@ -567,9 +574,12 @@ def run_rep(job: dict) -> dict:
 
     inputs = load_inputs(cfg, config)
     shared = job["shared"][cid]
+    variant = job.get("variant", "V_full")
     tracker, events, patches = {"iteration": 0}, [], Patches()
+    kb_counter = {"kb_stub_calls": 0, "feedback_kb_suppressed": 0}
     provider = Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
     record = {"config_id": cid, "process": cfg["process"], "goal_config": cfg["goal_config"],
+              "variant": variant, "switches": VARIANTS[variant],
               "rep": rep, "status": None, "error": None, "timestamp": t_start,
               "provider": type(provider.inner).__name__, "model": provider.get_model_name(),
               "glass_commit": job["glass_commit"], "config_sha256": job["config_sha"],
@@ -592,6 +602,10 @@ def run_rep(job: dict) -> dict:
         orch.accept_simod_raw_input(inputs["sim_params_text"], bpmn_xml=inputs["bpmn"])
         for turn in inputs["chat"]:
             orch.chat_session.append(ChatRole.USER, turn)
+        if not VARIANTS[variant]["use_kb"]:
+            sys.path.insert(0, str(BASE.parent / "real_life_ablation" / "scripts"))
+            from run_ablation_batch import disable_kb
+            disable_kb(patches, kb_counter)
         log_profile = job["log_profile"][cid]
         record["draft_payload"] = dump(orch.build_second_llm_request_draft(log_profile=log_profile))
 
@@ -613,6 +627,7 @@ def run_rep(job: dict) -> dict:
                                            start_time=settings["start"], seed=BASE_SEED, cost_per_hour=cost_map,
                                            on_iteration=on_iteration, log_profile=log_profile)
         patches.restore()
+        record["kb_switch"] = dict(kb_counter)
         if provider.fatal:
             return {"fatal": provider.fatal}
 
@@ -651,6 +666,9 @@ def run_rep(job: dict) -> dict:
             })
         record["loop"] = {"iterations": iterations, "best_iteration": (loop.best_iteration_idx + 1)
                           if loop.best_iteration_idx is not None else None,
+                          "no_improving_scenario": bool(getattr(loop, "no_improving_scenario", False)),
+                          "best_candidate_iteration": (loop.best_candidate_idx + 1)
+                          if getattr(loop, "best_candidate_idx", None) is not None else None,
                           "final_status": dump(loop.final_status), "error": loop.error,
                           "baseline_kpis_single_run": dump(loop.baseline_kpis),
                           "total_time_seconds": round(loop.total_time_seconds, 1)}
@@ -900,7 +918,7 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
         "compliance calls: 0.1",
         f"- Iterations: max {s['max_iterations']}; multi-seed: {s['seeds']} seeds ({BASE_SEED}..{BASE_SEED + s['seeds'] - 1}), "
         f"{s['cases']} cases, start {s['start']}",
-        f"- Repetitions: {args.reps}; workers: {args.workers} (processes)",
+        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}",
         f"- This invocation: start {started}, end {ended}; earliest / latest rep timestamp: "
         f"{min(stamps, default='')} / {max(stamps, default='')}",
         f"- Python {sys.version.split()[0]}; prosimos {version('prosimos')}; log-distance-measures "
@@ -1022,6 +1040,7 @@ def main() -> None:
     ap.add_argument("--smoke", action="store_true", help="= --reps 1 --only LoanApp_G3")
     ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
+    ap.add_argument("--variant", choices=sorted(VARIANTS), default="V_full", help="V_no_kb: knowledge base off")
     args = ap.parse_args()
     if args.smoke:
         args.reps, args.only = 1, "LoanApp_G3"
@@ -1057,10 +1076,12 @@ def main() -> None:
                 s1.log(f"{cfg['config_id']} rep {rep} skipped (exists: {existing['status']})")
                 continue
             jobs.append({"config": config, "cfg": cfg, "rep": rep, "out": str(args.out), "glass_commit": commit,
+                         "variant": args.variant,
                          "config_sha": config_sha, "script_sha": s1.sha256(Path(__file__).read_bytes()),
                          "log_profile": log_profile, "shared": shared, "healthy_sha": healthy_sha,
                          "healthy_scenario": healthy_scn})
-    s1.log(f"{len(jobs)} run(s) to do; model {settings['model']}; workers {args.workers}; GLASS {commit[:7]}")
+    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; model {settings['model']}; workers {args.workers}; "
+           f"GLASS {commit[:7]}")
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         futures = [pool.submit(run_rep, job) for job in jobs]
         for done, fut in enumerate(futures, 1):
