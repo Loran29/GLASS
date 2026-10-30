@@ -1,0 +1,883 @@
+diff --git a/.gitignore b/.gitignore
+index 539019a..3cd51d1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -61,29 +61,29 @@ missing_for_repo.zip
+ evaluation/refinement_pilot.zip
+ 
+ # Stage-2 simulated logs (SHA-256 in the run records; archived per configuration in log_archives/, not in git)
+-evaluation/loanapp_p2p/results/stage2_results/logs/
+-evaluation/loanapp_p2p/results/stage2_results/baseline_logs/*/*.csv.gz
+-evaluation/loanapp_p2p/results/stage2_results/healthy_logs/
+-evaluation/loanapp_p2p/results/stage2_results/log_archives/
+-evaluation/loanapp_p2p/results/stage2_results_v2/logs/
+-evaluation/loanapp_p2p/results/stage2_results_v2/baseline_logs/*/*.csv.gz
+-evaluation/loanapp_p2p/results/stage2_results_v2/healthy_logs/
+-evaluation/loanapp_p2p/results/stage2_results_v2/log_archives/
+-evaluation/loanapp_p2p/results/stage2_results_v3/logs/
+-evaluation/loanapp_p2p/results/stage2_results_v3/baseline_logs/*/*.csv.gz
+-evaluation/loanapp_p2p/results/stage2_results_v3/healthy_logs/
+-evaluation/loanapp_p2p/results/stage2_results_v3/log_archives/
+-evaluation/loanapp_p2p/results/stage2_results_v3_aborted_local/
+-evaluation/loanapp_p2p/results/stage2_results_v3_1/logs/
+-evaluation/loanapp_p2p/results/stage2_results_v3_1/baseline_logs/*/*.csv.gz
+-evaluation/loanapp_p2p/results/stage2_results_v3_1/healthy_logs/
+-evaluation/loanapp_p2p/results/stage2_results_v3_1/log_archives/
+-evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/logs/
+-evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/baseline_logs/*/*.csv.gz
+-evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/healthy_logs/
+-evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/log_archives/
++evaluation/_to_review/older_glass_versions/stage2_results/logs/
++evaluation/_to_review/older_glass_versions/stage2_results/baseline_logs/*/*.csv.gz
++evaluation/_to_review/older_glass_versions/stage2_results/healthy_logs/
++evaluation/_to_review/older_glass_versions/stage2_results/log_archives/
++evaluation/_to_review/older_glass_versions/stage2_results_v2/logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v2/baseline_logs/*/*.csv.gz
++evaluation/_to_review/older_glass_versions/stage2_results_v2/healthy_logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v2/log_archives/
++evaluation/_to_review/older_glass_versions/stage2_results_v3/logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v3/baseline_logs/*/*.csv.gz
++evaluation/_to_review/older_glass_versions/stage2_results_v3/healthy_logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v3/log_archives/
++evaluation/_to_review/older_glass_versions/stage2_results_v3_aborted_local/
++evaluation/_to_review/older_glass_versions/stage2_results_v3_1/logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v3_1/baseline_logs/*/*.csv.gz
++evaluation/_to_review/older_glass_versions/stage2_results_v3_1/healthy_logs/
++evaluation/_to_review/older_glass_versions/stage2_results_v3_1/log_archives/
++evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/logs/
++evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/baseline_logs/*/*.csv.gz
++evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/healthy_logs/
++evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/log_archives/
+ 
+ # Real-life ablation: simulated logs (SHA-256 in the run records, not in git) and the aborted first batch attempt (kept locally)
+-evaluation/real_life_ablation/results/stage2/logs/
+-evaluation/real_life_ablation/results/stage2/baseline_logs/*/*.csv.gz
+-evaluation/real_life_ablation/results/ablation_aborted_local/
++evaluation/experiments/experiment_4_real_life_ablation/results/stage2/logs/
++evaluation/experiments/experiment_4_real_life_ablation/results/stage2/baseline_logs/*/*.csv.gz
++evaluation/experiments/experiment_4_real_life_ablation/results/ablation_aborted_local/
+diff --git a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/reprocess_stage1_normalised.py b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/reprocess_stage1_normalised.py
+index 4faff6a..ad21db5 100644
+--- a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/reprocess_stage1_normalised.py
++++ b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/reprocess_stage1_normalised.py
+@@ -15,7 +15,7 @@ attempts, result_parsed, prompts and run metadata are copied unchanged. The scri
+ other than measurable_as / measurable_as_raw would differ from the source result, or if the semantic
+ validation issues (other than the measurable_as warnings) differ. results/stage1_results/ is only read.
+ 
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/reprocess_stage1_normalised.py
++Usage (repo root):  python evaluation/experiments/experiment_1_expected_kpi_generation/scripts/reprocess_stage1_normalised.py
+ Run it in a checkout of the base commit with this folder's glass_local_fixes.patch applied
+ (see evaluation/loanapp_p2p/README.md); it refuses to run on any other commit.
+ """
+diff --git a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_refinement_pilot.py b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_refinement_pilot.py
+index 27fca59..fa24e96 100644
+--- a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_refinement_pilot.py
++++ b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_refinement_pilot.py
+@@ -21,7 +21,7 @@ Decisions: KPIs named in `accept` are accepted, those in `reject` rejected. The
+ Further rounds (setup/pilot_rounds.json): round n refines round n-1's delivered result; every KPI not
+ rejected in that round is accepted; feedback is fixed per rejected KPI; at most max_rounds rounds.
+ 
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_refinement_pilot.py [--round N]
++Usage (repo root):  python evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_refinement_pilot.py [--round N]
+ """
+ 
+ from __future__ import annotations
+diff --git a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py
+index 070c907..b979d72 100644
+--- a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py
++++ b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py
+@@ -9,7 +9,7 @@ _fill_missing_activity_measurable_as + semantic validation). Those functions are
+ app.py's own source (see load_app_stage1), so they cannot drift from the app; nothing under
+ goal_to_parameters/ is modified. LLM answers are stored as returned; scoring is analysis-only.
+ 
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/run_stage1_batch.py [--smoke | --only ID] [--reps N]
++Usage (repo root):  python evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py [--smoke | --only ID] [--reps N]
+ Re-running resumes: reps with a final status are skipped, llm_error reps are retried.
+ 
+ SCORING RULES (analysis only; recording is never changed by scoring)
+@@ -53,9 +53,11 @@ from importlib.metadata import version
+ from pathlib import Path
+ from statistics import mean
+ 
+-BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
+-REPO_ROOT = BASE.parent.parent
+-SETUP_DIR, LOGS_DIR, RESULTS_DIR = BASE / "setup", BASE / "input_logs", BASE / "results"
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++REPO_ROOT = P.REPO
++SETUP_DIR, LOGS_DIR, RESULTS_DIR = P.SHARED / "setup", P.SHARED / "input_logs", P.EXP1 / "results"
+ APP_PATH = REPO_ROOT / "goal_to_parameters" / "app.py"
+ CONFIG_PATH = SETUP_DIR / "stage1_config.json"
+ sys.path.insert(0, str(REPO_ROOT / "goal_to_parameters"))
+diff --git a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_refinement_pilot.py b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_refinement_pilot.py
+index 42f79bc..896b86a 100644
+--- a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_refinement_pilot.py
++++ b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_refinement_pilot.py
+@@ -27,7 +27,7 @@ Raw records store the paths of their source files in the pre-move layout (evalua
+ they are resolved to results/... here, so the records stay byte-identical.
+ 
+ Writes results/refinement_pilot/verification_report.md.
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/verify_refinement_pilot.py
++Usage (repo root):  python evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_refinement_pilot.py
+ """
+ 
+ from __future__ import annotations
+@@ -41,12 +41,14 @@ import subprocess
+ import sys
+ from pathlib import Path
+ 
+-BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
+-REPO = BASE.parent.parent
+-RESULTS = BASE / "results"
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++REPO = P.REPO
++RESULTS = P.EXP1 / "results"
+ PILOT = RESULTS / "refinement_pilot"
+-SETUP = BASE / "setup"
+-LOGS = BASE / "input_logs"
++SETUP = P.SHARED / "setup"
++LOGS = P.SHARED / "input_logs"
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+@@ -55,14 +57,8 @@ from verify_stage1_results import Report, lenient_rule, raw_kpis  # noqa: E402
+ 
+ 
+ def stored_path(path: str) -> Path:
+-    """A path stored in a raw record. Records written before the move use evaluation/<folder>/...;
+-    those folders now live in results/<folder>/."""
+-    p = Path(path)
+-    if (REPO / p).exists():
+-        return REPO / p
+-    if p.parts[:1] == ("evaluation",) and len(p.parts) > 2:
+-        return RESULTS / Path(*p.parts[1:])
+-    return REPO / p
++    """A path stored in a raw record (see lp_paths.stored)."""
++    return P.stored(path)
+ 
+ 
+ def digest(data: bytes) -> str:
+diff --git a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_stage1_results.py b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_stage1_results.py
+index 09fc260..0cbcd28 100644
+--- a/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_stage1_results.py
++++ b/evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_stage1_results.py
+@@ -41,7 +41,7 @@ Normalised folder (records carry a "normalisation" block, written by reprocess_s
+                  delivered KPI == result_parsed's measurable_as; warning counts match.
+   6. summary   : adds n_measurable_as_normalised = KPIs changed from measurable_as_raw minus fills.
+ 
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/verify_stage1_results.py [--reps 5] [--results DIR] [--source DIR]
++Usage (repo root):  python evaluation/experiments/experiment_1_expected_kpi_generation/scripts/verify_stage1_results.py [--reps 5] [--results DIR] [--source DIR]
+ """
+ 
+ from __future__ import annotations
+@@ -61,11 +61,13 @@ import tempfile
+ from pathlib import Path
+ from typing import Any
+ 
+-BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
+-REPO = BASE.parent.parent
+-RESULTS = BASE / "results" / "stage1_results"
+-LOGS = BASE / "input_logs"
+-CONFIG = BASE / "setup" / "stage1_config.json"
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++REPO = P.REPO
++RESULTS = P.EXP1 / "results" / "stage1_results"
++LOGS = P.SHARED / "input_logs"
++CONFIG = P.SHARED / "setup" / "stage1_config.json"
+ APP = REPO / "goal_to_parameters" / "app.py"
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+diff --git a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/complete_stage2_records.py b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/complete_stage2_records.py
+index 1f71233..7a81bd7 100644
+--- a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/complete_stage2_records.py
++++ b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/complete_stage2_records.py
+@@ -12,7 +12,7 @@ Runs in which no iteration produced a scenario keep the status "no_initial_propo
+ Afterwards the summary CSVs are rewritten with the batch's own write_summaries; run stage2_reporting.py next.
+ 
+ Usage (repo root, same environment as the batch):
+-  python evaluation/loanapp_p2p/scripts/complete_stage2_records.py [--results <folder>]
++  python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/complete_stage2_records.py [--results <folder>]
+ """
+ from __future__ import annotations
+ 
+@@ -122,7 +122,7 @@ def complete(path: Path, out: Path, config: dict) -> str:
+ 
+ def main() -> None:
+     ap = argparse.ArgumentParser()
+-    ap.add_argument("--results", type=Path, default=b.BASE / "results" / "stage2_results")
++    ap.add_argument("--results", type=Path, default=b.P.OLDER / "stage2_results")
+     out = ap.parse_args().results
+     b.quiet()
+     config = json.loads(b.CONFIG_PATH.read_text(encoding="utf-8"))
+diff --git a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py
+index 698a1c4..f7d7aef 100644
+--- a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py
++++ b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py
+@@ -21,12 +21,12 @@ Simulated logs are written next to the records but kept out of git (SHA-256 in t
+ configuration in <out>/log_archives/).
+ 
+ Variant (--variant, default V_full = the batch as before): V_no_kb switches the knowledge base off in generation
+-and feedback with the real-life ablation's switch (evaluation/real_life_ablation/scripts/run_ablation_batch.py,
++and feedback with the real-life ablation's switch (evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py,
+ disable_kb); the record gets variant, switches and kb_switch (stub call counts). GLASS v3.2 can keep the
+ baseline (no_improving_scenario): the record's loop gets no_improving_scenario and best_candidate_iteration.
+ 
+ Usage (repo root, Python environment with Prosimos, see stage2/README.md):
+-  python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
++  python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
+          [--variant V_full|V_no_kb] [--out DIR]
+ 
+ SCORING (analysis only; the recording is never changed by scoring)
+@@ -87,9 +87,11 @@ from statistics import mean
+ import numpy as np
+ import pandas as pd
+ 
+-BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
+-REPO_ROOT = BASE.parent.parent
+-CONFIG_PATH = BASE / "setup" / "stage2_config.json"
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++REPO_ROOT = P.REPO
++CONFIG_PATH = P.SHARED / "setup" / "stage2_config.json"
+ sys.path.insert(0, str(REPO_ROOT / "goal_to_parameters"))
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+@@ -161,13 +163,13 @@ def kpi_source(cfg: dict) -> str:
+ 
+ def load_inputs(cfg: dict, config: dict) -> dict:
+     """Baseline with business-context costs, kept KPIs and the Stage-1 result object for GLASS."""
+-    bdir = BASE / cfg["baseline_dir"]
++    bdir = P.lp(cfg["baseline_dir"])
+     bc = config["business_context"][cfg["process"]]
+     sim_params = json.loads((bdir / "sim_params.json").read_text(encoding="utf-8"))
+     for prof in sim_params["resource_profiles"]:
+         for res in prof["resource_list"]:
+             res["cost_per_hour"] = bc["cost_per_hour"][prof["name"]]
+-    rec = json.loads((BASE / kpi_source(cfg)).read_text(encoding="utf-8"))
++    rec = json.loads((P.lp(kpi_source(cfg))).read_text(encoding="utf-8"))
+     by_name = {k["name"]: k for k in rec["result"]["kpis"]}
+     missing = [n for n in cfg["kpi_names_to_pass"] if n not in by_name]
+     if missing:
+@@ -603,7 +605,7 @@ def run_rep(job: dict) -> dict:
+         for turn in inputs["chat"]:
+             orch.chat_session.append(ChatRole.USER, turn)
+         if not VARIANTS[variant]["use_kb"]:
+-            sys.path.insert(0, str(BASE.parent / "real_life_ablation" / "scripts"))
++            sys.path.insert(0, str(P.EXP4 / "scripts"))
+             from run_ablation_batch import disable_kb
+             disable_kb(patches, kb_counter)
+         log_profile = job["log_profile"][cid]
+@@ -792,16 +794,16 @@ def prepare_config(cfg: dict, config: dict, out: Path, app) -> dict:
+                 "baseline_midnight_ends_mapped_per_seed": mapped,
+                 "healthy_midnight_ends_mapped_per_seed": healthy_mapped}
+         meta_path.write_text(json.dumps(meta, indent=1), encoding="utf-8")
+-    with open(BASE / cfg["event_log"], "rb") as fh:
++    with open(P.lp(cfg["event_log"]), "rb") as fh:
+         log_profile = app["extract_log_artifacts"](fh)[0]
+     return {**meta, "log_profile": log_profile,
+-            "event_log_sha256": s1.sha256((BASE / cfg["event_log"]).read_bytes()),
+-            "baseline_files_sha256": {f: s1.sha256((BASE / cfg["baseline_dir"] / f).read_bytes())
++            "event_log_sha256": s1.sha256((P.lp(cfg["event_log"])).read_bytes()),
++            "baseline_files_sha256": {f: s1.sha256((P.lp(cfg["baseline_dir"]) / f).read_bytes())
+                                       for f in ("model.bpmn", "sim_params.json")}}
+ 
+ 
+ def healthy_scenario(process: str, healthy_dir: str, config: dict) -> dict:
+-    hdir = BASE / healthy_dir
++    hdir = P.lp(healthy_dir)
+     return load_scenario(costed(hdir / "sim_params.json", process, config),
+                          (hdir / "model.bpmn").read_text(encoding="utf-8")).model_dump(mode="json")
+ 
+@@ -810,7 +812,7 @@ def prepare_healthy(process: str, healthy_dir: str, config: dict, out: Path) ->
+     paths = [out / "healthy_logs" / process / f"seed_{s}.csv.gz" for s in seeds_of(config["settings"])]
+     if all(p.exists() for p in paths):
+         return {p.name: s1.sha256(p.read_bytes()) for p in paths}
+-    hdir = BASE / healthy_dir
++    hdir = P.lp(healthy_dir)
+     bpmn = (hdir / "model.bpmn").read_text(encoding="utf-8")
+     scenario = load_scenario(costed(hdir / "sim_params.json", process, config), bpmn)
+     return simulate_seeds(scenario, bpmn, config["settings"], paths)
+@@ -1038,7 +1040,7 @@ def main() -> None:
+     ap.add_argument("--reps", type=int, default=settings["repetitions"])
+     ap.add_argument("--only", help="configuration id(s), comma-separated")
+     ap.add_argument("--smoke", action="store_true", help="= --reps 1 --only LoanApp_G3")
+-    ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
++    ap.add_argument("--out", type=Path, default=P.OLDER / "stage2_results")
+     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
+     ap.add_argument("--variant", choices=sorted(VARIANTS), default="V_full", help="V_no_kb: knowledge base off")
+     args = ap.parse_args()
+diff --git a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/stage2_reporting.py b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/stage2_reporting.py
+index 432a482..8cc027c 100644
+--- a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/stage2_reporting.py
++++ b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/stage2_reporting.py
+@@ -23,7 +23,7 @@ and to stage2_per_config.csv: reps_loop_discarded_better_initial and the per-pha
+ Appends to README.md the finding "GLASS utilization metric" and a sensitivity line for the utilization limit
+ (0.85 as scored vs 0.90, reported only). Scores and records are not changed.
+ 
+-Usage (repo root): python evaluation/loanapp_p2p/scripts/stage2_reporting.py [--results <folder>]
++Usage (repo root): python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/stage2_reporting.py [--results <folder>]
+ """
+ from __future__ import annotations
+ 
+@@ -32,7 +32,11 @@ import csv
+ import json
+ from pathlib import Path
+ 
+-BASE = Path(__file__).resolve().parent.parent
++import sys
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
+ SENSITIVITY_LIMIT = 0.90
+ REASON_GLASS_UTIL = "GLASS utilization metric rose as backlog cleared"
+ 
+@@ -141,7 +145,7 @@ def target_lines(counts: dict) -> list[str]:
+ 
+ def main() -> None:
+     ap = argparse.ArgumentParser()
+-    ap.add_argument("--results", type=Path, default=BASE / "results" / "stage2_results")
++    ap.add_argument("--results", type=Path, default=P.OLDER / "stage2_results")
+     out = ap.parse_args().results
+     records = {}
+     for p in sorted((out / "raw").glob("*/rep_*.json")):
+diff --git a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py
+index c4aba3d..231167c 100644
+--- a/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py
++++ b/evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py
+@@ -23,7 +23,7 @@ Checks
+      utilizations are recomputed from the logs with a separate implementation (per-day overlap), and the
+      midnight end-time mapping counts are recomputed
+ 
+-Usage (repo root):  python evaluation/loanapp_p2p/scripts/verify_stage2_results.py [--results <folder>]
++Usage (repo root):  python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py [--results <folder>]
+ """
+ from __future__ import annotations
+ 
+@@ -40,8 +40,10 @@ from statistics import mean
+ 
+ import pandas as pd
+ 
+-BASE = Path(__file__).resolve().parent.parent
+-REPO_ROOT = BASE.parent.parent
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++REPO_ROOT = P.REPO
+ sys.path.insert(0, str(REPO_ROOT / "goal_to_parameters"))
+ 
+ IMMUTABLE = {"LoanApp": ["AML check", "Approve loan offer"], "Procure2Pay": ["Authorize Supplier's Invoice payment"]}
+@@ -321,7 +323,7 @@ def main() -> None:
+     import logging
+     logging.getLogger("streamlit").setLevel(logging.ERROR)
+     ap = argparse.ArgumentParser()
+-    ap.add_argument("--results", type=Path, default=BASE / "results" / "stage2_results")
++    ap.add_argument("--results", type=Path, default=P.OLDER / "stage2_results")
+     args = ap.parse_args()
+     out = args.results
+     config = load(BASE / "setup" / "stage2_config.json")
+@@ -345,7 +347,7 @@ def main() -> None:
+         recs = [load(p) for p in files]
+         counts["records"] += len(recs)
+         src_path = cfg["kpi_source_record"].replace("results/stage1_results/", "results/stage1_results_normalised/")
+-        src = load(BASE / src_path)["result"]
++        src = load(P.lp(src_path))["result"]
+         named = [next(k for k in src["kpis"] if k["name"] == n) for n in cfg["kpi_names_to_pass"]]
+         kpi_inputs = cfg.get("kpi_inputs") or {}
+         cfg_thresholds = {n: v["target_threshold"] for n, v in kpi_inputs.items()
+@@ -362,7 +364,7 @@ def main() -> None:
+                     k["description"] = k["description"].rstrip() + " " + kpi_inputs[k["name"]]["description_append"]
+                 out_k.append(k)
+             return out_k
+-        bdir, bc = BASE / cfg["baseline_dir"], config["business_context"][cfg["process"]]
++        bdir, bc = P.lp(cfg["baseline_dir"]), config["business_context"][cfg["process"]]
+         base_meta = out / "baseline_logs" / cid / "baseline.json"
+         if logs_present:
+             for name, h in (load(base_meta)["baseline_logs_sha256"] if base_meta.exists() else {}).items():
+@@ -497,7 +499,7 @@ def main() -> None:
+               "limits": "Business-context limits re-checked",
+               "band": "Utilization rule and midnight mapping recomputed"}
+     lines = ["# Stage-2 results: verification report", "",
+-             "Generated by `evaluation/loanapp_p2p/scripts/verify_stage2_results.py` (report only).", "",
++             "Generated by `evaluation/experiments/experiment_2_valid_improving_kpis/scripts/verify_stage2_results.py` (report only).", "",
+              f"Records: {counts['records']}; scenarios re-merged: {counts['remerged']}; limit checks: {counts['limits']}; "
+              f"utilization verdicts: {counts['band']} (from logs: {counts['band_from_logs']}); midnight-mapping "
+              f"checks: {counts['midnight']}; achieved verdicts: {counts['achieved']}; log files hashed: "
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/ablation_reporting.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/ablation_reporting.py
+index e8ac60d..f301146 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/ablation_reporting.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/ablation_reporting.py
+@@ -15,7 +15,7 @@ Writes to results/stage2/:
+ Runs that ended without a scenario (status no_initial_proposal, app_error, llm_error) count as not produced
+ (denominator = all runs of the cell / variant); their DHR, NIS and distances are missing and left out of means.
+ 
+-Usage (repo root): python evaluation/real_life_ablation/scripts/ablation_reporting.py [--results DIR]
++Usage (repo root): python evaluation/experiments/experiment_4_real_life_ablation/scripts/ablation_reporting.py [--results DIR]
+ """
+ from __future__ import annotations
+ 
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/build_config.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/build_config.py
+index 504bc95..772c85f 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/build_config.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/build_config.py
+@@ -2,7 +2,7 @@
+ Build setup/ablation_config.json from the lead author's decisions, setup/x_activity.json, the test logs and
+ setup/process_descriptions.md (description texts copied verbatim from the markdown sections).
+ 
+-Usage (repo root): python evaluation/real_life_ablation/scripts/build_config.py
++Usage (repo root): python evaluation/experiments/experiment_4_real_life_ablation/scripts/build_config.py
+ """
+ from __future__ import annotations
+ 
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/complete_ablation_records.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/complete_ablation_records.py
+index 9b61be5..1bdd385 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/complete_ablation_records.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/complete_ablation_records.py
+@@ -13,7 +13,7 @@ runs this script completes the evaluation from the record, without LLM calls:
+ Runs in which no iteration produced a scenario keep the status "no_initial_proposal".
+ 
+ Usage (repo root, same environment as the batch):
+-  python evaluation/real_life_ablation/scripts/complete_ablation_records.py [--results DIR]
++  python evaluation/experiments/experiment_4_real_life_ablation/scripts/complete_ablation_records.py [--results DIR]
+ """
+ from __future__ import annotations
+ 
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/compute_waiting_times.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/compute_waiting_times.py
+index 486ac3f..4d190e6 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/compute_waiting_times.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/compute_waiting_times.py
+@@ -10,7 +10,7 @@ its predecessor has ended counts as 0), and the latest event that ended before t
+ x_activity.json records whether X is the same under the two reference rules.
+ 
+ Writes setup/waiting_time_per_activity.csv and setup/x_activity.json.
+-Usage (repo root): python evaluation/real_life_ablation/scripts/compute_waiting_times.py
++Usage (repo root): python evaluation/experiments/experiment_4_real_life_ablation/scripts/compute_waiting_times.py
+ """
+ from __future__ import annotations
+ 
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/make_ablation_workbook.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/make_ablation_workbook.py
+index c499b37..f053016 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/make_ablation_workbook.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/make_ablation_workbook.py
+@@ -1,6 +1,6 @@
+ """
+ Build results/GLASS_ablation_results.xlsx from the verified ablation files (values, no formulas), in the style of
+-the Stage-2 workbooks (evaluation/loanapp_p2p/scripts/make_stage2_workbook.py: fonts, header fill, borders).
++the Stage-2 workbooks (evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py: fonts, header fill, borders).
+ 
+ Sheets: Overview (per-variant table in the scoring order, V_full minus each variant with p-values), Per cell
+ (dataset x goal x variant), All runs (one row per run), Stage 1 (KPI ablation per cell), Setup (datasets,
+@@ -8,7 +8,7 @@ baselines, X, goals, business context with its wording history, variants).
+ 
+ Sources: results/stage2/ablation_per_variant.csv, ablation_per_cell.csv, ablation_summary.csv and raw/,
+ results/stage1/stage1_per_cell.csv, setup/ablation_config.json, setup/x_activity.json, baselines/validation.json.
+-Usage (repo root): python evaluation/real_life_ablation/scripts/make_ablation_workbook.py
++Usage (repo root): python evaluation/experiments/experiment_4_real_life_ablation/scripts/make_ablation_workbook.py
+ """
+ from __future__ import annotations
+ 
+@@ -20,7 +20,8 @@ from pathlib import Path
+ from openpyxl import Workbook
+ 
+ BASE = Path(__file__).resolve().parent.parent
+-sys.path.insert(0, str(BASE.parent / "loanapp_p2p" / "scripts"))
++sys.path.insert(0, str(BASE.parent / "shared" / "loanapp_p2p"))
++import lp_paths  # noqa: E402,F401  (puts the shared workbook helpers on sys.path)
+ import make_stage2_workbook as w1  # noqa: E402  (style_sheet, header, BOLD, TITLE)
+ 
+ R2, R1 = BASE / "results" / "stage2", BASE / "results" / "stage1"
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py
+index 8933e92..f9e6db6 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py
+@@ -1,6 +1,6 @@
+ """
+ Real-life ablation, Stage 2: every configuration in setup/ablation_config.json x variant x repetition, run
+-through GLASS's own Stage-2 code as a library (derived from evaluation/loanapp_p2p/scripts/run_stage2_batch.py,
++through GLASS's own Stage-2 code as a library (derived from evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py,
+ whose recording, seed shim, capture wrappers, KPI table and log preprocessing are reused unchanged).
+ 
+ Inputs per configuration
+@@ -33,7 +33,7 @@ Records go to <out>/raw/<config_id>__<variant>/rep_<k>.json; reruns resume (fina
+ Simulated logs are written next to the records and kept out of git (SHA-256 in the records).
+ 
+ Usage (repo root):
+-  python evaluation/real_life_ablation/scripts/run_ablation_batch.py [--variant V[,V]] [--only CONFIG[,CONFIG]]
++  python evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py [--variant V[,V]] [--only CONFIG[,CONFIG]]
+          [--reps 1,2,3] [--workers N] [--out DIR] [--smoke]
+ --smoke = --only BPIC_2012_W_G1G2 --reps 1 for all six variants, to --out, plus smoke_report.txt.
+ 
+@@ -110,9 +110,10 @@ import numpy as np
+ import pandas as pd
+ 
+ BASE = Path(__file__).resolve().parent.parent                 # evaluation/real_life_ablation
+-REPO = BASE.parent.parent
++sys.path.insert(0, str(BASE.parent / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (puts the LoanApp/P2P scripts on sys.path)
++REPO = P.REPO
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+-sys.path.insert(0, str(REPO / "evaluation" / "loanapp_p2p" / "scripts"))
+ import run_stage1_batch as s1  # noqa: E402  (provider, recording, JSON helpers, app.py Stage-1 loader)
+ import run_stage2_batch as s2  # noqa: E402  (seed shim, capture wrappers, KPI table, log preprocessing)
+ 
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py
+index 6f78e58..471596c 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py
+@@ -1,7 +1,7 @@
+ """
+ Stage-1 ablation on the real-life datasets: 3 datasets x 3 goals x 2 variants x 5 repetitions (90 calls).
+ 
+-Adapted from evaluation/loanapp_p2p/scripts/run_stage1_batch.py, whose functions are reused unchanged: the app's
++Adapted from evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py, whose functions are reused unchanged: the app's
+ Stage-1 path compiled from goal_to_parameters/app.py (validate_generation_scope -> extract_log_artifacts ->
+ build_smart_kpi_prompt(sanitize_user_input(...)) -> parse_with_retries), the recording provider, run_rep and the
+ scoring (strict and lenient rules, extras). Nothing under goal_to_parameters/ is modified.
+@@ -27,7 +27,7 @@ The source cell, repetition and match mode are recorded per KPI; the goal struct
+ them are those of the configuration's own repetition of the first expected KPI.
+ 
+ Usage (repo root):
+-  python evaluation/real_life_ablation/scripts/run_stage1_ablation.py [--reps N] [--only CONFIG_ID] [--workers N]
++  python evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py [--reps N] [--only CONFIG_ID] [--workers N]
+ Re-running resumes (reps with a final status are skipped).
+ """
+ from __future__ import annotations
+@@ -46,8 +46,9 @@ from pathlib import Path
+ from statistics import mean
+ 
+ BASE = Path(__file__).resolve().parent.parent                 # evaluation/real_life_ablation
+-REPO = BASE.parent.parent
+-sys.path.insert(0, str(REPO / "evaluation" / "loanapp_p2p" / "scripts"))
++sys.path.insert(0, str(BASE.parent / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (puts the LoanApp/P2P scripts on sys.path)
++REPO = P.REPO
+ import run_stage1_batch as s1  # noqa: E402  (Step 1 batch: app loader, provider, run_rep, scoring)
+ 
+ CONFIG_PATH = BASE / "setup" / "ablation_config.json"
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py
+index ec92274..dc1cebe 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py
+@@ -12,7 +12,7 @@ Copies into data/<dataset>/: <dataset>_test.csv.gz, the chosen variant's .bpmn a
+ baselines/baseline_selection.json (the choice per dataset).
+ 
+ Usage (repo root):
+-  python evaluation/real_life_ablation/scripts/select_baselines.py <path to the extracted package>
++  python evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py <path to the extracted package>
+   (the folder that contains real-life/ and real-life-evaluation/)
+ """
+ from __future__ import annotations
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/validate_baselines.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/validate_baselines.py
+index bb6642f..ec6ac8e 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/validate_baselines.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/validate_baselines.py
+@@ -10,7 +10,7 @@ exported event_distribution); records the whole-hour calendar rounding (weekly a
+ resources before / after, arrival calendar). Writes baselines/validation.json and baselines/validation_report.md.
+ 
+ Usage (repo root):
+-  python evaluation/real_life_ablation/scripts/validate_baselines.py <path to the extracted package>
++  python evaluation/experiments/experiment_4_real_life_ablation/scripts/validate_baselines.py <path to the extracted package>
+ """
+ from __future__ import annotations
+ 
+@@ -26,7 +26,7 @@ import numpy as np
+ import pandas as pd
+ 
+ BASE = Path(__file__).resolve().parent.parent
+-REPO = BASE.parent.parent
++REPO = BASE.parents[2]
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+ DATASETS = ["AcademicCredentials", "BPIC_2012_W", "BPIC_2017_W"]
+ DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+diff --git a/evaluation/experiments/experiment_4_real_life_ablation/scripts/verify_ablation.py b/evaluation/experiments/experiment_4_real_life_ablation/scripts/verify_ablation.py
+index c96da69..a341d1c 100644
+--- a/evaluation/experiments/experiment_4_real_life_ablation/scripts/verify_ablation.py
++++ b/evaluation/experiments/experiment_4_real_life_ablation/scripts/verify_ablation.py
+@@ -23,7 +23,7 @@ Re-computed per run and phase (initial, final) and compared with what the record
+ Re-computed from the records and compared with ablation_per_variant.csv: every rate and mean of the per-variant
+ table (V_full minus variant differences included).
+ 
+-Usage (repo root): python evaluation/real_life_ablation/scripts/verify_ablation.py [--results DIR]
++Usage (repo root): python evaluation/experiments/experiment_4_real_life_ablation/scripts/verify_ablation.py [--results DIR]
+                    [--distance-sample N]
+ Exit code 1 when any mismatch is found; writes <results>/verification.md.
+ """
+@@ -45,7 +45,7 @@ import pandas as pd
+ from scipy import stats
+ 
+ BASE = Path(__file__).resolve().parent.parent
+-REPO = BASE.parent.parent
++REPO = BASE.parents[2]
+ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+ TOL = 1e-6
+ 
+diff --git a/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py b/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py
+index f930477..8f73b28 100644
+--- a/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py
++++ b/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py
+@@ -18,7 +18,7 @@ Tests V_full vs V_no_kb: for counts a pooled run-level Fisher exact test (all 70
+ two-sided sign test over the configurations (ties dropped); for recall, CTD ratio and rejections per run a sign
+ test over the configurations.
+ 
+-Usage (repo root): python evaluation/loanapp_p2p/scripts/compare_stage2_rag.py
++Usage (repo root): python evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py
+ """
+ from __future__ import annotations
+ 
+@@ -28,10 +28,15 @@ from math import comb
+ from pathlib import Path
+ from statistics import mean, median
+ 
+-BASE = Path(__file__).resolve().parent.parent
+-RES = BASE / "results"
+-FOLDERS = {"V_full": RES / "stage2_results_v32_rag" / "V_full", "V_no_kb": RES / "stage2_results_v32_rag" / "V_no_kb",
+-           "v3.1": RES / "stage2_results_v3_1"}
++import sys
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++BASE = P.SHARED
++RES = P.EXP5 / "results"
++RUNS = P.EXP2 / "results" / "stage2_results_v32_rag"
++FOLDERS = {"V_full": RUNS / "V_full", "V_no_kb": RUNS / "V_no_kb",
++           "v3.1": P.OLDER / "stage2_results_v3_1"}  # v3.1: reference column only
+ ARMS = ("V_full", "V_no_kb")
+ COUNTS = ["final_valid", "final_all_kpis_improved", "final_valid_and_improved",
+           "final_util_target_achieved_glass", "final_util_target_achieved_batch",
+diff --git a/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/make_stage2_rag_workbook.py b/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/make_stage2_rag_workbook.py
+index f42ffa4..5ae9241 100644
+--- a/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/make_stage2_rag_workbook.py
++++ b/evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/make_stage2_rag_workbook.py
+@@ -8,7 +8,7 @@ Sheets: RAG comparison per configuration (V_full v3.2 / V_no_kb v3.2 / v3.1, gro
+ (V_full v3.2), All 70 runs (V_no_kb v3.2), Settings and scoring.
+ 
+ Usage (repo root, environment with GLASS's dependencies and openpyxl):
+-  python evaluation/loanapp_p2p/scripts/make_stage2_rag_workbook.py
++  python evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/make_stage2_rag_workbook.py
+ """
+ from __future__ import annotations
+ 
+@@ -21,13 +21,16 @@ from openpyxl import Workbook
+ 
+ HERE = Path(__file__).resolve().parent
+ sys.path.insert(0, str(HERE))
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
+ import make_stage2_workbook as w1  # noqa: E402  (names_for, readable, header, style_sheet, BOX, BOLD, TITLE)
+ import make_stage2_v1_v2_v3_v31_workbook as w31  # noqa: E402  (fmt, put, versions_table)
+ import run_stage2_batch as b  # noqa: E402
+ from compare_stage2_rag import direction_rejections  # noqa: E402
+ 
+ RES = HERE.parent / "results"
+-ARMS = {"V_full": RES / "stage2_results_v32_rag" / "V_full", "V_no_kb": RES / "stage2_results_v32_rag" / "V_no_kb"}
++ARMS = {"V_full": P.EXP2 / "results" / "stage2_results_v32_rag" / "V_full",
++        "V_no_kb": P.EXP2 / "results" / "stage2_results_v32_rag" / "V_no_kb"}
+ OUT = RES / "GLASS_Stage2_RAG_comparison.xlsx"
+ SOURCES = ("V_full", "V_no_kb", "v3.1")
+ CMP_COLS = [  # (csv metric, header)
+@@ -116,7 +119,7 @@ def main() -> None:
+     config = json.loads(b.CONFIG_PATH.read_text(encoding="utf-8"))
+     cmp_rows = list(csv.DictReader(open(RES / "stage2_rag_comparison.csv", encoding="utf-8")))
+     md = (RES / "stage2_rag_comparison.md").read_text(encoding="utf-8")
+-    vmd = (RES / "VERSIONS.md").read_text(encoding="utf-8")
++    vmd = (P.EXP2 / "results" / "VERSIONS.md").read_text(encoding="utf-8")
+     wb = Workbook()
+ 
+     # ---------------------------------------------------------------- sheet 1: comparison
+@@ -212,7 +215,7 @@ def main() -> None:
+     w1.style_sheet(ws3, [38, 60, 60, 45, 45, 60, 22])
+ 
+     wb.save(OUT)
+-    print(f"written {OUT.relative_to(HERE.parents[2]).as_posix()}")
++    print(f"written {OUT.relative_to(P.REPO).as_posix()}")
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py b/evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py
+index 563fc2f..15f6da9 100644
+--- a/evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py
++++ b/evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py
+@@ -34,7 +34,7 @@ import pandas as pd
+ 
+ HERE = Path(__file__).resolve().parent
+ EVAL = HERE.parent
+-REPO = EVAL.parents[1]
++REPO = EVAL.parents[3]
+ sys.path.insert(0, str(REPO / "goal_to_parameters"))
+ sys.path.insert(0, str(HERE))
+ 
+diff --git a/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py b/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py
+index 8395de2..46aea12 100644
+--- a/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py
++++ b/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py
+@@ -7,7 +7,7 @@ results/VERSIONS.md (version table, copied verbatim), setup/stage2_config.json.
+ workbook; wording follows the v1 workbook ("first proposal" / "after refinement").
+ 
+ Usage (repo root, environment with GLASS's dependencies and openpyxl):
+-  python evaluation/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py
++  python evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_v1_v2_v3_v31_workbook.py
+ """
+ from __future__ import annotations
+ 
+@@ -20,10 +20,12 @@ from openpyxl import Workbook
+ 
+ HERE = Path(__file__).resolve().parent
+ sys.path.insert(0, str(HERE))
++sys.path.insert(0, str(HERE.parent))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
+ import make_stage2_workbook as w1  # noqa: E402  (names_for, readable, header, style_sheet, BOX, BOLD, TITLE)
+ import run_stage2_batch as b  # noqa: E402
+ 
+-RES = HERE.parent / "results"
++RES = P.OLDER
+ R3 = RES / "stage2_results_v3_1"
+ OUT = RES / "GLASS_Stage2_results_v1_v2_v3_v31.xlsx"
+ VERSIONS = ("v1", "v2", "v3", "v3.1")
+@@ -309,7 +311,7 @@ def main() -> None:
+     w1.style_sheet(ws3, [38, 60, 60, 45, 45, 60, 22])
+ 
+     wb.save(OUT)
+-    print(f"written {OUT.relative_to(HERE.parents[2]).as_posix()}")
++    print(f"written {OUT.relative_to(P.REPO).as_posix()}")
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py b/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py
+index 698afb3..ece47b2 100644
+--- a/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py
++++ b/evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py
+@@ -6,7 +6,7 @@ setup/stage2_config.json; display names of activities, timers and roles from eac
+ Totals on sheet 1 are COUNTIFS formulas over sheet 2 (Excel recalculates them when the file is opened).
+ 
+ Usage (repo root, environment with GLASS's dependencies and openpyxl):
+-  python evaluation/loanapp_p2p/scripts/make_stage2_workbook.py
++  python evaluation/experiments/shared/loanapp_p2p/scripts/make_stage2_workbook.py
+ """
+ from __future__ import annotations
+ 
+@@ -22,9 +22,11 @@ from openpyxl.utils import get_column_letter
+ 
+ HERE = Path(__file__).resolve().parent
+ BASE = HERE.parent
+-R = BASE / "results" / "stage2_results"
+-OUT = BASE / "results" / "GLASS_Stage2_results.xlsx"
+ sys.path.insert(0, str(HERE))
++sys.path.insert(0, str(HERE.parent))
++import lp_paths as P  # noqa: E402  (experiment paths; puts the other experiments' scripts on sys.path)
++R = P.OLDER / "stage2_results"
++OUT = P.OLDER / "GLASS_Stage2_results.xlsx"
+ import run_stage2_batch as b  # noqa: E402
+ 
+ FONT, BOLD = Font(name="Arial", size=10), Font(name="Arial", size=10, bold=True)
+@@ -302,7 +304,7 @@ def main() -> None:
+ 
+     wb.calculation.fullCalcOnLoad = True
+     wb.save(OUT)
+-    print(f"written {OUT.relative_to(BASE.parents[1]).as_posix()}; runs {last - 1}; per KPI type {type_counts}")
++    print(f"written {OUT.relative_to(P.REPO).as_posix()}; runs {last - 1}; per KPI type {type_counts}")
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/tests/test_utilization_role_aware.py b/tests/test_utilization_role_aware.py
+index e18c379..dedbe6b 100644
+--- a/tests/test_utilization_role_aware.py
++++ b/tests/test_utilization_role_aware.py
+@@ -119,7 +119,7 @@ class RoleResolutionTests(unittest.TestCase):
+         self.assertAlmostEqual(kpi.value, round((1 + 0.5 + 0.25 + 0.125) / 4, 3))
+ 
+ 
+-R = ROOT / "evaluation" / "loanapp_p2p" / "results" / "stage2_results"
++R = ROOT / "evaluation" / "_to_review" / "older_glass_versions" / "stage2_results"
+ LOGS = [R / "baseline_logs" / "LoanApp_G1G3" / "seed_42.csv.gz",
+         R / "logs" / "LoanApp_G1G3" / "rep_1" / "initial_seed_42.csv.gz"]
+ 
+--- a/evaluation/comparison/scripts/compar_results_with_glass.py
++++ b/evaluation/experiments/experiment_3_glass_vs_process_improvement_copilot/scripts/compar_results_with_glass.py
+@@ -1,4 +1,4 @@
+-"""Compare the manual Prosimos models with the GLASS arms (v3.1, V_full v3.2, V_no_kb v3.2) and the baseline.
++"""Compare the manual Prosimos models with GLASS v3.2 (V_full, V_no_kb) and the baseline.
+ 
+ One KPI value per log (seeds 42-51), computed with GLASS's kpi_computation.py. Results go to results/. Reps where GLASS
+ kept the baseline have no final log, so the baseline values are used for them.
+@@ -25,28 +25,27 @@
+ from openpyxl.styles import Font, PatternFill
+ from scipy import stats
+ 
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
++import lp_paths as P  # noqa: E402  (experiment paths)
++
+ COMP = Path(__file__).resolve().parents[1]
+-EVAL = COMP.parent
+-REPO = EVAL.parent
++REPO = P.REPO
+ INPUTS = COMP / "inputs"
+ MINE = INPUTS / "manual_models"
+-GLASS_LOGS = INPUTS / "glass_event_logs" / "v3.1_full_system"
+-RES = EVAL / "loanapp_p2p" / "results"
+ V32_LOGS = INPUTS / "glass_event_logs" / "v3.2_rag_comparison"
+-BASELINES = EVAL / "loanapp_p2p" / "stage2" / "baselines"
++RUNS = P.EXP2 / "results" / "stage2_results_v32_rag"
++BASELINES = P.SHARED / "stage2" / "baselines"
+ KPI_MODULE = REPO / "goal_to_parameters" / "second_llm" / "kpi_computation.py"
+ OUT = COMP / "results"
+ 
+-# v3.1: GLASS v3.1. V_full / V_no_kb: GLASS v3.2 with the knowledge base on / off.
++# GLASS v3.2 with the knowledge base on (V_full) and off (V_no_kb).
+ ARMS = [
+-    dict(key="v3.1", label="v3.1", source="glass_v3.1", v32=False, suffix="", sheet="Summary v3.1",
+-         final_root=GLASS_LOGS / "final_logs", records=RES / "stage2_results_v3_1" / "raw"),
+     dict(key="V_full", label="V_full v3.2", source="glass_v32_full", v32=True, suffix="_V_full_v3.2",
+-         sheet="Summary V_full v3.2", final_root=V32_LOGS / "V_full",
+-         records=RES / "stage2_results_v32_rag" / "V_full" / "raw"),
++         sheet="Summary V_full v3.2", final_root=V32_LOGS / "V_full_system_simulated_eventlogs",
++         records=RUNS / "V_full" / "raw"),
+     dict(key="V_no_kb", label="V_no_kb v3.2", source="glass_v32_no_kb", v32=True, suffix="_V_no_kb_v3.2",
+-         sheet="Summary V_no_kb v3.2", final_root=V32_LOGS / "V_no_kb",
+-         records=RES / "stage2_results_v32_rag" / "V_no_kb" / "raw"),
++         sheet="Summary V_no_kb v3.2", final_root=V32_LOGS / "V_no_kb_simulated_eventlogs",
++         records=RUNS / "V_no_kb" / "raw"),
+ ]
+ SEEDS = list(range(42, 52))
+ SIM_START = "2023-02-09T10:00:00+02:00"
+@@ -154,7 +153,7 @@
+         bparams = json.loads((BASELINES / config / "sim_params.json").read_text(encoding="utf-8"))
+         for s in SEEDS:
+             jobs.append(dict(source="baseline", config=config, variant="", model="", rep=0, seed=s,
+-                             log_path=str(GLASS_LOGS / "baseline_logs" / config / f"seed_{s}.csv.gz"),
++                             log_path=str(V32_LOGS / "baseline_logs" / config / f"seed_{s}.csv.gz"),
+                              params=bparams, kpis=expected_kpis(config)))
+         for arm in ARMS:
+             baseline_reps[(arm["key"], config)] = []
+@@ -442,7 +441,7 @@
+         summaries[arm["key"]] = pd.DataFrame(summary_rows)
+         alls[arm["key"]] = pd.DataFrame(all_rows)
+ 
+-    # cross-check against the baseline values in the v3.1 run records
++    # cross-check against the baseline values in the V_full run records
+     checks = []
+     for config in configs:
+         rec = json.loads((ARMS[0]["records"] / config / "rep_1.json").read_text(encoding="utf-8"))
+@@ -490,7 +489,7 @@
+     gen.save(OUT / "comparison_generated.xlsx")
+     if args.update_workbook:
+         wb = load_workbook(args.workbook)
+-        for arm in ARMS[1:]:
++        for arm in ARMS:
+             if arm["sheet"] in wb.sheetnames:
+                 del wb[arm["sheet"]]
+             df, flagged, lines = sheet_inputs(arm)
+@@ -499,7 +498,7 @@
+         print("curated workbook updated:", wb.sheetnames)
+     if args.rep_sheets:
+         wb = load_workbook(args.workbook)
+-        for arm in ARMS[1:]:
++        for arm in ARMS:
+             name = f"Reps vs manual {arm['label']}"
+             if name in wb.sheetnames:
+                 del wb[name]

@@ -119,7 +119,7 @@ class RoleResolutionTests(unittest.TestCase):
         self.assertAlmostEqual(kpi.value, round((1 + 0.5 + 0.25 + 0.125) / 4, 3))
 
 
-R = ROOT / "evaluation" / "loanapp_p2p" / "results" / "stage2_results"
+R = ROOT / "evaluation" / "_to_review" / "older_glass_versions" / "stage2_results"
 LOGS = [R / "baseline_logs" / "LoanApp_G1G3" / "seed_42.csv.gz",
         R / "logs" / "LoanApp_G1G3" / "rep_1" / "initial_seed_42.csv.gz"]
 

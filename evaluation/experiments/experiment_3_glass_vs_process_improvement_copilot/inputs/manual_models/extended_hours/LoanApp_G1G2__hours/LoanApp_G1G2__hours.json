@@ -1,0 +1,1370 @@
+{
+ "resource_profiles": [
+  {
+   "id": "QBP_DEFAULT_RESOURCE",
+   "name": "Clerk",
+   "resource_list": [
+    {
+     "id": "QBP_DEFAULT_RESOURCE_1",
+     "name": "QBP_DEFAULT_RESOURCE_1",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_1_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_2",
+     "name": "QBP_DEFAULT_RESOURCE_2",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_2_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_3",
+     "name": "QBP_DEFAULT_RESOURCE_3",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_3_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_4",
+     "name": "QBP_DEFAULT_RESOURCE_4",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_4_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_5",
+     "name": "QBP_DEFAULT_RESOURCE_5",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_5_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_6",
+     "name": "QBP_DEFAULT_RESOURCE_6",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_6_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_7",
+     "name": "QBP_DEFAULT_RESOURCE_7",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_7_cal"
+    },
+    {
+     "id": "QBP_DEFAULT_RESOURCE_8",
+     "name": "QBP_DEFAULT_RESOURCE_8",
+     "cost_per_hour": "1",
+     "amount": 1,
+     "calendar": "QBP_DEFAULT_RESOURCE_8_cal"
+    }
+   ]
+  },
+  {
+   "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f",
+   "name": "Loan Officer",
+   "resource_list": [
+    {
+     "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1",
+     "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal"
+    },
+    {
+     "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2",
+     "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2_cal"
+    },
+    {
+     "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3",
+     "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3_cal"
+    },
+    {
+     "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4",
+     "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4_cal"
+    }
+   ]
+  },
+  {
+   "id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47",
+   "name": "AML Investigator",
+   "resource_list": [
+    {
+     "id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1",
+     "name": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1_cal"
+    },
+    {
+     "id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2",
+     "name": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2_cal"
+    }
+   ]
+  },
+  {
+   "id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc",
+   "name": "Appraiser",
+   "resource_list": [
+    {
+     "id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1",
+     "name": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1_cal"
+    },
+    {
+     "id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2",
+     "name": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2_cal"
+    }
+   ]
+  },
+  {
+   "id": "qbp_315189ac-8191-4977-b204-da959c5e98c7",
+   "name": "Senior Officer",
+   "resource_list": [
+    {
+     "id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1",
+     "name": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1_cal"
+    },
+    {
+     "id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2",
+     "name": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2_cal"
+    }
+   ]
+  },
+  {
+   "id": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b",
+   "name": "Applicant",
+   "resource_list": [
+    {
+     "id": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1",
+     "name": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1",
+     "cost_per_hour": "0",
+     "amount": 1,
+     "calendar": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1_cal"
+    }
+   ]
+  }
+ ],
+ "arrival_time_distribution": {
+  "distribution_name": "fix",
+  "distribution_params": [
+   {
+    "value": 1800.0
+   }
+  ]
+ },
+ "arrival_time_calendar": [
+  {
+   "from": "MONDAY",
+   "to": "FRIDAY",
+   "beginTime": "09:00:00.000",
+   "endTime": "17:00:00.000"
+  }
+ ],
+ "gateway_branching_probabilities": [
+  {
+   "gateway_id": "sid-D537CF9E-CB8A-4188-80DE-1CA903F38436",
+   "probabilities": [
+    {
+     "path_id": "sid-92B5B1F2-7B5C-45A9-8C6B-BCC1E0490D99",
+     "value": 0.1
+    },
+    {
+     "path_id": "sid-F4C85F4E-A227-4D05-AE55-5ACD9A2CF15F",
+     "value": 0.9
+    }
+   ]
+  },
+  {
+   "gateway_id": "sid-79AFF435-717A-4C1E-87FA-D002372D2251",
+   "probabilities": [
+    {
+     "path_id": "sid-B04F2DE9-EE3E-4AC6-8470-B22F242E48AE",
+     "value": 0.4
+    },
+    {
+     "path_id": "sid-20A44905-F224-4AC2-8D6E-B25B4416D362",
+     "value": 0.6
+    }
+   ]
+  },
+  {
+   "gateway_id": "Gateway_06djhup",
+   "probabilities": [
+    {
+     "path_id": "Flow_1cces2a",
+     "value": 0.4
+    },
+    {
+     "path_id": "Flow_0wgg1r6",
+     "value": 0.6
+    }
+   ]
+  }
+ ],
+ "task_resource_distribution": [
+  {
+   "task_id": "sid-9703AD2C-3219-4B4A-9A91-F4A81EF91130",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-B27E434D-3A46-46FE-94DE-184C179BE525",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      },
+      {
+       "value": 900.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-8BCCD9BA-2B23-44CA-BB32-4988807D3161",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-543CE27B-717A-4583-8BFE-09BF2267ACFC",
+   "resources": [
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 3600.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-9F775FDB-CD87-40D7-8B8D-DFD50176CE88",
+   "resources": [
+    {
+     "resource_id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-5CEDFABE-7E6F-450C-B84E-11C9917AB563",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-43A3A3DC-EAE7-42F0-946E-845B3C981850",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-30EFC8A9-15F6-45A1-B0FE-C9B37FC92D36",
+   "resources": [
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_1",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_2",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_3",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_4",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_5",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_6",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_7",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "QBP_DEFAULT_RESOURCE_8",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "sid-AD68767C-968B-4DCD-821E-3F5C5C3D0D04",
+   "resources": [
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "Activity_065abi2",
+   "resources": [
+    {
+     "resource_id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2",
+     "distribution_name": "expon",
+     "distribution_params": [
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "Activity_1y2vzu0",
+   "resources": [
+    {
+     "resource_id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    },
+    {
+     "resource_id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2",
+     "distribution_name": "fix",
+     "distribution_params": [
+      {
+       "value": 2700.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "task_id": "Activity_1w0dur0",
+   "resources": [
+    {
+     "resource_id": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1",
+     "distribution_name": "norm",
+     "distribution_params": [
+      {
+       "value": 10800.0
+      },
+      {
+       "value": 1800.0
+      },
+      {
+       "value": 0.0
+      },
+      {
+       "value": 1000000000000.0
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "resource_calendars": [
+  {
+   "id": "QBP_DEFAULT_RESOURCE_1_cal",
+   "name": "QBP_DEFAULT_RESOURCE_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_2_cal",
+   "name": "QBP_DEFAULT_RESOURCE_2_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_3_cal",
+   "name": "QBP_DEFAULT_RESOURCE_3_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_4_cal",
+   "name": "QBP_DEFAULT_RESOURCE_4_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_5_cal",
+   "name": "QBP_DEFAULT_RESOURCE_5_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_6_cal",
+   "name": "QBP_DEFAULT_RESOURCE_6_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_7_cal",
+   "name": "QBP_DEFAULT_RESOURCE_7_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "QBP_DEFAULT_RESOURCE_8_cal",
+   "name": "QBP_DEFAULT_RESOURCE_8_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal",
+   "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2_cal",
+   "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_2_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3_cal",
+   "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_3_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4_cal",
+   "name": "qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_4_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "19:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1_cal",
+   "name": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2_cal",
+   "name": "qbp_71f9ab6f-0283-4a62-bd00-a1256716dd47_2_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1_cal",
+   "name": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2_cal",
+   "name": "qbp_8e423262-8917-4d8a-9dcc-ca320f631dbc_2_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1_cal",
+   "name": "qbp_315189ac-8191-4977-b204-da959c5e98c7_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2_cal",
+   "name": "qbp_315189ac-8191-4977-b204-da959c5e98c7_2_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  },
+  {
+   "id": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1_cal",
+   "name": "qbp_5163731d-12cd-47f5-aa87-515c0a7da49b_1_cal",
+   "time_periods": [
+    {
+     "from": "MONDAY",
+     "to": "FRIDAY",
+     "beginTime": "09:00:00.000",
+     "endTime": "17:00:00.000"
+    }
+   ]
+  }
+ ],
+ "event_distribution": [
+  {
+   "event_id": "Event_1eeszyh",
+   "distribution_name": "fix",
+   "distribution_params": [
+    {
+     "value": 7200.0
+    }
+   ]
+  },
+  {
+   "event_id": "Event_1ja79b8",
+   "distribution_name": "norm",
+   "distribution_params": [
+    {
+     "value": 43200.0
+    },
+    {
+     "value": 3600.0
+    },
+    {
+     "value": 0.0
+    },
+    {
+     "value": 1000000000000.0
+    }
+   ]
+  },
+  {
+   "event_id": "Event_16zb60q",
+   "distribution_name": "norm",
+   "distribution_params": [
+    {
+     "value": 7200.0
+    },
+    {
+     "value": 600.0
+    },
+    {
+     "value": 0.0
+    },
+    {
+     "value": 1000000000000.0
+    }
+   ]
+  },
+  {
+   "event_id": "Event_1yap8f0",
+   "distribution_name": "fix",
+   "distribution_params": [
+    {
+     "value": 3600.0
+    }
+   ]
+  }
+ ]
+}

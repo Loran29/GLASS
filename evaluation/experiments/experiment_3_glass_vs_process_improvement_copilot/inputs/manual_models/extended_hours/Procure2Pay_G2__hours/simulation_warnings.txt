@@ -1,0 +1,48 @@
+Gateway sid-112BF415-63F3-473C-B4DA-440EBF13D7D8 is using conditions, but some are missing. Flows without conditions: sid-BCF61F61-A6CF-4966-A388-3AE2E521BF21, Flow_0w4e682, Flow_0hry5rk, Flow_19t4148, Flow_0z4xtdk
+Gateway sid-D537CF9E-CB8A-4188-80DE-1CA903F38436 is using conditions, but some are missing. Flows without conditions: Flow_18qi8tt, Flow_05l1vpu
+Gateway Gateway_08ytrcy is using conditions, but some are missing. Flows without conditions: Flow_00jlvmo, Flow_1nh04fe
+Gateway Gateway_07wnmx2 is using conditions, but some are missing. Flows without conditions: Flow_18kcuii, Flow_001bmd0, Flow_1eth2jp
+Gateway Gateway_0g0wyg5 is using conditions, but some are missing. Flows without conditions: Flow_1itsp7p, Flow_0atiw0f, Flow_1l0yqr1, Flow_0sljca1
+Gateway Gateway_1jc2ltt is using conditions, but some are missing. Flows without conditions: Flow_0al5ku1, Flow_100iz4m, Flow_0lvtame, Flow_007gyf6
+Gateway Gateway_1btlqqf is using conditions, but some are missing. Flows without conditions: Flow_1ku7be5, Flow_0v4io0a
+TASK 'Create Request for Quotation Requester Manager' (ID: sid-8BCCD9BA-2B23-44CA-BB32-4988807D3161) is used more frequently than expected, in 1166 out of 1000 cases (116.60%).
+Flow Flow_1e54ap7 from TASK 'Create Request for Quotation Requester Manager' (ID: sid-8BCCD9BA-2B23-44CA-BB32-4988807D3161) is used more frequently than expected, in 1166 out of 1000 cases (116.60%).
+TASK 'Authorize Supplier's Invoice payment' (ID: sid-43A3A3DC-EAE7-42F0-946E-845B3C981850) is used more frequently than expected, in 1060 out of 1000 cases (106.00%).
+Flow Flow_1cdyalo from TASK 'Authorize Supplier's Invoice payment' (ID: sid-43A3A3DC-EAE7-42F0-946E-845B3C981850) is used more frequently than expected, in 1060 out of 1000 cases (106.00%).
+TASK 'Settle dispute with supplier Financial Manager' (ID: sid-30EFC8A9-15F6-45A1-B0FE-C9B37FC92D36) is used more frequently than expected, in 1367 out of 1000 cases (136.70%).
+Flow Flow_1owdc3c from TASK 'Settle dispute with supplier Financial Manager' (ID: sid-30EFC8A9-15F6-45A1-B0FE-C9B37FC92D36) is used more frequently than expected, in 1367 out of 1000 cases (136.70%).
+TASK 'Amend Request for Quotation Requester Manager' (ID: Activity_065abi2) is used more frequently than expected, in 1188 out of 1000 cases (118.80%).
+Flow Flow_0h3wej0 from TASK 'Amend Request for Quotation Requester Manager' (ID: Activity_065abi2) is used more frequently than expected, in 1188 out of 1000 cases (118.80%).
+TASK 'Release Supplier's Invoice' (ID: Activity_1y2vzu0) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+Flow Flow_1r6wxv7 from TASK 'Release Supplier's Invoice' (ID: Activity_1y2vzu0) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+EXCLUSIVE-GATEWAY 'sid-112BF415-63F3-473C-B4DA-440EBF13D7D8' (ID: sid-112BF415-63F3-473C-B4DA-440EBF13D7D8) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+Flow Flow_0z4xtdk from EXCLUSIVE-GATEWAY 'sid-112BF415-63F3-473C-B4DA-440EBF13D7D8' (ID: sid-112BF415-63F3-473C-B4DA-440EBF13D7D8) is used more frequently than expected, in 1166 out of 1000 cases (116.60%).
+EXCLUSIVE-GATEWAY 'sid-D537CF9E-CB8A-4188-80DE-1CA903F38436' (ID: sid-D537CF9E-CB8A-4188-80DE-1CA903F38436) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+Flow Flow_18qi8tt from EXCLUSIVE-GATEWAY 'sid-D537CF9E-CB8A-4188-80DE-1CA903F38436' (ID: sid-D537CF9E-CB8A-4188-80DE-1CA903F38436) is used more frequently than expected, in 2875 out of 1000 cases (287.50%).
+EXCLUSIVE-GATEWAY 'Gateway_08ytrcy' (ID: Gateway_08ytrcy) is used more frequently than expected, in 1946 out of 1000 cases (194.60%).
+Flow Flow_00jlvmo from EXCLUSIVE-GATEWAY 'Gateway_08ytrcy' (ID: Gateway_08ytrcy) is used more frequently than expected, in 1367 out of 1000 cases (136.70%).
+EXCLUSIVE-GATEWAY 'Gateway_07wnmx2' (ID: Gateway_07wnmx2) is used more frequently than expected, in 1763 out of 1000 cases (176.30%).
+Flow Flow_18kcuii from EXCLUSIVE-GATEWAY 'Gateway_07wnmx2' (ID: Gateway_07wnmx2) is used more frequently than expected, in 1060 out of 1000 cases (106.00%).
+EXCLUSIVE-GATEWAY 'Gateway_0g0wyg5' (ID: Gateway_0g0wyg5) is used more frequently than expected, in 1977 out of 1000 cases (197.70%).
+EXCLUSIVE-GATEWAY 'Gateway_1dst547' (ID: Gateway_1dst547) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+Flow Flow_0n5zd0o from EXCLUSIVE-GATEWAY 'Gateway_1dst547' (ID: Gateway_1dst547) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+EXCLUSIVE-GATEWAY 'Gateway_1jc2ltt' (ID: Gateway_1jc2ltt) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
+Flow Flow_100iz4m from EXCLUSIVE-GATEWAY 'Gateway_1jc2ltt' (ID: Gateway_1jc2ltt) is used more frequently than expected, in 1188 out of 1000 cases (118.80%).
+EXCLUSIVE-GATEWAY 'Gateway_1btlqqf' (ID: Gateway_1btlqqf) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
+Flow Flow_0v4io0a from EXCLUSIVE-GATEWAY 'Gateway_1btlqqf' (ID: Gateway_1btlqqf) is used more frequently than expected, in 2877 out of 1000 cases (287.70%).
+INTERMEDIATE_EVENT 'Event_13wwpup' (ID: Event_13wwpup) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+Flow Flow_1tl8brz from INTERMEDIATE_EVENT 'Event_13wwpup' (ID: Event_13wwpup) is used more frequently than expected, in 1285 out of 1000 cases (128.50%).
+EXCLUSIVE-GATEWAY 'join_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8' (ID: join_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+Flow join_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8 from EXCLUSIVE-GATEWAY 'join_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8' (ID: join_sid-112BF415-63F3-473C-B4DA-440EBF13D7D8) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+EXCLUSIVE-GATEWAY 'join_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436' (ID: join_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+Flow join_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436 from EXCLUSIVE-GATEWAY 'join_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436' (ID: join_sid-D537CF9E-CB8A-4188-80DE-1CA903F38436) is used more frequently than expected, in 3875 out of 1000 cases (387.50%).
+EXCLUSIVE-GATEWAY 'join_Gateway_08ytrcy' (ID: join_Gateway_08ytrcy) is used more frequently than expected, in 1946 out of 1000 cases (194.60%).
+Flow join_Gateway_08ytrcy_Gateway_08ytrcy from EXCLUSIVE-GATEWAY 'join_Gateway_08ytrcy' (ID: join_Gateway_08ytrcy) is used more frequently than expected, in 1946 out of 1000 cases (194.60%).
+EXCLUSIVE-GATEWAY 'join_Gateway_07wnmx2' (ID: join_Gateway_07wnmx2) is used more frequently than expected, in 1763 out of 1000 cases (176.30%).
+Flow join_Gateway_07wnmx2_Gateway_07wnmx2 from EXCLUSIVE-GATEWAY 'join_Gateway_07wnmx2' (ID: join_Gateway_07wnmx2) is used more frequently than expected, in 1763 out of 1000 cases (176.30%).
+EXCLUSIVE-GATEWAY 'join_Gateway_0g0wyg5' (ID: join_Gateway_0g0wyg5) is used more frequently than expected, in 1977 out of 1000 cases (197.70%).
+Flow join_Gateway_0g0wyg5_Gateway_0g0wyg5 from EXCLUSIVE-GATEWAY 'join_Gateway_0g0wyg5' (ID: join_Gateway_0g0wyg5) is used more frequently than expected, in 1977 out of 1000 cases (197.70%).
+EXCLUSIVE-GATEWAY 'join_Gateway_1jc2ltt' (ID: join_Gateway_1jc2ltt) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
+Flow join_Gateway_1jc2ltt_Gateway_1jc2ltt from EXCLUSIVE-GATEWAY 'join_Gateway_1jc2ltt' (ID: join_Gateway_1jc2ltt) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
+EXCLUSIVE-GATEWAY 'join_Gateway_1btlqqf' (ID: join_Gateway_1btlqqf) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
+Flow join_Gateway_1btlqqf_Gateway_1btlqqf from EXCLUSIVE-GATEWAY 'join_Gateway_1btlqqf' (ID: join_Gateway_1btlqqf) is used more frequently than expected, in 3877 out of 1000 cases (387.70%).
