@@ -54,12 +54,12 @@ and the baseline parameters (`../shared/loanapp_p2p/stage2/baselines/`).
 The event logs are not stored as single files in git. They are in four zip files in `inputs/archives/`; each zip keeps
 the paths relative to `inputs/`.
 
-| Zip | Content | Size | Where |
-|---|---|---|---|
-| `manual_models_logs.zip` | The 160 logs of the manual models and the Prosimos statistics (`_stats/`) | 27.7 MB | in git |
-| `glass_baseline_logs.zip` | Baseline logs, 14 configurations x 10 seeds | 24.5 MB | in git |
-| `glass_V_full_logs.zip` | GLASS V_full selected-iteration logs (650) | 107.2 MB | not in git (over GitHub's 100 MB limit): download it from the location below |
-| `glass_V_no_kb_logs.zip` | GLASS V_no_kb selected-iteration logs (660) | 110.5 MB | not in git: download it from the location below |
+| Zip | Content | Size | Where | Unzips to (under `inputs/`) |
+|---|---|---|---|---|
+| `manual_models_logs.zip` | The 160 logs of the manual models and the Prosimos statistics | 27.7 MB | in git | `manual_models/<variant>/<model>/seed_<s>_log.csv`, `manual_models/_stats/` |
+| `glass_baseline_logs.zip` | Baseline logs, 14 configurations x 10 seeds | 24.5 MB | in git | `glass_event_logs/v3.2_rag_comparison/baseline_logs/<config>/seed_<s>.csv.gz` |
+| `glass_V_full_logs.zip` | GLASS V_full selected-iteration logs (650) | 107.2 MB | not in git (over GitHub's 100 MB limit): download it from the location below | `glass_event_logs/v3.2_rag_comparison/V_full_system_simulated_eventlogs/<config>/rep_<k>/iter<n>_seed<s>.csv.gz` |
+| `glass_V_no_kb_logs.zip` | GLASS V_no_kb selected-iteration logs (660) | 110.5 MB | not in git: download it from the location below | `glass_event_logs/v3.2_rag_comparison/V_no_kb_simulated_eventlogs/<config>/rep_<k>/iter<n>_seed<s>.csv.gz` |
 
 Download location of the two large zips: *to be added*.
 
@@ -72,7 +72,8 @@ e652d48827c48672b559fdfe35efd1089d4da9ef979face331735cee95f9d420  glass_baseline
 a396b3eb51d06a67d42cfdfceb375029077cfae9b19bf0ae875f13a13f701c39  glass_V_no_kb_logs.zip
 ```
 
-Put the two large zips into `inputs/archives/`, then unzip all four into `inputs/` (from this experiment's folder):
+Put the two large zips into `inputs/archives/` (next to the other two), then unzip all four into `inputs/`. From the
+repository root:
 
 ```
 cd evaluation/experiments/experiment_3_glass_vs_process_improvement_copilot/inputs
