@@ -13,7 +13,8 @@ time the simulation on its own. Stage 2 also records `loop.total_time_seconds`, 
 
 Standby: results/standby_windows.csv (sleep and Modern Standby windows from the Windows System log of the
 machine that ran the batches: Power-Troubleshooter event 1, Kernel-Power events 506/507). A run whose
-[start, end] overlaps a window is flagged and left out of the statistics; it is listed in runtimes.md.
+[start, end] overlaps a window is flagged; it is left out of the statistics if the overlap is at least
+EXCLUDE_OVERLAP_S (30 min). Both groups are listed in runtimes.md.
 Workers: from the batch READMEs and logs (see WORKERS below); the real-life ablation's second pass ran with
 2 workers for its first 76 runs and 4 after the restart.
 
@@ -34,6 +35,7 @@ EVAL = BASE.parent
 RES = BASE / "results"
 RL = EVAL / "real_life_ablation" / "results"
 RL_RESTART = datetime(2026, 10, 28, 10, 25, 53, tzinfo=timezone.utc)   # second pass restarted with --workers 4
+EXCLUDE_OVERLAP_S = 1800   # standby overlap from which a run is left out of the statistics
 
 # (batch, glob of the run records, workers, source of the worker count)
 BATCHES = [
@@ -114,14 +116,15 @@ def runs() -> list[dict]:
                 "elapsed_min": round(elapsed / 60, 2), "workers": w, "workers_source": workers_src,
                 "llm_calls": len(calls), "llm_s": round(llm, 1), "other_s": round(elapsed - llm, 1),
                 "loop_s": loop if loop is not None else "",
-                "standby_overlap": ov > 0, "standby_overlap_s": round(ov), "standby_windows": "; ".join(hits),
+                "standby_overlap": ov > 0, "standby_overlap_s": round(ov),
+                "excluded": ov >= EXCLUDE_OVERLAP_S, "standby_windows": "; ".join(hits),
                 "completed_later": bool(rec.get("completed_by")),
                 "record": path.relative_to(EVAL).as_posix()})
     return out
 
 
 def stats(rows: list[dict]) -> dict:
-    kept = [r for r in rows if not r["standby_overlap"]]
+    kept = [r for r in rows if not r["excluded"]]
     m = [r["elapsed_s"] / 60 for r in kept]
     llm = [r["llm_s"] / 60 for r in kept]
     oth = [r["other_s"] / 60 for r in kept]
@@ -167,23 +170,33 @@ def md_table(rows: list[dict], cols: list[tuple[str, str]]) -> list[str]:
 
 def write_md(all_runs: list[dict], summ: list[dict]) -> None:
     cols = [("batch", "Batch"), ("dataset", "Dataset"), ("variant", "Variant"), ("workers", "Workers"),
-            ("runs", "Runs"), ("runs_standby_excluded", "Standby, excluded"), ("median_min", "Median"),
+            ("runs", "Runs"), ("runs_standby_excluded", f"Excluded (standby ≥ {EXCLUDE_OVERLAP_S // 60} min)"), ("median_min", "Median"),
             ("mean_min", "Mean"), ("min_min", "Min"), ("max_min", "Max"),
             ("median_all_runs_min", "Median, all runs"), ("median_llm_min", "Median LLM"),
             ("median_other_min", "Median other"), ("llm_share_of_total", "LLM share")]
     totals = [r for r in summ if r["dataset"] == "all"]
-    excluded = [r for r in all_runs if r["standby_overlap"]]
+    excluded = [r for r in all_runs if r["excluded"]]
+    kept_overlap = [r for r in all_runs if r["standby_overlap"] and not r["excluded"]]
+    shift = lambda rows: max(((round(float(r["median_all_runs_min"]) - float(r["median_min"]), 2), r) for r in rows),
+                             key=lambda x: x[0])
+    sb, rb = shift(totals)
+    sd, rd = shift([r for r in summ if r["dataset"] != "all"])
     L = ["# Run times of the evaluation batches", "",
          "Run time of every run from its record (`timestamp` = start, `elapsed_s` = wall clock in its worker), in "
          "minutes. Per-run values: `runtimes_runs.csv`; per batch and dataset/variant: `runtimes.csv` "
          "(`scripts/summarize_runtimes.py`).", "",
-         "- **Statistics** (median, mean, min, max) leave out the runs that overlapped a standby window of the "
-         "machine; they are listed below. `Runs` counts all runs. Any overlap counts, also with the short Modern "
-         "Standby windows. Not every window paused the runs (Stage 2 v2's Procure2Pay runs inside the 93-minute "
-         "window of 2026-10-15 took their usual 7–16 min); those that did show run times of hours "
-         "(up to 1,222 min). `Median, all runs` keeps every run: per batch the exclusion moves the median by at "
-         "most 0.66 min (Stage 2 v3.1); per dataset by up to 3.07 min (Stage 2 v2 Procure2Pay, 15 of 35 runs "
-         "left out).",
+         f"- **Exclusion rule: standby overlap ≥ {EXCLUDE_OVERLAP_S // 60} min.** The statistics (median, mean, min, "
+         f"max) leave out every run that spent at least {EXCLUDE_OVERLAP_S // 60} minutes of its run time inside a "
+         f"standby window of the machine ({len(excluded)} runs, listed below with their overlap; their run times "
+         f"are {min(r['elapsed_min'] for r in excluded):.0f}–{max(r['elapsed_min'] for r in excluded):,.0f} min). "
+         f"The other {len(kept_overlap)} runs that touched a window overlap it by at most "
+         f"{max(r['standby_overlap_s'] for r in kept_overlap)} s and stay in the statistics; they are listed too. "
+         "Not every window paused the runs: the Stage 2 v2 Procure2Pay runs inside the 93-minute window of "
+         "2026-10-15 kept running (they wrote their simulation logs during it) and took their usual 7–16 min. For "
+         "the shorter overlaps elsewhere the records cannot tell whether the run was paused. `Runs` counts all runs "
+         "(`excluded` in `runtimes_runs.csv`). `Median, all runs` keeps every run: per batch the exclusion moves the "
+         f"median by at most {sb} min ({rb['batch']}); per dataset/variant by up to {sd} min ({rd['batch']} "
+         f"{rd['dataset']} {rd['variant']}).",
          "- **LLM vs. other time.** LLM time is the sum of the recorded LLM calls (`elapsed_s` per call, with "
          "retries and back-offs). The records do not time the simulation separately: \"other\" is everything else "
          "in the run, i.e. Prosimos simulation (Stage 2: the first proposal and the final on 10 seeds each, plus "
@@ -201,12 +214,14 @@ def write_md(all_runs: list[dict], summ: list[dict]) -> None:
     L += md_table(totals, cols)
     L += ["", "## Per batch and dataset/variant", ""]
     L += md_table(summ, cols)
-    L += ["", f"## Runs left out: overlap with a standby window ({len(excluded)})", "",
+    run_cols = [("batch", "Batch"), ("config", "Configuration"), ("variant", "Variant"), ("rep", "Rep"),
+                ("start_utc", "Start (UTC)"), ("elapsed_min", "Run time (min)"), ("standby_overlap_s", "Overlap (s)")]
+    L += ["", f"## Runs left out: standby overlap ≥ {EXCLUDE_OVERLAP_S // 60} min ({len(excluded)})", "",
           "Windows from `standby_windows.csv` (Windows System log: sleep, Power-Troubleshooter event 1; Modern "
           "Standby, Kernel-Power 506/507). Overlap = seconds of the run inside a window.", ""]
-    L += md_table(excluded, [("batch", "Batch"), ("config", "Configuration"), ("variant", "Variant"), ("rep", "Rep"),
-                             ("start_utc", "Start (UTC)"), ("elapsed_min", "Run time (min)"),
-                             ("standby_overlap_s", "Overlap (s)"), ("standby_windows", "Windows")])
+    L += md_table(excluded, run_cols + [("standby_windows", "Windows")])
+    L += ["", f"## Runs kept: standby overlap below {EXCLUDE_OVERLAP_S // 60} min ({len(kept_overlap)})", ""]
+    L += md_table(kept_overlap, run_cols)
     L += ["", "## Workers", "",
           "- Stage 1 (LoanApp/P2P): 4 (thread pool; `stage1_results/README.md`).",
           "- Refinement pilot: 1 (the script makes its calls one after another).",
@@ -224,7 +239,8 @@ def main() -> None:
     write_csv(RES / "runtimes_runs.csv", all_runs)
     write_csv(RES / "runtimes.csv", summ)
     write_md(all_runs, summ)
-    print(f"{len(all_runs)} runs; {sum(r['standby_overlap'] for r in all_runs)} overlap a standby window")
+    print(f"{len(all_runs)} runs; {sum(r['standby_overlap'] for r in all_runs)} overlap a standby window, "
+          f"{sum(r['excluded'] for r in all_runs)} by at least {EXCLUDE_OVERLAP_S} s (excluded)")
 
 
 if __name__ == "__main__":
