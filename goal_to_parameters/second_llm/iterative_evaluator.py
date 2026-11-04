@@ -14,6 +14,11 @@ goal-programming scoring function with prospect-theoretic loss aversion
 ``legacy_refinement=True`` restores the earlier rules for comparison (ablation): stop at the
 first iteration whose overall status is ``improved``, and select the best iteration by score
 alone. Off by default.
+
+``loop_seeds`` (default 1) is the number of paired simulation runs per iteration: the baseline and
+each proposal are simulated on seeds ``seed``, ``seed + 1``, … and their KPIs averaged
+(:func:`average_kpi_results`). Improved / worsened / unchanged, the score, the stop rule and the
+feedback then use the means, with the same thresholds. With 1 the loop is the single-run loop.
 """
 
 from __future__ import annotations
@@ -24,7 +29,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from second_llm.kpi_computation import KPIComputationResult, compute_kpis
+from second_llm.kpi_computation import ComputedKPI, KPIComputationResult, compute_kpis
 from second_llm.output_schema import SimuBridgeScenario
 from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation, scenario_to_prosimos_json
 from second_llm.scenario_evaluation import (
@@ -119,6 +124,8 @@ class IterativeEvaluationResult:
     # best_iteration_idx is None and the best iteration is attached for inspection only.
     no_improving_scenario: bool = False
     best_candidate_idx: int | None = None
+    # Paired simulation runs per iteration (KPIs averaged over them when > 1).
+    loop_seeds: int = 1
 
     @property
     def outcome(self) -> str:
@@ -254,11 +261,52 @@ def _gap_lines(e: KPIComparisonEntry, gen_result: ScenarioGenerationResult | Non
     return lines
 
 
+def _mean_details(items: list[Any]) -> Any:
+    """Average the numeric entries of KPI details over seeds, recursively through dicts.
+
+    Other entries (text, lists, booleans) are taken from the first seed that has them.
+    """
+    first = items[0]
+    if isinstance(first, dict):
+        keys = list(dict.fromkeys(k for d in items if isinstance(d, dict) for k in d))
+        return {k: _mean_details([d[k] for d in items if isinstance(d, dict) and k in d]) for k in keys}
+    nums = [v for v in items if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    if isinstance(first, bool) or not nums or len(nums) != len(items):
+        return first
+    return sum(nums) / len(nums)
+
+
+def average_kpi_results(results: list[KPIComputationResult]) -> KPIComputationResult:
+    """Mean over seeds of each KPI: its value and the numeric entries of its details.
+
+    A KPI is averaged over the seeds where it has a value (as in the multi-seed evaluation);
+    ``details["n_seeds"]`` records how many. Averaging ``per_role`` before resolving a
+    role's utilization equals averaging the resolved values, since both are means.
+    """
+    kpis: list[ComputedKPI] = []
+    for name in dict.fromkeys(k.name for r in results for k in r.kpis):
+        per_seed = [k for r in results for k in r.kpis if k.name == name]
+        valued = [k for k in per_seed if k.value is not None]
+        if not valued:
+            kpis.append(per_seed[0])
+            continue
+        details = _mean_details([k.details or {} for k in valued])
+        kpis.append(ComputedKPI(name=name, value=sum(k.value for k in valued) / len(valued),
+                                unit=valued[0].unit, category=valued[0].category,
+                                details={**details, "n_seeds": len(valued)}))
+    return KPIComputationResult(
+        kpis=kpis,
+        notes=list(dict.fromkeys(n for r in results for n in r.notes)),
+        error=next((r.error for r in results if r.error), None),
+    )
+
+
 def _build_evaluation_feedback(
     eval_result: ScenarioEvaluationResult,
     gen_result: ScenarioGenerationResult,
     iteration: int,
     max_iterations: int,
+    seeds: list[int] | None = None,
 ) -> str:
     """Build a structured feedback message enriched with causal attribution and KB evidence.
 
@@ -273,6 +321,9 @@ def _build_evaluation_feedback(
     lines.append(f"=== SIMULATION FEEDBACK (Attempt {iteration}/{max_iterations}) ===")
     lines.append("")
     lines.append("Your proposed scenario was simulated using Prosimos (discrete-event simulation).")
+    if seeds and len(seeds) > 1:
+        lines.append(f"All KPI values below are means over {len(seeds)} paired simulation runs "
+                     f"(seeds {seeds[0]}-{seeds[-1]}) of the baseline and of your proposal.")
     lines.append(f"Overall Result: {eval_result.summary.overall_status.value.upper()}")
     with_threshold = [e for e in eval_result.kpi_comparisons
                       if getattr(e, "threshold", None) is not None and not e.is_safeguard]
@@ -575,6 +626,7 @@ def run_iterative_evaluation(
     log_profile: dict[str, Any] | None = None,
     context_profile: dict[str, Any] | None = None,
     legacy_refinement: bool = False,
+    loop_seeds: int = 1,
 ) -> IterativeEvaluationResult:
     """Run the iterative generate→simulate→evaluate→feedback loop.
 
@@ -609,29 +661,50 @@ def run_iterative_evaluation(
         overall status is ``improved``, and select the best iteration by score alone.
         Default False: stop when the targets are met; select by achieved targets, then
         improved KPIs, then score.
+    loop_seeds
+        Paired simulation runs per iteration (default 1, a single run on ``seed``). With
+        more, the baseline and each proposal run on seeds ``seed``, ``seed + 1``, … and the
+        comparison, score, stop rule and feedback use the mean KPIs over those runs.
     """
+    if loop_seeds < 1:
+        raise ValueError(f"loop_seeds must be at least 1, got {loop_seeds}")
     t0 = time.time()
-    result = IterativeEvaluationResult()
+    result = IterativeEvaluationResult(loop_seeds=loop_seeds)
+    seeds = [seed + j for j in range(loop_seeds)]
+    on_seed = (lambda s: "") if loop_seeds == 1 else (lambda s: f" (seed {s})")
 
     def _notify(iteration: int, msg: str) -> None:
         if on_iteration:
             on_iteration(iteration, msg)
 
-    # --- Step 1: Simulate baseline (once) ---
-    _notify(0, "Simulating baseline...")
-    baseline_sim: ProsimosResult | None = run_prosimos_simulation(
-        baseline_scenario, bpmn_xml,
-        total_cases=total_cases, start_time=start_time, seed=seed,
-    )
+    def _simulate(scenario: SimuBridgeScenario) -> tuple[KPIComputationResult | None, ProsimosResult | None, int]:
+        """KPIs of ``scenario`` over ``seeds`` (one seed: that run's KPIs; several: their mean).
 
-    if baseline_sim is None or not baseline_sim.ok:
-        result.error = f"Baseline simulation failed: {baseline_sim.error if baseline_sim else 'No simulator available'}"
+        On a failed run returns (None, that run's result, its seed).
+        """
+        per_seed: list[KPIComputationResult] = []
+        for s in seeds:
+            sim = run_prosimos_simulation(
+                scenario, bpmn_xml,
+                total_cases=total_cases, start_time=start_time, seed=s,
+            )
+            if sim is None or not sim.ok:
+                return None, sim, s
+            per_seed.append(compute_kpis(sim.simulated_log, cost_per_hour=cost_per_hour,
+                                         prosimos_params=scenario_to_prosimos_json(scenario, bpmn_xml),
+                                         sim_start=start_time))
+        return (per_seed[0] if loop_seeds == 1 else average_kpi_results(per_seed)), None, seeds[-1]
+
+    # --- Step 1: Simulate baseline (once; on every loop seed) ---
+    _notify(0, "Simulating baseline...")
+    baseline_kpis, baseline_sim, failed_seed = _simulate(baseline_scenario)
+
+    if baseline_kpis is None:
+        result.error = (f"Baseline simulation failed{on_seed(failed_seed)}: "
+                        f"{baseline_sim.error if baseline_sim else 'No simulator available'}")
         result.total_time_seconds = time.time() - t0
         return result
 
-    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour,
-                                 prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
-                                 sim_start=start_time)
     result.baseline_kpis = baseline_kpis
 
     # --- Step 2: Iterative loop ---
@@ -656,24 +729,19 @@ def run_iterative_evaluation(
 
         proposed_scenario = gen_result.proposal.scenario
 
-        # Simulate proposed
+        # Simulate proposed (and compute its KPIs: one run, or the mean over the loop seeds)
         _notify(i, "Simulating proposed scenario...")
-        proposed_sim = run_prosimos_simulation(
-            proposed_scenario, bpmn_xml,
-            total_cases=total_cases, start_time=start_time, seed=seed,
-        )
+        proposed_kpis, proposed_sim, failed_seed = _simulate(proposed_scenario)
 
-        if proposed_sim is None or not proposed_sim.ok:
-            iter_result.error = f"Simulation failed: {proposed_sim.error if proposed_sim else 'unknown'}"
+        if proposed_kpis is None:
+            iter_result.error = (f"Simulation failed{on_seed(failed_seed)}: "
+                                 f"{proposed_sim.error if proposed_sim else 'unknown'}")
             _notify(i, f"Simulation failed")
             result.iterations.append(iter_result)
             continue
 
-        # Compute KPIs and compare
+        # Compare
         _notify(i, "Evaluating KPIs...")
-        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour,
-                                     prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
-                                     sim_start=start_time)
         eval_result = compare_kpis(baseline_kpis, proposed_kpis, targets)
         iter_result.eval_result = eval_result
         iter_result.status = eval_result.summary.overall_status if eval_result.summary else None
@@ -692,7 +760,7 @@ def run_iterative_evaluation(
 
         # Build feedback and inject for next iteration
         if i < max_iterations:
-            feedback = _build_evaluation_feedback(eval_result, gen_result, i, max_iterations)
+            feedback = _build_evaluation_feedback(eval_result, gen_result, i, max_iterations, seeds)
             iter_result.feedback_message = feedback
             orchestrator.inject_feedback_message(feedback)
             status_label = iter_result.status.value if iter_result.status else "unknown"

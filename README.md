@@ -342,6 +342,12 @@ No direction field is added to the knowledge-base entries; the rule is applied t
 
 **Earlier rules, for ablation.** `run_iterative_evaluation(..., legacy_refinement=True)` restores the previous behaviour: stop at the first iteration whose overall status is `improved`, and choose the best iteration by score alone. It is off by default. The UI never sets it; it exists so evaluations can compare the two rules. `tests/test_legacy_refinement.py` covers it.
 
+**Replications per iteration.** `run_iterative_evaluation(..., loop_seeds=k)` simulates the baseline and every proposal on k paired seeds (`seed`, `seed + 1`, …) instead of one run, and averages their KPIs (`average_kpi_results`).
+- **What is averaged:** a KPI's value and the numeric entries of its details, such as the per-role utilization, over the seeds where the KPI was computed.
+- **What uses the means:** improved / worsened / unchanged, the achieved targets, the score, the stop rule and the choice of the best iteration, with the same thresholds as before.
+- **Feedback:** shows the mean values and says that they are means over k paired runs.
+- **Default:** `loop_seeds=1` is the single-run loop: the same simulator and KPI calls, results and feedback. `tests/test_loop_seeds.py` checks this; it also checks the paired seeds, the averaging and a failed run on one seed.
+
 ---
 
 ## Try it with the bundled examples
