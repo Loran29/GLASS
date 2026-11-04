@@ -322,9 +322,15 @@ def main() -> None:
     logging.getLogger("streamlit").setLevel(logging.ERROR)
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", type=Path, default=BASE / "results" / "stage2_results")
+    ap.add_argument("--only", help="configuration id(s), comma-separated, as passed to the batch (default: all)")
     args = ap.parse_args()
     out = args.results
     config = load(BASE / "setup" / "stage2_config.json")
+    if args.only:
+        only = set(args.only.split(","))
+        config["configurations"] = [c for c in config["configurations"] if c["config_id"] in only]
+        if len(config["configurations"]) != len(only):
+            sys.exit(f"Unknown configuration id in: {args.only}")
     reps, n_seeds = config["settings"]["repetitions"], config["settings"]["seeds"]
     logs_present = (out / "logs").exists()
 

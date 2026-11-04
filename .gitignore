@@ -82,6 +82,10 @@ evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/logs/
 evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/baseline_logs/*/*.csv.gz
 evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/healthy_logs/
 evaluation/loanapp_p2p/results/stage2_results_v32_rag/*/log_archives/
+evaluation/loanapp_p2p/results/stage2_loop_seeds/*/logs/
+evaluation/loanapp_p2p/results/stage2_loop_seeds/*/baseline_logs/*/*.csv.gz
+evaluation/loanapp_p2p/results/stage2_loop_seeds/*/healthy_logs/
+evaluation/loanapp_p2p/results/stage2_loop_seeds/*/log_archives/
 
 # Real-life ablation: simulated logs (SHA-256 in the run records, not in git) and the aborted first batch attempt (kept locally)
 evaluation/real_life_ablation/results/stage2/logs/

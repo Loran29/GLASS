@@ -25,9 +25,14 @@ and feedback with the real-life ablation's switch (evaluation/real_life_ablation
 disable_kb); the record gets variant, switches and kb_switch (stub call counts). GLASS v3.2 can keep the
 baseline (no_improving_scenario): the record's loop gets no_improving_scenario and best_candidate_iteration.
 
+Loop seeds (--loop-seeds N, default 1 = the batch as before): GLASS's refinement loop simulates the baseline
+and each proposal on N paired seeds (42, 43, ...) per iteration and judges the mean KPIs
+(run_iterative_evaluation(..., loop_seeds=N)); the final multi-seed evaluation is unchanged. The record gets
+loop_seeds; with N > 1 the loop's baseline_kpis_single_run and single_run_evaluation hold the means.
+
 Usage (repo root, Python environment with Prosimos, see stage2/README.md):
   python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
-         [--variant V_full|V_no_kb] [--out DIR]
+         [--variant V_full|V_no_kb] [--loop-seeds N] [--out DIR]
 
 SCORING (analysis only; the recording is never changed by scoring)
 Primary
@@ -579,7 +584,7 @@ def run_rep(job: dict) -> dict:
     kb_counter = {"kb_stub_calls": 0, "feedback_kb_suppressed": 0}
     provider = Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
     record = {"config_id": cid, "process": cfg["process"], "goal_config": cfg["goal_config"],
-              "variant": variant, "switches": VARIANTS[variant],
+              "variant": variant, "switches": VARIANTS[variant], "loop_seeds": job.get("loop_seeds", 1),
               "rep": rep, "status": None, "error": None, "timestamp": t_start,
               "provider": type(provider.inner).__name__, "model": provider.get_model_name(),
               "glass_commit": job["glass_commit"], "config_sha256": job["config_sha"],
@@ -625,7 +630,8 @@ def run_rep(job: dict) -> dict:
         loop = ie.run_iterative_evaluation(orch, baseline, inputs["bpmn"], loop_targets,
                                            max_iterations=settings["max_iterations"], total_cases=settings["cases"],
                                            start_time=settings["start"], seed=BASE_SEED, cost_per_hour=cost_map,
-                                           on_iteration=on_iteration, log_profile=log_profile)
+                                           on_iteration=on_iteration, log_profile=log_profile,
+                                           loop_seeds=job.get("loop_seeds", 1))
         patches.restore()
         record["kb_switch"] = dict(kb_counter)
         if provider.fatal:
@@ -918,7 +924,7 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
         "compliance calls: 0.1",
         f"- Iterations: max {s['max_iterations']}; multi-seed: {s['seeds']} seeds ({BASE_SEED}..{BASE_SEED + s['seeds'] - 1}), "
         f"{s['cases']} cases, start {s['start']}",
-        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}",
+        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}; loop seeds: {args.loop_seeds}",
         f"- This invocation: start {started}, end {ended}; earliest / latest rep timestamp: "
         f"{min(stamps, default='')} / {max(stamps, default='')}",
         f"- Python {sys.version.split()[0]}; prosimos {version('prosimos')}; log-distance-measures "
@@ -1041,6 +1047,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
     ap.add_argument("--variant", choices=sorted(VARIANTS), default="V_full", help="V_no_kb: knowledge base off")
+    ap.add_argument("--loop-seeds", type=int, default=1, help="paired simulation runs per refinement iteration")
     args = ap.parse_args()
     if args.smoke:
         args.reps, args.only = 1, "LoanApp_G3"
@@ -1076,11 +1083,11 @@ def main() -> None:
                 s1.log(f"{cfg['config_id']} rep {rep} skipped (exists: {existing['status']})")
                 continue
             jobs.append({"config": config, "cfg": cfg, "rep": rep, "out": str(args.out), "glass_commit": commit,
-                         "variant": args.variant,
+                         "variant": args.variant, "loop_seeds": args.loop_seeds,
                          "config_sha": config_sha, "script_sha": s1.sha256(Path(__file__).read_bytes()),
                          "log_profile": log_profile, "shared": shared, "healthy_sha": healthy_sha,
                          "healthy_scenario": healthy_scn})
-    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; model {settings['model']}; workers {args.workers}; "
+    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; loop seeds {args.loop_seeds}; model {settings['model']}; workers {args.workers}; "
            f"GLASS {commit[:7]}")
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         futures = [pool.submit(run_rep, job) for job in jobs]
