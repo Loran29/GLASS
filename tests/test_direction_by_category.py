@@ -20,6 +20,15 @@ import second_llm.iterative_evaluator as ie  # noqa: E402
 from knowledge.direction import kpi_metric  # noqa: E402
 from second_llm.kpi_computation import ComputedKPI, KPIComputationResult  # noqa: E402
 from second_llm.scenario_evaluation import KPITarget, TargetDirection, compare_kpis  # noqa: E402
+from knowledge import switch  # noqa: E402
+
+
+def setUpModule():          # these tests exercise knowledge-base retrieval, which is off by default
+    switch.set_knowledge_base(True)
+
+
+def tearDownModule():
+    switch.set_knowledge_base(None)
 
 RAISES_UTIL = re.compile(
     r"utili[sz]ation (rose|improved|improves|increased|rate of)|"

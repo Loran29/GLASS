@@ -34,6 +34,7 @@ import json
 import os
 from typing import Any
 
+from knowledge import switch
 from knowledge.evidence_filters import (
     _build_differentiation_briefing,
     _identify_bottleneck_activities,
@@ -399,9 +400,14 @@ def build_second_llm_evidence(
     cat_names = sorted(c.value for c in matched)
     notes.append(f"Matched goal categories: {', '.join(cat_names)}")
 
-    # --- Stage 2: Knowledge-base retrieval ---
-    kb_result = retrieve_for_second_llm(goal_structured, kpis, context_profile)
-    kb_json = kb_result.to_prompt_json()
+    # --- Stage 2: Knowledge-base retrieval (off: no call, empty result, no knowledge-base section) ---
+    use_kb = switch.knowledge_base_enabled()
+    if use_kb:
+        kb_result = retrieve_for_second_llm(goal_structured, kpis, context_profile)
+    else:
+        kb_result = RetrievalResult()
+        switch.skipped["retrieval"] += 1
+    kb_json = kb_result.to_prompt_json() if use_kb else ""
     notes.append(
         f"KB: {len(kb_result.goal_mappings)} mappings, "
         f"{len(kb_result.parameters)} params, "

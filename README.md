@@ -12,6 +12,45 @@ GLASS is a Streamlit web application that turns a natural-language simulation go
 
 The full pipeline runs in a single Streamlit app split into three workspaces: **Goal to KPI**, **Scenario Studio**, and **Scenario Evaluation**.
 
+### Knowledge base (RAG): optional, off by default
+
+By default GLASS generates scenarios **without** its knowledge base. The Stage 2 prompt is built from the
+verified KPIs, the SIMOD baseline, the event-log and context evidence and the clarification answers, and the
+refinement feedback from the simulation results.
+
+**Enabling it.** With the knowledge base on, GLASS retrieves literature-backed goal-to-parameter
+recommendations and case-study findings (`goal_to_parameters/knowledge/`). They are added to the scenario
+prompt and, as alternative interventions, to the refinement feedback. There are three ways to switch it on:
+- `use_knowledge_base: true` in `goal_to_parameters/config.yaml`;
+- the toggle "Use the knowledge base" in the Scenario Studio;
+- `--use-knowledge-base` on `evaluation/loanapp_p2p/scripts/run_stage2_batch.py` (`--no-knowledge-base` is the default).
+
+**What the option changes.** It decides only whether knowledge-base retrieval happens. Off means:
+- no call to `knowledge.retrieval.retrieve_for_second_llm` in generation or feedback;
+- no knowledge-base section in the prompt or the feedback.
+
+Everything else is the same either way: the prompts' wording, the other evidence, the validators, the merger,
+the loop, the scoring and the metrics. The system prompt still mentions knowledge-base recommendations and
+`literature_support`, exactly as in the runs reported without the knowledge base.
+
+**Which reported results used which setting.** The main Stage 2 results are the v3.2 runs without the
+knowledge base; the runs with it are additional experiments. (Stage 1 and the refinement pilot do not use the
+knowledge base.)
+
+| Results | Knowledge base |
+|---|---|
+| `evaluation/loanapp_p2p/results/stage2_results_v32_rag/V_no_kb/` (LoanApp/P2P, v3.2) | off (main results) |
+| `evaluation/real_life_ablation/results/stage2/`, variant V_no_kb | off (main results) |
+| `evaluation/loanapp_p2p/results/stage2_results_v32_rag/V_full/` (RAG comparison) | on |
+| `evaluation/real_life_ablation/results/stage2/`, variants V_full, V_no_log, V_no_context, V_no_refine, V_old_refine | on |
+| `evaluation/loanapp_p2p/results/stage2_results*/` v1 to v3.1 | on |
+| `evaluation/loanapp_p2p/results/stage2_loop_seeds/` (loop replications) | on |
+
+The runs without the knowledge base were made with an equivalent switch in the evaluation scripts. Since v3.3
+they use this option. Replaying them with it reproduces their prompts and feedback: byte for byte, apart from
+the order of set-derived JSON entries, which Python's per-process hash randomization varies
+(`evaluation/loanapp_p2p/results/kb_option_consistency.md`).
+
 ---
 
 ## Getting started (no programming experience needed)
@@ -69,14 +108,14 @@ goal_to_parameters/       # main application
   llm/                    # provider adapters (Ollama, OpenAI, Anthropic, OpenRouter, HuggingFace)
   prompts/                # SMART-KPI and ScenarioPatch prompt templates + few-shot examples
   models/                 # Pydantic schemas for KPIs
-  knowledge/              # hybrid RAG (BM25 + dense embeddings + cross-encoder + PDF chunks)
+  knowledge/              # optional knowledge base (hybrid RAG: BM25 + dense embeddings + cross-encoder + PDF chunks); switch.py
   second_llm/             # scenario generation, patch validation, merger, Prosimos runner, evaluation
   ui/                     # Streamlit panels for the three workspaces
   utils/                  # log profiling, context-factor screening, parsing, semantic validation
   examples/               # ready-to-use process descriptions, event logs, and full second-LLM data sets
 tests/                    # unit and integration tests
 evaluation/               # thesis evaluation harness — stage 1 & 2 pipelines, SIMOD baselines, results
-Papers/CaseStudy/         # RAG corpus (case-study PDFs for evidence retrieval)
+Papers/CaseStudy/         # case-study PDFs for the optional knowledge base's full-text index
 ```
 
 ---
@@ -98,7 +137,7 @@ Configured in [`goal_to_parameters/config.yaml`](./goal_to_parameters/config.yam
 ## Design choices worth flagging
 
 - **Delta-only patches over full-scenario regeneration.** The second LLM emits a `ScenarioPatch` describing what to change, not a full SimuBridge scenario. A deterministic Python merger applies it onto the SIMOD baseline. This eliminates the token cost and hallucination risk of asking an LLM to re-emit the baseline.
-- **Grounded RAG evidence.** Second-stage prompts are populated with retrieved case-study passages (hybrid BM25 + dense + cross-encoder over the `Papers/CaseStudy/` corpus) so proposed modifications cite prior literature.
+- **Optional RAG evidence.** With the knowledge base on (off by default, see above), second-stage prompts are populated with retrieved knowledge-base entries and case-study passages (hybrid BM25 + dense + cross-encoder over the `Papers/CaseStudy/` corpus) so proposed modifications cite prior literature.
 - **Statistical hardening in context analysis.** Context-factor screening uses Benjamini-Hochberg FDR correction on top of Spearman / Kruskal-Wallis tests with practical effect-size thresholds — statistical significance alone is not enough to make it into the KPI prompt.
 - **Post-generation feasibility enforcement.** After patch generation, dedicated validators check the patch against operational constraints captured in the clarification chat (max headcount, budget ceiling `Δ × costHour × weekly_hours × 4.33`, immutable elements, overtime and shift-extension restrictions). Violations trigger targeted retries with the computed overshoot.
 - **Human-in-the-loop review.** Stage 1 requires the user to accept or reject each KPI individually before stage 2 can consume the output.

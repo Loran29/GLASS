@@ -486,7 +486,15 @@ def _retrieve_alternative_interventions(
     The metric of each problem KPI comes from its category and ``measurable_as`` (``kpi_info``:
     name -> (category, measurable_as)) via :func:`knowledge.direction.kpi_metric`; the name is used
     only when neither is known.
+
+    With the knowledge base off (:mod:`knowledge.switch`) nothing is retrieved and the feedback has no
+    knowledge-base section.
     """
+    from knowledge import switch
+
+    if not switch.knowledge_base_enabled():
+        switch.skipped["feedback"] += 1
+        return ""
     problem_kpis = worsened_kpis + violated_kpis
     if not problem_kpis:
         return ""

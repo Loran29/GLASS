@@ -11,6 +11,15 @@ from knowledge.retrieval import (
     SecondLLMEvidence,
 )
 from knowledge.models import GoalCategory
+from knowledge import switch
+
+
+def setup_module(module):   # the evidence pipeline is tested with knowledge-base retrieval, which is off by default
+    switch.set_knowledge_base(True)
+
+
+def teardown_module(module):
+    switch.set_knowledge_base(None)
 
 # -------------------------------------------------------------------
 # Test data: Loan Application (from examples)

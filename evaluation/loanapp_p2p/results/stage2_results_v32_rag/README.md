@@ -27,6 +27,9 @@ effect in the real-life ablation (where V_no_kb did best) shows up on the synthe
   - The record gets `variant`, `switches` and `kb_switch` (the stub's call counts).
   - The record's loop gets v3.2's `no_improving_scenario` and `best_candidate_iteration`.
   - With V_full the batch runs exactly as before.
+  - Since v3.3 the switch is GLASS's own option `use_knowledge_base` (`../VERSIONS.md`): rerun the arms with
+    `--use-knowledge-base` (V_full) and `--no-knowledge-base` (V_no_kb, now the default). Replaying the stored runs
+    with the option reproduces their prompts up to set order (`../kb_option_consistency.md`).
 - **Switch check:** V_no_kb's stub was called in all 70 runs (204 retrieval calls, 56 feedback sections
   suppressed), and none of its prompts contains the knowledge-base section. All 70 V_full runs have it.
 - **Workers:** 4.

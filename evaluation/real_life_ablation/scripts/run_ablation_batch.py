@@ -20,10 +20,12 @@ Variants (--variant; each a switch on the same code path, recorded in every run 
   V_no_log      no log profile: log_profile=None for the draft payload and the loop (no log or context evidence
                 in the Stage-2 prompt)
   V_no_context  no clarification chat (GLASS defaults: no operational-constraint summary)
-  V_no_kb       knowledge base off, in generation and feedback: knowledge.retrieval.retrieve_for_second_llm is
-                replaced by a stub that makes no retrieval (calls counted in the record as kb_stub_calls), the
-                evidence's kb_json is emptied so the prompt has no knowledge-base section, and the feedback's
-                alternative-intervention retrieval returns nothing, so the feedback has no literature section
+  V_no_kb       knowledge base off, in generation and feedback: GLASS's option use_knowledge_base = false
+                (knowledge.switch). No call to knowledge.retrieval.retrieve_for_second_llm (skipped retrievals
+                counted in the record as kb_stub_calls), no kb_json so the prompt has no knowledge-base section,
+                and no alternative-intervention retrieval in the feedback (feedback_kb_suppressed), so the
+                feedback has no literature section. The recorded runs used an equivalent monkey-patch of the same
+                three points; the other variants run with the knowledge base on.
   V_no_refine   max_iterations = 1
   V_old_refine  run_iterative_evaluation(legacy_refinement=True): stop at the first iteration whose overall
                 status is improved, best iteration by score alone (GLASS commit "Refinement: optional earlier
@@ -306,31 +308,6 @@ def discarded(ev: dict, kept_baseline: bool = False) -> tuple[bool, str]:
 
 # ------------------------------------------------------------- switches ---
 
-def disable_kb(patches, counter: dict) -> None:
-    """V_no_kb: no knowledge-base retrieval and no knowledge-base material in generation or feedback."""
-    import knowledge.retrieval as kr
-    import second_llm.iterative_evaluator as ie
-    import second_llm.payload_builder as pb
-    import second_llm.scenario_generator as sg
-    from knowledge.retrieval_result import RetrievalResult
-
-    def no_retrieval(*args, **kwargs):
-        counter["kb_stub_calls"] += 1
-        return RetrievalResult()
-    patches.set(kr, "retrieve_for_second_llm", no_retrieval)
-    for module in (sg, pb):
-        def without_kb(*args, _original=module.build_second_llm_evidence, **kwargs):
-            evidence = _original(*args, **kwargs)
-            evidence.kb_json = ""
-            return evidence
-        patches.set(module, "build_second_llm_evidence", without_kb)
-
-    def no_alternatives(*args, **kwargs):
-        counter["feedback_kb_suppressed"] += 1
-        return ""
-    patches.set(ie, "_retrieve_alternative_interventions", no_alternatives)
-
-
 def merge_counts(notes: list[str], calls: list[dict], iteration: int) -> dict | None:
     """Merge stability of an iteration's accepted patch as applied / proposed by the LLM.
 
@@ -409,7 +386,14 @@ def run_rep(job: dict) -> dict:
     shared = job["shared"][ds]
     log_profile = shared["log_profile"] if sw["use_log_profile"] else None
     tracker, events, patches = {"iteration": 0}, [], s2.Patches()
-    counter = {"kb_stub_calls": 0, "feedback_kb_suppressed": 0}
+    from knowledge import switch as kb_switch
+    kb_switch.set_knowledge_base(True)    # on until the variant's setting is applied below, as before
+    skipped0 = dict(kb_switch.skipped)
+
+    def kb_counts() -> dict:
+        """Retrievals the knowledge-base option skipped in this run (the keys of the earlier stub counters)."""
+        return {"kb_stub_calls": kb_switch.skipped["retrieval"] - skipped0["retrieval"],
+                "feedback_kb_suppressed": kb_switch.skipped["feedback"] - skipped0["feedback"]}
     provider = s2.Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
     record = {"config_id": cfg["config_id"], "dataset": ds, "goal": cfg["goal"], "variant": variant, "switches": sw,
               "rep": rep, "status": None, "error": None, "timestamp": t_start,
@@ -433,8 +417,7 @@ def run_rep(job: dict) -> dict:
         if sw["use_context"]:
             for turn in inputs["chat"]:
                 orch.chat_session.append(ChatRole.USER, turn)
-        if not sw["use_kb"]:
-            disable_kb(patches, counter)
+        kb_switch.set_knowledge_base(sw["use_kb"])   # V_no_kb: GLASS's option use_knowledge_base = false
         record["draft_payload"] = s2.dump(orch.build_second_llm_request_draft(log_profile=log_profile))
 
         baseline = s2.load_scenario(inputs["sim_params_text"], inputs["bpmn"])
@@ -457,7 +440,7 @@ def run_rep(job: dict) -> dict:
                                            on_iteration=on_iteration, log_profile=log_profile,
                                            legacy_refinement=sw["legacy_refinement"])
         patches.restore()
-        record["kb_switch"] = dict(counter)
+        record["kb_switch"] = kb_counts()
         if provider.fatal:
             return {"fatal": provider.fatal}
 
@@ -604,7 +587,7 @@ def run_rep(job: dict) -> dict:
         if provider.fatal:
             return {"fatal": provider.fatal}
         record.update(status="app_error", error=traceback.format_exc(), llm_calls=provider.calls,
-                      kb_switch=dict(counter))
+                      kb_switch=kb_counts())
     return finish(record, path, t0)
 
 

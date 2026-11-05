@@ -1,5 +1,9 @@
 default_provider: openrouter
 
+# Knowledge base (RAG) in Stage 2: literature-backed recommendations in the scenario prompt and the
+# refinement feedback. Off by default; the Scenario Studio toggle and --use-knowledge-base override it.
+use_knowledge_base: false
+
 ollama:
   base_url: http://localhost:11434
   default_model: mistral

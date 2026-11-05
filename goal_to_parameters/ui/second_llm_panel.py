@@ -673,6 +673,17 @@ def _render_chat_view(orch: SecondLLMWorkspaceOrchestrator) -> None:
             with st.chat_message("user"):
                 st.markdown(msg.content)
 
+    # --- Knowledge base (RAG): off by default (config.yaml: use_knowledge_base) ---
+    from knowledge import switch as _kb_switch
+    _kb_switch.set_knowledge_base(st.toggle(
+        "Use the knowledge base (literature-backed recommendations, RAG)",
+        value=_kb_switch.config_default(),
+        key="second_llm__use_knowledge_base",
+        help="Off: scenarios are generated from the KPIs, the SIMOD baseline, the event-log and context "
+             "evidence and your answers only; no knowledge-base section in the prompt or the refinement "
+             "feedback. On: knowledge-base recommendations and literature are retrieved and added.",
+    ))
+
     # --- Action buttons ---
     # Both appear once the chatbot has gathered enough operational context.
     generate_clicked = False
