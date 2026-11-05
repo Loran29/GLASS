@@ -1,0 +1,41 @@
+== LoanApp_G3 rep 1: status ok (87.5 s)
+
+-- KPI objects passed (from results/stage1_results_normalised/raw/LoanApp_G3/rep_1.json)
+   Loan Officer Workload Distribution | category utilization | measurable_as Resource Utilization | direction maximize (Stage 1) -> minimize (passed)
+   description: The average number of loan applications handled per loan officer during the assessment process. The resource is currently overloaded; bring its utilization down to a sustainable level without idling the team.
+
+-- Context summary (as rendered into the prompt, iteration 1)
+## Hard Operational Constraints (from user — MUST be respected)
+
+The following rules were stated by the process owner and are non-negotiable. Violating any of them will cause your patch to be rejected.
+- **clerk**: max additional = 3.
+- **loan officer**: max additional = 3.
+- **appraiser**: max additional = 3.
+- **AML investigator**: max additional = 3.
+- **senior officer**: max additional = 3.
+- **applicant**: staffing is FIXED (no headcount changes allowed); external party (headcount cannot be changed).
+- **Budget**: total staff cost may increase by at most 35 %.
+- **Immutable elements (do NOT change):** aml check, senior officer's approval.
+
+-- Iterations
+   it 1 | T 0.3 | status improved | score 18.8 | validator True | attempts 1 | Loan Officer Workload Distribution: 0.32 -> 0.26 (-18.75%, improved=True, safeguard_violated=None)
+       resource_count               increase     Loan Officer: 1 -> 3
+       resource_calendar            redistribute qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal: 09:00 - 17:00 -> 09:00 - 19:00
+
+-- Final = iteration 1
+
+-- initial (iteration 1): valid=True violations=[]
+   Loan Officer Workload Distribution: baseline 0.318 [0.3059, 0.3301] | proposed 0.2784 [0.2677, 0.2891] | -12.45% p=0.0013973028176497186 | GLASS improved=True safeguard_violated=None | scored_by=utilization_rule improved=True
+   utilization rule: pool utilization baseline 0.8644 -> proposed 0.2905 verdict improved p=1.603574464951615e-17
+   midnight ends mapped per seed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+   scores: {'n_modifications': 2, 'n_on_target': 1, 'n_off_target': 1, 'off_target_elements': ['qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal'], 'precision': 0.5, 'addressed_G3': True, 'recall_G3': 1.0, 'recall': 1.0}
+   distance to healthy: {'CTD': 0.3492000000000003, 'RED': 0.16999516671550846, 'CWD': 0.026651173715642924, 'NGD': 0.035943230201280596, 'CWD_raw': 0.026651173715642924}  improvement ratio: {'CTD': 0.8775, 'RED': 0.8605, 'CWD': 0.2459, 'NGD': -0.0656, 'CWD_raw': 0.2459}
+
+-- final (iteration 1): valid=True violations=[]
+   Loan Officer Workload Distribution: baseline 0.318 [0.3059, 0.3301] | proposed 0.2784 [0.2677, 0.2891] | -12.45% p=0.0013973028176497186 | GLASS improved=True safeguard_violated=None | scored_by=utilization_rule improved=True
+   utilization rule: pool utilization baseline 0.8644 -> proposed 0.2905 verdict improved p=1.603574464951615e-17
+   midnight ends mapped per seed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+   scores: {'n_modifications': 2, 'n_on_target': 1, 'n_off_target': 1, 'off_target_elements': ['qbp_e6c371a1-c8f5-49da-9e5c-50e0c4def74f_1_cal'], 'precision': 0.5, 'addressed_G3': True, 'recall_G3': 1.0, 'recall': 1.0}
+   distance to healthy: {'CTD': 0.3492000000000003, 'RED': 0.16999516671550846, 'CWD': 0.026651173715642924, 'NGD': 0.035943230201280596, 'CWD_raw': 0.026651173715642924}  improvement ratio: {'CTD': 0.8775, 'RED': 0.8605, 'CWD': 0.2459, 'NGD': -0.0656, 'CWD_raw': 0.2459}
+
+-- baseline distance to healthy: {'CTD': 2.850299999999996, 'RED': 1.2184971278750845, 'CWD': 0.035339621497786945, 'NGD': 0.033730570966679786, 'CWD_raw': 0.035339621497786945}

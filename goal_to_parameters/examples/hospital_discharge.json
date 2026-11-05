@@ -1,0 +1,7 @@
+{
+  "name": "Hospital Discharge",
+  "recommended_provider": "ollama",
+  "recommended_model": "phi3",
+  "process_description": "The patient discharge process starts when the attending physician decides the patient is ready for discharge. A ward nurse prepares the discharge checklist and medication summary. The pharmacy validates and dispenses discharge medication. The billing office prepares the final bill. A discharge coordinator explains aftercare instructions to the patient and schedules follow-up appointments. The process ends when the patient leaves the hospital.",
+  "simulation_goal": "Reduce patient discharge delays while keeping medication handover accuracy and follow-up scheduling completeness at high levels"
+}

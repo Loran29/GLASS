@@ -1,0 +1,30 @@
+dataset,activity,events,cases_with_activity,case_share,eligible_for_x,events_with_predecessor,mean_waiting_h,mean_waiting_clipped_h,mean_waiting_latest_ended_predecessor_h,negative_waits
+AcademicCredentials,Validacion final,29,28,0.0704,False,29,342.29,342.3,343.43,1.0
+AcademicCredentials,Validar solicitud / pre-homologacion,10,9,0.0226,False,10,339.67,339.84,341.11,1.0
+AcademicCredentials,Transferir Creditos,9,8,0.0201,False,9,126.12,126.12,3.71,0.0
+AcademicCredentials,Notificacion estudiante cancelacion soli,208,208,0.5226,True,200,111.11,111.11,111.11,0.0
+AcademicCredentials,Homologacion por grupo de cursos,187,187,0.4698,True,184,91.45,91.52,94.91,14.0
+AcademicCredentials,Avanzar recepcion documentos,2,2,0.005,False,2,74.3,74.3,74.3,0.0
+AcademicCredentials,Visto Bueno Cierre Proceso,29,28,0.0704,False,29,60.31,60.42,60.32,2.0
+AcademicCredentials,Evaluacion curso,33,32,0.0804,False,33,48.77,49.84,49.49,14.0
+AcademicCredentials,Validar solicitud,216,216,0.5427,True,212,34.68,34.7,35.9,3.0
+AcademicCredentials,Revisar curso,43,42,0.1055,True,42,32.98,33.45,49.15,10.0
+AcademicCredentials,Cancelar Solicitud,198,198,0.4975,True,191,31.72,31.72,31.73,15.0
+AcademicCredentials,Recepcion de documentos,3,3,0.0075,False,3,27.69,27.69,27.69,0.0
+AcademicCredentials,Radicar Solicitud Homologacion,404,398,1.0,True,401,1.7,1.7,1.7,0.0
+AcademicCredentials,Traer informacion estudiante - banner,395,395,0.9925,True,23,0.47,0.65,0.62,4.0
+AcademicCredentials,Transferir creditos homologables,16,8,0.0201,False,16,0.0,0.0,0.0,0.0
+AcademicCredentials,Cancelar curso,6,6,0.0151,False,6,0.0,0.0,0.0,0.0
+BPIC_2012_W,W_Nabellen offertes,4899,1397,0.4694,True,4899,73.44,73.44,73.44,0.0
+BPIC_2012_W,W_Valideren aanvraag,2528,1030,0.3461,True,2528,28.02,28.02,28.02,0.0
+BPIC_2012_W,W_Nabellen incomplete dossiers,3107,525,0.1764,True,3107,12.9,12.9,12.9,0.0
+BPIC_2012_W,W_Completeren aanvraag,5942,2162,0.7265,True,4568,11.47,11.47,11.47,0.0
+BPIC_2012_W,W_Beoordelen fraude,89,35,0.0118,False,68,8.83,8.83,8.83,0.0
+BPIC_2012_W,W_Afhandelen leads,2003,1587,0.5333,True,422,0.79,0.79,0.79,0.0
+BPIC_2017_W,W_Validate application,12453,4847,0.6571,True,12453,75.4,75.42,75.43,3.0
+BPIC_2017_W,W_Call after offers,13041,7330,0.9938,True,12611,46.63,46.63,46.64,2.0
+BPIC_2017_W,W_Assess potential fraud,192,53,0.0072,False,188,33.33,33.33,33.33,0.0
+BPIC_2017_W,W_Call incomplete files,13705,3428,0.4648,True,13705,18.29,18.3,18.29,1.0
+BPIC_2017_W,W_Complete application,11604,6941,0.941,True,5461,16.87,16.87,16.87,0.0
+BPIC_2017_W,W_Handle leads,1012,800,0.1085,True,216,0.64,0.64,0.64,0.0
+BPIC_2017_W,W_Shortened completion,3,3,0.0004,False,0,,,,0.0

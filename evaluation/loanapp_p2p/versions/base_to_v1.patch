@@ -1,0 +1,2391 @@
+diff --git a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+new file mode 100644
+index 0000000..00f9d5f
+--- /dev/null
++++ b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+@@ -0,0 +1,1057 @@
++"""
++Stage-2 batch evaluation (validated KPIs + baseline -> scenario patch -> simulation), as delivered by GLASS.
++
++Every configuration in setup/stage2_config.json is run N times through GLASS's own Stage-2 code, called
++as a library (nothing under goal_to_parameters/ is modified; nothing an LLM returns is altered):
++  baseline   stage2/baselines/<id>/ (validated in bcbf24c), cost_per_hour set from business_context,
++             loaded with accept_simod_raw_input -> build_baseline_scenario
++  inputs     the KPI objects named in kpi_names_to_pass, taken from the Stage-1 record (first proposals:
++             results/stage1_results_normalised/, so measurable_as is set); utilization KPIs get
++             target_direction "minimize" and an overload sentence (lead author's interpretation, see README);
++             the three business-context answers as the clarification chat (user turns); the log profile
++  loop       iterative_evaluator.run_iterative_evaluation (max_iterations from the config) with the UI's
++             KPI targets and cost map; iteration 1 = initial, the loop's best iteration = final
++  evaluation multi_seed_evaluation.evaluate_multi_seed (10 seeds) for initial and final against one cached
++             10-seed baseline run set per configuration (same seeds for all three models)
++Records go to <out>/raw/<id>/rep_<k>.json; reruns resume (final statuses are skipped, llm_error is redone).
++Simulated logs are written next to the records but kept out of git (SHA-256 in the records, zipped per
++configuration in <out>/log_archives/).
++
++Usage (repo root, Python environment with Prosimos, see stage2/README.md):
++  python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
++
++SCORING (analysis only; the recording is never changed by scoring)
++Primary
++  valid          the patch validator (validate_patch) passed for the accepted patch, the scenario simulated,
++                 and the business-context limits hold on the simulated scenario:
++                 headcount of each internal role <= baseline + 3; total hourly staff cost
++                 (sum of headcount x costHour) <= baseline x 1.35; external roles (cost_per_hour 0 in
++                 business_context: applicant, supplier) keep their headcount; working time of each role
++                 <= baseline + 2 h on every weekday (per resource calendar); the immutable steps are still present with their
++                 baseline role(s) assigned.
++  KPI improvement  per KPI from evaluate_multi_seed (10 seeds, paired with the cached baseline): mean, 95 % CI,
++                 paired t-test p-value. improved: GLASS's direction rule on the means for time KPIs; for
++                 utilization KPIs the utilization rule below. all_kpis_improved = every KPI improved.
++  utilization rule  utilization of the target pool (the role of the G3 problem) = busy time within working
++                 time / available working time of its resources (each with its own calendar) over the simulated
++                 span, per seed, averaged over the 10 seeds.
++                 improved: proposed below 0.85 and lower than the baseline; worsened: higher than the baseline;
++                 otherwise unchanged.
++Secondary
++  addressed      per injected problem: >= 1 modification with the expected parameter_type on an expected
++                 element in the expected direction.
++  precision      share of all modifications that are on target for any injected problem of the configuration.
++  recall         share of the expected elements (of the injected problems) touched by an on-target modification.
++  off_target     modifications whose element is not an expected element of any injected problem.
++  distance       CTD, RED, CWD, NGD (log-distance-measures) between each of the 10 logs of a model and the
++                 healthy model's log of the same seed, averaged; improvement_ratio =
++                 1 - d(proposed, healthy) / d(baseline, healthy) per measure. Preprocessing (distances only,
++                 all models): an end timestamp of exactly 00:00:00 directly after the end of the resource's
++                 working day on the previous day is mapped back to that end (Prosimos logs a task that ends
++                 exactly at the end of a working interval at the next midnight); counts per log are recorded.
++                 CWD is also recorded on the unmapped logs (CWD_raw).
++  Elements match by display name or id, case-insensitively.
++END SCORING
++"""
++
++from __future__ import annotations
++
++import argparse
++import bisect
++import copy
++import csv
++import json
++import logging
++import random
++import subprocess
++import sys
++import time
++import traceback
++import warnings
++import zipfile
++from concurrent.futures import ProcessPoolExecutor
++from datetime import datetime, timedelta, timezone
++from importlib.metadata import version
++from pathlib import Path
++from statistics import mean
++
++import numpy as np
++import pandas as pd
++
++BASE = Path(__file__).resolve().parent.parent          # evaluation/loanapp_p2p
++REPO_ROOT = BASE.parent.parent
++CONFIG_PATH = BASE / "setup" / "stage2_config.json"
++sys.path.insert(0, str(REPO_ROOT / "goal_to_parameters"))
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++
++import run_stage1_batch as s1   # provider, retry/back-off recording, JSON helpers, app.py log profile  # noqa: E402
++
++BASE_SEED = 42            # GLASS's UI default; seeds 42..51
++FINAL_STATUSES = {"ok", "no_initial_proposal", "app_error"}
++DIST_BIN = timedelta(hours=1)
++UTIL_LIMIT = 0.85
++OVERLOAD_TEXT = ("The resource is currently overloaded; bring its utilization down to a sustainable level "
++                 "without idling the team.")
++# Steps the business context declares immutable (performed by AML Investigator, Senior Officer, Financial Manager).
++IMMUTABLE_STEPS = {"LoanApp": ["AML check", "Approve loan offer"],
++                   "Procure2Pay": ["Authorize Supplier's Invoice payment"]}
++MAX_ADDED_PER_ROLE, MAX_COST_FACTOR, MAX_EXTRA_HOURS_PER_DAY = 3, 1.35, 2
++MEASURES = ("CTD", "RED", "CWD", "NGD")
++WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
++
++
++def seed_all(seed: int) -> None:
++    """Prosimos draws from Python's random and NumPy's global RNG."""
++    random.seed(seed)
++    np.random.seed(seed)
++
++
++def quiet() -> None:
++    warnings.filterwarnings("ignore")
++    logging.getLogger("streamlit").setLevel(logging.ERROR)
++    for name in ("streamlit.runtime.scriptrunner_utils.script_run_context", "streamlit.runtime.state.session_state_proxy"):
++        logging.getLogger(name).setLevel(logging.ERROR)
++    if not isinstance(sys.stdout, s1._MuteCostTracker):
++        sys.stdout = s1._MuteCostTracker(sys.stdout)
++
++
++def git(*args) -> str:
++    return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True).stdout.strip()
++
++
++def dump(obj):
++    """JSON-able form of pydantic models / dataclasses / enums, without changing values."""
++    if obj is None or isinstance(obj, (str, int, float, bool)):
++        return obj
++    if hasattr(obj, "model_dump"):
++        return obj.model_dump(mode="json")
++    if hasattr(obj, "__dataclass_fields__"):
++        return {k: dump(getattr(obj, k)) for k in obj.__dataclass_fields__}
++    if hasattr(obj, "value") and hasattr(obj, "name"):          # enum
++        return obj.value
++    if isinstance(obj, dict):
++        return {str(k): dump(v) for k, v in obj.items()}
++    if isinstance(obj, (list, tuple, set)):
++        return [dump(v) for v in obj]
++    if isinstance(obj, pd.DataFrame):
++        return f"<DataFrame {len(obj)} rows>"
++    return str(obj)
++
++
++def seeds_of(settings: dict) -> list[int]:
++    return [BASE_SEED + i for i in range(settings["seeds"])]
++
++
++# ------------------------------------------------------------------ inputs ---
++
++def kpi_source(cfg: dict) -> str:
++    """First proposals are read from the normalised Stage-1 records (measurable_as set)."""
++    return cfg["kpi_source_record"].replace("results/stage1_results/", "results/stage1_results_normalised/")
++
++
++def load_inputs(cfg: dict, config: dict) -> dict:
++    """Baseline with business-context costs, kept KPIs and the Stage-1 result object for GLASS."""
++    bdir = BASE / cfg["baseline_dir"]
++    bc = config["business_context"][cfg["process"]]
++    sim_params = json.loads((bdir / "sim_params.json").read_text(encoding="utf-8"))
++    for prof in sim_params["resource_profiles"]:
++        for res in prof["resource_list"]:
++            res["cost_per_hour"] = bc["cost_per_hour"][prof["name"]]
++    rec = json.loads((BASE / kpi_source(cfg)).read_text(encoding="utf-8"))
++    by_name = {k["name"]: k for k in rec["result"]["kpis"]}
++    missing = [n for n in cfg["kpi_names_to_pass"] if n not in by_name]
++    if missing:
++        raise SystemExit(f"{cfg['config_id']}: KPI(s) {missing} not found in {kpi_source(cfg)}")
++    kept = [copy.deepcopy(by_name[n]) for n in cfg["kpi_names_to_pass"]]
++    if null := [k["name"] for k in kept if not k.get("measurable_as")]:
++        raise SystemExit(f"{cfg['config_id']}: measurable_as is null for {null} in {kpi_source(cfg)}")
++    stage1_dirs = {k["name"]: k["target_direction"] for k in kept}
++    util_kpis = []
++    for k in kept:
++        if k.get("category") == "utilization":
++            k["target_direction"] = "minimize"
++            k["description"] = f"{k['description'].rstrip()} {OVERLOAD_TEXT}"
++            util_kpis.append(k["name"])
++    stage1 = {"simulation_goal_structured": rec["result"]["simulation_goal_structured"],
++              "kpis": kept, "reasoning": rec["result"]["reasoning"]}
++    pool = config["expected_fix"][cfg["process"]]["G3"]["elements"][0] if util_kpis else None
++    return {"sim_params": sim_params, "sim_params_text": json.dumps(sim_params, indent=1),
++            "bpmn": (bdir / "model.bpmn").read_text(encoding="utf-8"), "stage1_result": stage1,
++            "stage1_target_direction": stage1_dirs, "util_kpis": util_kpis, "util_pool": pool,
++            "kpi_source_used": kpi_source(cfg),
++            "chat": [bc["staffing"], bc["budget"], bc["immutable"]], "business_context": bc}
++
++
++def load_scenario(sim_params_text: str, bpmn: str):
++    from second_llm.simod_input import accept_simod_raw_input
++    from second_llm.simod_to_simubridge import build_baseline_scenario
++    raw = accept_simod_raw_input(sim_params_text, bpmn)
++    built = build_baseline_scenario(json.loads(raw.simod_result.json_params_content),
++                                    bpmn_xml=raw.simod_result.bpmn_content)
++    if not built.ok:
++        raise RuntimeError("build_baseline_scenario: " + "; ".join(built.errors))
++    return built.scenario
++
++
++def simulate_seeds(scenario, bpmn: str, settings: dict, paths: list[Path]) -> dict[str, str]:
++    """GLASS's runner with the seed applied (as the shim does); logs to gzipped CSV, returns SHA-256s."""
++    from second_llm.prosimos_runner import run_prosimos_simulation
++    shas = {}
++    for s, p in zip(seeds_of(settings), paths):
++        seed_all(s)
++        res = run_prosimos_simulation(scenario, bpmn, total_cases=settings["cases"], start_time=settings["start"], seed=s)
++        if not res.ok:
++            raise RuntimeError(f"seed {s}: {res.error}")
++        p.parent.mkdir(parents=True, exist_ok=True)
++        res.simulated_log.to_csv(p, index=False, compression="gzip")
++        shas[p.name] = s1.sha256(p.read_bytes())
++    return shas
++
++
++def costed(sim_params_path: Path, process: str, config: dict) -> str:
++    sp = json.loads(sim_params_path.read_text(encoding="utf-8"))
++    for prof in sp["resource_profiles"]:
++        for res in prof["resource_list"]:
++            res["cost_per_hour"] = config["business_context"][process]["cost_per_hour"][prof["name"]]
++    return json.dumps(sp, indent=1)
++
++
++# --------------------------------------------------------- measurements ---
++
++def prep_log(df: pd.DataFrame) -> pd.DataFrame:
++    """Timestamps as local wall-clock time (the calendars' frame)."""
++    df = df.copy()
++    for c in ("start_time", "end_time", "enable_time"):
++        if c in df:
++            df[c] = pd.to_datetime(df[c], format="ISO8601").dt.tz_localize(None)
++    return df
++
++
++def weekday_hours(items: list[dict]) -> dict[str, float]:
++    hours = {d: 0.0 for d in WEEKDAYS}
++    for it in items:
++        a, b = WEEKDAYS.index(it["startWeekday"]), WEEKDAYS.index(it["endWeekday"])
++        for k in range(7):
++            d = (a + k) % 7
++            hours[WEEKDAYS[d]] += it["endTime"] - it["startTime"]
++            if d == b:
++                break
++    return hours
++
++
++def resource_timetables(scn: dict) -> dict[str, list[dict]]:
++    """Resource id -> timetable items of its own calendar (or its role's schedule)."""
++    tts = {t["id"]: t["timeTableItems"] for t in scn["resourceParameters"]["timeTables"]}
++    return {res["id"]: tts[res.get("calendar") or role["schedule"]]
++            for role in scn["resourceParameters"]["roles"] for res in role["resources"]}
++
++
++def working_windows(items: list[dict], t0, t1) -> tuple[list, list]:
++    """Sorted working intervals of a calendar between t0 and t1."""
++    starts, ends = [], []
++    day = t0.normalize()
++    while day <= t1:
++        wd = WEEKDAYS[day.weekday()]
++        for it in items:
++            if weekday_hours([it])[wd] > 0:
++                s, e = max(day + timedelta(hours=it["startTime"]), t0), min(day + timedelta(hours=it["endTime"]), t1)
++                if e > s:
++                    starts.append(s)
++                    ends.append(e)
++        day += timedelta(days=1)
++    order = np.argsort(starts)
++    return [starts[i] for i in order], [ends[i] for i in order]
++
++
++def pool_utilization(log: pd.DataFrame, scn: dict, role_id: str) -> dict:
++    """Busy time within working time / available working time of the role's resources (each with its own
++    calendar), over the log's span."""
++    role = next(r for r in scn["resourceParameters"]["roles"] if r["id"] == role_id)
++    res_ids = [r["id"] for r in role["resources"]]
++    calendars = resource_timetables(scn)
++    t0, t1 = log["start_time"].min(), log["end_time"].max()
++    avail = busy = 0.0
++    for rid in res_ids:
++        starts, ends = working_windows(calendars[rid], t0, t1)
++        avail += sum((e - s).total_seconds() for s, e in zip(starts, ends))
++        for s, e in log.loc[log["resource"].astype(str) == rid, ["start_time", "end_time"]].itertuples(index=False):
++            i = bisect.bisect_right(ends, s)
++            while i < len(starts) and starts[i] < e:
++                busy += max(0.0, (min(e, ends[i]) - max(s, starts[i])).total_seconds())
++                i += 1
++    avail_h, busy_h = avail / 3600, busy / 3600
++    return {"utilization": round(busy_h / avail_h, 6) if avail_h else None, "busy_h": round(busy_h, 3),
++            "available_h": round(avail_h, 3), "n_resources": len(res_ids)}
++
++
++def utilization_verdict(base_u: list[float], prop_u: list[float]) -> dict:
++    """improved: below UTIL_LIMIT and lower than the baseline; worsened: higher; otherwise unchanged."""
++    from scipy import stats
++    bu, pu = float(np.mean(base_u)), float(np.mean(prop_u))
++    verdict = "improved" if pu < UTIL_LIMIT and pu < bu else "worsened" if pu > bu else "unchanged"
++    p = float(stats.ttest_rel(base_u, prop_u).pvalue) if len(set(np.subtract(prop_u, base_u))) > 1 else None
++    return {"limit": UTIL_LIMIT, "baseline_mean_utilization": round(bu, 4), "proposed_mean_utilization": round(pu, 4),
++            "verdict": verdict, "improved": verdict == "improved", "p_value": p,
++            "baseline_per_seed": base_u, "proposed_per_seed": prop_u}
++
++
++def map_midnight_ends(log: pd.DataFrame, scn: dict) -> tuple[pd.DataFrame, int]:
++    """Distance preprocessing only: an end of exactly 00:00:00 that directly follows the end of the resource's
++    working day on the previous day is mapped back to that end. Returns (copy, number of mapped events)."""
++    calendars = resource_timetables(scn)
++    out = log.copy()
++    mapped = 0
++    midnight = out["end_time"] == out["end_time"].dt.normalize()
++    for idx in out.index[midnight]:
++        res, start, end = str(out.at[idx, "resource"]), out.at[idx, "start_time"], out.at[idx, "end_time"]
++        items = calendars.get(res)
++        if not items:
++            continue
++        prev = end - timedelta(days=1)
++        day_end = max((it["endTime"] for it in items if weekday_hours([it])[WEEKDAYS[prev.weekday()]] > 0), default=None)
++        if day_end is None or day_end >= 24:
++            continue
++        boundary = prev + timedelta(hours=day_end)
++        if start <= boundary:
++            out.at[idx, "end_time"] = boundary
++            mapped += 1
++    return out, mapped
++
++
++def distances(model_logs: list[pd.DataFrame], healthy: list[pd.DataFrame],
++              model_raw: list[pd.DataFrame] | None = None, healthy_raw: list[pd.DataFrame] | None = None) -> dict:
++    from log_distance_measures.circadian_workforce_distribution import circadian_workforce_distribution_distance
++    from log_distance_measures.config import EventLogIDs
++    from log_distance_measures.cycle_time_distribution import cycle_time_distribution_distance
++    from log_distance_measures.n_gram_distribution import n_gram_distribution_distance
++    from log_distance_measures.relative_event_distribution import relative_event_distribution_distance
++    ids = EventLogIDs(case="case_id", activity="activity", start_time="start_time", end_time="end_time",
++                      resource="resource")
++    fns = {"CTD": lambda a, b: cycle_time_distribution_distance(a, ids, b, ids, bin_size=DIST_BIN),
++           "RED": lambda a, b: relative_event_distribution_distance(a, ids, b, ids),
++           "CWD": lambda a, b: circadian_workforce_distribution_distance(a, ids, b, ids),
++           "NGD": lambda a, b: n_gram_distribution_distance(a, ids, b, ids, n=3)}
++    per_seed = {m: [float(f(lg, h)) for lg, h in zip(model_logs, healthy)] for m, f in fns.items()}
++    if model_raw is not None:
++        per_seed["CWD_raw"] = [float(fns["CWD"](lg, h)) for lg, h in zip(model_raw, healthy_raw)]
++    return {m: {"mean": float(np.mean(v)), "per_seed": v} for m, v in per_seed.items()}
++
++
++def corrected(logs: list[pd.DataFrame], scn: dict) -> tuple[list[pd.DataFrame], list[int]]:
++    pairs = [map_midnight_ends(lg, scn) for lg in logs]
++    return [p[0] for p in pairs], [p[1] for p in pairs]
++
++
++# ------------------------------------------------------------- recording ---
++
++class Stage2RecordingProvider(s1.RecordingProvider):
++    """Step-1 recorder (verbatim answers, back-off) plus system prompt, iteration tag and failures."""
++
++    def __init__(self, inner, tracker):
++        super().__init__(inner)
++        self.tracker, self.failed, self.fatal = tracker, [], None
++
++    def __getattr__(self, name):          # e.g. supports_structured_output
++        return getattr(self.inner, name)
++
++    def generate(self, system_prompt, user_prompt, temperature=0.3, **kwargs) -> str:
++        try:
++            raw = super().generate(system_prompt, user_prompt, temperature=temperature, **kwargs)
++        except s1.FATAL_API_ERRORS as exc:
++            self.fatal = f"{type(exc).__name__}: {exc}"
++            raise
++        except s1.LLMCallFailed as exc:
++            self.failed.append(str(exc))
++            raise
++        self.calls[-1].update({"system_prompt": system_prompt, "iteration": self.tracker["iteration"],
++                               "kwargs": {k: (v if k != "json_schema" else bool(v)) for k, v in kwargs.items()}})
++        return raw
++
++
++class Patches:
++    """Replaces module attributes for the duration of a run and restores them."""
++
++    def __init__(self):
++        self._saved = []
++
++    def set(self, module, name, value):
++        self._saved.append((module, name, getattr(module, name)))
++        setattr(module, name, value)
++
++    def restore(self):
++        for module, name, original in reversed(self._saved):
++            setattr(module, name, original)
++        self._saved.clear()
++
++
++def capture_generation(patches: Patches, tracker: dict, events: list) -> None:
++    """Capture-only wrappers: same arguments, unchanged results; inputs/outputs recorded."""
++    import second_llm.scenario_generator as sg
++
++    def wrap(name, record):
++        original = getattr(sg, name)
++
++        def wrapper(*args, **kwargs):
++            result = original(*args, **kwargs)
++            events.append({"fn": name, "iteration": tracker["iteration"], **record(args, kwargs, result)})
++            return result
++        patches.set(sg, name, wrapper)
++
++    wrap("validate_patch", lambda a, k, r: {
++        "patch": a[0].model_dump(mode="json"), "result": dump(r), "has_errors": r.has_errors})
++    wrap("apply_patch", lambda a, k, r: {
++        "patch": a[1].model_dump(mode="json"),
++        "merged_scenario": r.scenario.model_dump(mode="json") if r.scenario is not None else None,
++        "diagnostics": dump(r.diagnostics), "applied": r.applied_modifications, "skipped": r.skipped_modifications})
++    wrap("build_legacy_proposal", lambda a, k, r: {"proposal_id": id(r)})
++
++
++def seed_shim(patches: Patches, module, baseline=None, cached: dict | None = None, logs: dict | None = None) -> None:
++    """GLASS passes a seed to run_prosimos_simulation, which does not apply it; the shim seeds the global RNGs
++    with that seed before the call. With ``cached``, baseline runs are served from the cached seed runs."""
++    from second_llm.prosimos_runner import ProsimosResult
++    original = module.run_prosimos_simulation
++
++    def shim(scenario, bpmn_xml, *args, **kwargs):
++        seed = kwargs.get("seed", BASE_SEED)
++        if cached is not None and scenario is baseline:
++            return ProsimosResult(simulated_log=cached[seed].copy())
++        seed_all(seed)
++        res = original(scenario, bpmn_xml, *args, **kwargs)
++        if logs is not None and res is not None and res.ok:
++            logs.setdefault(seed, res.simulated_log)
++        return res
++    patches.set(module, "run_prosimos_simulation", shim)
++
++
++# ------------------------------------------------------------ evaluation ---
++
++def kpi_table(res, util: dict | None, util_kpis: list[str]) -> list[dict]:
++    rows = []
++    for c in res.kpi_comparisons:
++        b, p = c.baseline_stats, c.proposed_stats
++        is_util = c.category == "utilization" and util is not None and any(
++            c.kpi_name in n or n in c.kpi_name for n in util_kpis)
++        rows.append({"kpi": c.kpi_name, "category": c.category, "direction": c.target_direction, "status": c.status,
++                     "baseline_mean": c.mean_baseline, "baseline_ci": [b.ci_lower, b.ci_upper] if b else None,
++                     "proposed_mean": c.mean_proposed, "proposed_ci": [p.ci_lower, p.ci_upper] if p else None,
++                     "pct_change": c.mean_percentage_change, "delta_ci": [c.ci_lower_change, c.ci_upper_change],
++                     "p_value": c.p_value, "significant": c.statistically_significant,
++                     "glass_improved": c.improved, "glass_violated_safeguard": c.violated_safeguard,
++                     "scored_by": "utilization_rule" if is_util else "glass",
++                     "improved": util["improved"] if is_util else c.improved,
++                     "baseline_values": b.values if b else [], "proposed_values": p.values if p else []})
++    return rows
++
++
++def check_validity(scn: dict, base: dict, process: str, bc: dict) -> list[str]:
++    """Business-context limits on a scenario (JSON form; independent of GLASS's own checks)."""
++    v = []
++    roles = {r["id"]: r for r in scn["resourceParameters"]["roles"]}
++    for b in base["resourceParameters"]["roles"]:
++        r = roles.get(b["id"])
++        if r is None:
++            v.append(f"role {b['id']} removed")
++            continue
++        n0, n1 = len(b["resources"]), len(r["resources"])
++        internal = bc["cost_per_hour"].get(b["id"], 0) > 0
++        if internal and n1 > n0 + MAX_ADDED_PER_ROLE:
++            v.append(f"{b['id']}: {n0} -> {n1} (> +{MAX_ADDED_PER_ROLE})")
++        if not internal and n1 != n0:
++            v.append(f"external role {b['id']}: {n0} -> {n1}")
++        cal0, cal1 = resource_timetables(base), resource_timetables(scn)
++        sched0 = next(t["timeTableItems"] for t in base["resourceParameters"]["timeTables"] if t["id"] == b["schedule"])
++        for res in r["resources"]:
++            h0, h1 = weekday_hours(cal0.get(res["id"], sched0)), weekday_hours(cal1[res["id"]])
++            for d in WEEKDAYS:
++                if h1[d] > h0[d] + MAX_EXTRA_HOURS_PER_DAY + 1e-9:
++                    v.append(f"{b['id']}/{res['id']}: {d} {h0[d]:g} h -> {h1[d]:g} h (> +{MAX_EXTRA_HOURS_PER_DAY} h/day)")
++    cost = lambda s: sum(len(r["resources"]) * r["costHour"] for r in s["resourceParameters"]["roles"])
++    if cost(scn) > MAX_COST_FACTOR * cost(base) + 1e-9:
++        v.append(f"hourly staff cost {cost(base):g} -> {cost(scn):g} (> x{MAX_COST_FACTOR})")
++    acts = {a["name"]: a for m in scn["models"] for a in m["modelParameter"]["activities"]}
++    base_acts = {a["name"]: a for m in base["models"] for a in m["modelParameter"]["activities"]}
++    for step in IMMUTABLE_STEPS[process]:
++        if step not in acts:
++            v.append(f"immutable step '{step}' missing")
++        elif not set(base_acts[step]["resources"]) <= set(acts[step]["resources"]):
++            v.append(f"immutable step '{step}': roles {base_acts[step]['resources']} -> {acts[step]['resources']}")
++    return v
++
++
++def element_aliases(base: dict, names: list[str]) -> dict[str, set[str]]:
++    """Expected element -> {display name, id} (lower case)."""
++    pool = [(a["name"], a["id"]) for m in base["models"] for a in m["modelParameter"]["activities"]]
++    pool += [(e["name"], e["id"]) for m in base["models"] for e in m["modelParameter"].get("intermediateEvents", [])]
++    pool += [(r["id"], r["id"]) for r in base["resourceParameters"]["roles"]]
++    out = {}
++    for n in names:
++        al = {n.lower()}
++        for name, eid in pool:
++            if n.lower() in (name.lower(), eid.lower()):
++                al |= {name.lower(), eid.lower()}
++        out[n] = al
++    return out
++
++
++def score_patch(mods: list[dict], cfg: dict, expected_fix: dict, base: dict) -> dict:
++    problems = {g: expected_fix[g] for g in cfg["injected_problems"]}
++    aliases = {g: element_aliases(base, fx["elements"]) for g, fx in problems.items()}
++
++    def hits(mod, g):
++        fx = problems[g]
++        el = str(mod.get("target_element", "")).lower()
++        return [e for e, al in aliases[g].items() if el in al] if (
++            mod.get("parameter_type") == fx["parameter_type"] and mod.get("direction") == fx["direction"]) else []
++
++    on_target = [m for m in mods if any(hits(m, g) for g in problems)]
++    all_aliases = set().union(*(al for g in problems for al in aliases[g].values()))
++    off = [m for m in mods if str(m.get("target_element", "")).lower() not in all_aliases]
++    out = {"n_modifications": len(mods), "n_on_target": len(on_target), "n_off_target": len(off),
++           "off_target_elements": [m.get("target_element") for m in off],
++           "precision": round(len(on_target) / len(mods), 4) if mods else None}
++    touched_all, expected_all = set(), set()
++    for g, fx in problems.items():
++        touched = {e for m in mods for e in hits(m, g)}
++        out[f"addressed_{g}"] = bool(touched)
++        out[f"recall_{g}"] = round(len(touched) / len(fx["elements"]), 4)
++        touched_all |= {(g, e) for e in touched}
++        expected_all |= {(g, e) for e in fx["elements"]}
++    out["recall"] = round(len(touched_all) / len(expected_all), 4) if expected_all else None
++    return out
++
++
++# --------------------------------------------------------------- one run ---
++
++def run_rep(job: dict) -> dict:
++    """One (configuration, rep), executed in a worker process."""
++    quiet()
++    config, cfg, rep, out = job["config"], job["cfg"], job["rep"], Path(job["out"])
++    settings = config["settings"]
++    cid = cfg["config_id"]
++    path = out / "raw" / cid / f"rep_{rep}.json"
++    t_start = datetime.now(timezone.utc).isoformat(timespec="seconds")
++    t0 = time.time()
++
++    import second_llm.iterative_evaluator as ie
++    import second_llm.multi_seed_evaluation as mse
++    from prompts.scenario_patch_prompt import _build_constraints_block
++    from second_llm.models import ChatRole
++    from second_llm.orchestrator import SecondLLMWorkspaceOrchestrator
++    from second_llm.output_schema import SimuBridgeScenario
++    from second_llm.prosimos_runner import scenario_to_prosimos_json
++    from second_llm.state import reset_workspace
++    from ui.evaluation_panel import _build_cost_map, _get_kpi_targets_from_workspace
++    from ui.second_llm_panel import _get_evaluation_targets
++
++    inputs = load_inputs(cfg, config)
++    shared = job["shared"][cid]
++    tracker, events, patches = {"iteration": 0}, [], Patches()
++    provider = Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
++    record = {"config_id": cid, "process": cfg["process"], "goal_config": cfg["goal_config"],
++              "rep": rep, "status": None, "error": None, "timestamp": t_start,
++              "provider": type(provider.inner).__name__, "model": provider.get_model_name(),
++              "glass_commit": job["glass_commit"], "config_sha256": job["config_sha"],
++              "script_sha256": job["script_sha"], "baseline_files_sha256": shared["baseline_files_sha256"],
++              "event_log_sha256": shared["event_log_sha256"], "settings": settings, "seeds": seeds_of(settings),
++              "temperature_schedule": "GLASS run_iterative_evaluation: min(0.3 + 0.1 * (iteration - 1), 0.7)",
++              "kpi_source_record": inputs["kpi_source_used"], "stage1_result_passed": inputs["stage1_result"],
++              "stage1_target_direction": inputs["stage1_target_direction"], "util_kpis": inputs["util_kpis"],
++              "util_pool": inputs["util_pool"], "chat_user_turns": inputs["chat"],
++              "sim_params_with_costs": inputs["sim_params"],
++              "baseline_logs_sha256": shared["baseline_logs_sha256"],
++              "healthy_logs_sha256": job["healthy_sha"][cfg["process"]]}
++    try:
++        reset_workspace()
++        orch = SecondLLMWorkspaceOrchestrator(provider=provider)
++        first = orch.parse_first_llm_json(json.dumps(inputs["stage1_result"], ensure_ascii=False))
++        if not first.is_valid:
++            raise RuntimeError(f"Stage-1 result rejected by GLASS: {first.validation_error or first.parse_error}")
++        orch.accept_simod_raw_input(inputs["sim_params_text"], bpmn_xml=inputs["bpmn"])
++        for turn in inputs["chat"]:
++            orch.chat_session.append(ChatRole.USER, turn)
++        log_profile = job["log_profile"][cid]
++        record["draft_payload"] = dump(orch.build_second_llm_request_draft(log_profile=log_profile))
++
++        baseline = load_scenario(inputs["sim_params_text"], inputs["bpmn"])
++        base_json = baseline.model_dump(mode="json")
++        loop_targets, eval_targets = _get_evaluation_targets(), _get_kpi_targets_from_workspace()
++        cost_map = _build_cost_map(baseline)
++        record.update({"loop_targets": dump(loop_targets), "eval_targets": dump(eval_targets), "cost_map": cost_map})
++
++        capture_generation(patches, tracker, events)
++        seed_shim(patches, ie)
++
++        def on_iteration(i, msg):
++            tracker["iteration"] = i
++
++        loop = ie.run_iterative_evaluation(orch, baseline, inputs["bpmn"], loop_targets,
++                                           max_iterations=settings["max_iterations"], total_cases=settings["cases"],
++                                           start_time=settings["start"], seed=BASE_SEED, cost_per_hour=cost_map,
++                                           on_iteration=on_iteration, log_profile=log_profile)
++        patches.restore()
++        if provider.fatal:
++            return {"fatal": provider.fatal}
++
++        iterations = []
++        for it in loop.iterations:
++            g = it.gen_result
++            evs = [e for e in events if e["iteration"] == it.iteration]
++            legacy = [e for e in evs if e["fn"] == "build_legacy_proposal"]
++            accepted = next((k for k, e in enumerate(legacy) if g and g.proposal is not None
++                             and e["proposal_id"] == id(g.proposal)), None)
++            merges = [e for e in evs if e["fn"] == "apply_patch"]
++            merge = merges[accepted] if accepted is not None else None
++            validation = next((v for v in reversed([e for e in evs if e["fn"] == "validate_patch"])
++                               if merge and v["patch"] == merge["patch"]), None)
++            scenario = g.proposal.scenario if g and g.proposal else None
++            iterations.append({
++                "iteration": it.iteration, "error": it.error, "status": dump(it.status), "score": it.score,
++                "temperature": round(min(0.3 + 0.1 * (it.iteration - 1), 0.7), 2),
++                "generation": None if g is None else {
++                    "success": g.success, "error": g.error, "attempts": g.attempts, "decoding_mode": g.decoding_mode,
++                    "raw_llm_output": g.raw_llm_output, "generation_notes": g.generation_notes,
++                    "context_summary": dump(g.context_summary._data) if g.context_summary else None,
++                    "context_block_in_prompt": _build_constraints_block(g.context_summary),
++                    "post_merge_validation": dump(g.validation), "merge_stability": g.merge_stability,
++                    "cost_report": dump(g.cost_report)},
++                "patch": merge["patch"] if merge else None,
++                "patch_validator": validation["result"] if validation else None,
++                "patch_validator_passed": (not validation["has_errors"]) if validation else None,
++                "merged_scenario": merge["merged_scenario"] if merge else None,
++                "merge_diagnostics": merge["diagnostics"] if merge else None,
++                "simulated_scenario": scenario.model_dump(mode="json") if scenario else None,
++                "simulated_scenario_prosimos": scenario_to_prosimos_json(scenario, inputs["bpmn"]) if scenario else None,
++                "all_patch_attempts": [{k: e[k] for k in ("patch", "has_errors", "result")}
++                                       for e in evs if e["fn"] == "validate_patch"],
++                "single_run_evaluation": dump(it.eval_result), "feedback_text": it.feedback_message,
++            })
++        record["loop"] = {"iterations": iterations, "best_iteration": (loop.best_iteration_idx + 1)
++                          if loop.best_iteration_idx is not None else None,
++                          "final_status": dump(loop.final_status), "error": loop.error,
++                          "baseline_kpis_single_run": dump(loop.baseline_kpis),
++                          "total_time_seconds": round(loop.total_time_seconds, 1)}
++        record["llm_calls"] = provider.calls
++        if provider.failed:
++            record.update(status="llm_error", error=" | ".join(provider.failed))
++            return finish(record, path, t0)
++        if not iterations or iterations[0]["simulated_scenario"] is None:
++            record.update(status="no_initial_proposal", error=loop.error or (iterations[0]["error"] if iterations else None))
++            return finish(record, path, t0)
++
++        cached = {s: pd.read_csv(out / "baseline_logs" / cid / f"seed_{s}.csv.gz") for s in record["seeds"]}
++        healthy_raw = [prep_log(pd.read_csv(out / "healthy_logs" / cfg["process"] / f"seed_{s}.csv.gz"))
++                       for s in record["seeds"]]
++        healthy, _ = corrected(healthy_raw, job["healthy_scenario"][cfg["process"]])
++        logs_dir = out / "logs" / cid / f"rep_{rep}"
++        evaluation, log_sha = {}, {}
++        for phase, it_no in (("initial", 1), ("final", record["loop"]["best_iteration"])):
++            it = iterations[it_no - 1] if it_no else None
++            if it is None or it["simulated_scenario"] is None:
++                evaluation[phase] = {"iteration": it_no, "error": "no scenario"}
++                continue
++            if phase == "final" and it_no == 1:
++                evaluation["final"] = {**evaluation["initial"], "same_as_initial": True}
++                continue
++            proposed = SimuBridgeScenario.model_validate(it["simulated_scenario"])
++            logs: dict[int, pd.DataFrame] = {}
++            seed_shim(patches, mse, baseline=baseline, cached=cached, logs=logs)
++            try:
++                res = mse.evaluate_multi_seed(baseline, proposed, inputs["bpmn"], eval_targets,
++                                              num_seeds=settings["seeds"], base_seed=BASE_SEED,
++                                              total_cases=settings["cases"], start_time=settings["start"],
++                                              cost_per_hour=cost_map)
++            finally:
++                patches.restore()
++            util = None
++            if inputs["util_kpis"] and res.ok:
++                prop_u = [pool_utilization(prep_log(logs[s]), it["simulated_scenario"], inputs["util_pool"])
++                          for s in record["seeds"]]
++                util = utilization_verdict(shared["baseline_pool_utilization"], [u["utilization"] for u in prop_u])
++                util["proposed_detail"] = prop_u
++            for s in record["seeds"]:
++                if s in logs:
++                    p = logs_dir / f"{phase}_seed_{s}.csv.gz"
++                    p.parent.mkdir(parents=True, exist_ok=True)
++                    logs[s].to_csv(p, index=False, compression="gzip")
++                    log_sha[f"{phase}_seed_{s}.csv.gz"] = s1.sha256(p.read_bytes())
++            dist = mapped = None
++            if res.ok:
++                raw_logs = [prep_log(logs[s]) for s in record["seeds"]]
++                corr_logs, mapped = corrected(raw_logs, it["simulated_scenario"])
++                dist = distances(corr_logs, healthy, raw_logs, healthy_raw)
++            violations = check_validity(it["simulated_scenario"], base_json, cfg["process"], inputs["business_context"])
++            evaluation[phase] = {
++                "iteration": it_no, "same_as_initial": False, "multi_seed_ok": res.ok, "multi_seed_error": res.error,
++                "kpis": kpi_table(res, util, inputs["util_kpis"]) if res.ok else [], "utilization_rule": util,
++                "summary": dump(res.summary), "simulation_settings": res.simulation_settings, "n_logs": len(logs),
++                "patch_validator_passed": it["patch_validator_passed"],
++                "post_merge_validation_errors": [i["message"] for i in
++                                                 ((it["generation"] or {}).get("post_merge_validation") or {}).get("issues", [])
++                                                 if i.get("severity") == "error"],
++                "violations": violations,
++                "valid": bool(it["patch_validator_passed"]) and res.ok and not violations,
++                "scores": score_patch((it["patch"] or {}).get("modifications", []), cfg,
++                                      config["expected_fix"][cfg["process"]], base_json),
++                "distance_to_healthy": {k: v["mean"] for k, v in dist.items()} if dist else None,
++                "midnight_ends_mapped_per_seed": mapped,
++                "distance_to_healthy_per_seed": {k: v["per_seed"] for k, v in dist.items()} if dist else None,
++                "improvement_ratio": {k: (round(1 - dist[k]["mean"] / shared["baseline_distance"][k], 4)
++                                          if shared["baseline_distance"][k] else None)
++                                      for k in MEASURES + ("CWD_raw",)} if dist else None}
++        record.update(evaluation=evaluation, baseline_distance_to_healthy=shared["baseline_distance"],
++                      baseline_pool_utilization=shared["baseline_pool_utilization"],
++                      logs_dir=logs_dir.relative_to(out).as_posix(), logs_sha256=log_sha, status="ok")
++    except Exception:
++        patches.restore()
++        if provider.fatal:
++            return {"fatal": provider.fatal}
++        record.update(status="app_error", error=traceback.format_exc(), llm_calls=provider.calls)
++    return finish(record, path, t0)
++
++
++def finish(record: dict, path: Path, t0: float) -> dict:
++    record["elapsed_s"] = round(time.time() - t0, 1)
++    s1.write_json(path, record)
++    return {"config_id": record["config_id"], "rep": record["rep"], "status": record["status"],
++            "elapsed_s": record["elapsed_s"], "error": (record.get("error") or "").splitlines()[-1:]}
++
++
++# --------------------------------------------------------- per-config cache ---
++
++def prepare_config(cfg: dict, config: dict, out: Path, app) -> dict:
++    """Cached per configuration: the 10-seed baseline runs, their pool utilization and distance to healthy."""
++    settings, cid = config["settings"], cfg["config_id"]
++    inputs = load_inputs(cfg, config)
++    baseline = load_scenario(inputs["sim_params_text"], inputs["bpmn"])
++    paths = [out / "baseline_logs" / cid / f"seed_{s}.csv.gz" for s in seeds_of(settings)]
++    meta_path = out / "baseline_logs" / cid / "baseline.json"
++    if meta_path.exists() and all(p.exists() for p in paths):
++        meta = json.loads(meta_path.read_text(encoding="utf-8"))
++    else:
++        shas = simulate_seeds(baseline, inputs["bpmn"], settings, paths)
++        # determinism: a fresh seeded run of the first seed reproduces the cached log
++        check = out / "baseline_logs" / cid / "check.csv.gz"
++        simulate_seeds(baseline, inputs["bpmn"], {**settings, "seeds": 1}, [check])
++        same = pd.read_csv(check).equals(pd.read_csv(paths[0]))
++        check.unlink()
++        if not same:
++            raise SystemExit(f"{cid}: seeded baseline run is not reproducible")
++        logs = [prep_log(pd.read_csv(p)) for p in paths]
++        healthy_raw = [prep_log(pd.read_csv(out / "healthy_logs" / cfg["process"] / f"seed_{s}.csv.gz"))
++                       for s in seeds_of(settings)]
++        base_json = baseline.model_dump(mode="json")
++        healthy, healthy_mapped = corrected(healthy_raw, healthy_scenario(cfg["process"], cfg["healthy_dir"], config))
++        corr, mapped = corrected(logs, base_json)
++        pool = inputs["util_pool"]
++        meta = {"baseline_logs_sha256": shas,
++                "baseline_pool_utilization": [pool_utilization(lg, base_json, pool)["utilization"] for lg in logs]
++                if pool else None,
++                "baseline_distance": {k: v["mean"] for k, v in distances(corr, healthy, logs, healthy_raw).items()},
++                "baseline_midnight_ends_mapped_per_seed": mapped,
++                "healthy_midnight_ends_mapped_per_seed": healthy_mapped}
++        meta_path.write_text(json.dumps(meta, indent=1), encoding="utf-8")
++    with open(BASE / cfg["event_log"], "rb") as fh:
++        log_profile = app["extract_log_artifacts"](fh)[0]
++    return {**meta, "log_profile": log_profile,
++            "event_log_sha256": s1.sha256((BASE / cfg["event_log"]).read_bytes()),
++            "baseline_files_sha256": {f: s1.sha256((BASE / cfg["baseline_dir"] / f).read_bytes())
++                                      for f in ("model.bpmn", "sim_params.json")}}
++
++
++def healthy_scenario(process: str, healthy_dir: str, config: dict) -> dict:
++    hdir = BASE / healthy_dir
++    return load_scenario(costed(hdir / "sim_params.json", process, config),
++                         (hdir / "model.bpmn").read_text(encoding="utf-8")).model_dump(mode="json")
++
++
++def prepare_healthy(process: str, healthy_dir: str, config: dict, out: Path) -> dict[str, str]:
++    paths = [out / "healthy_logs" / process / f"seed_{s}.csv.gz" for s in seeds_of(config["settings"])]
++    if all(p.exists() for p in paths):
++        return {p.name: s1.sha256(p.read_bytes()) for p in paths}
++    hdir = BASE / healthy_dir
++    bpmn = (hdir / "model.bpmn").read_text(encoding="utf-8")
++    scenario = load_scenario(costed(hdir / "sim_params.json", process, config), bpmn)
++    return simulate_seeds(scenario, bpmn, config["settings"], paths)
++
++
++def zip_logs(out: Path, config: dict) -> None:
++    arch = out / "log_archives"
++    arch.mkdir(exist_ok=True)
++    for cfg in config["configurations"]:
++        cid = cfg["config_id"]
++        files = sorted((out / "baseline_logs" / cid).glob("*")) + sorted((out / "logs" / cid).rglob("*.csv.gz"))
++        if files:
++            with zipfile.ZipFile(arch / f"{cid}.zip", "w", zipfile.ZIP_STORED) as z:
++                for f in files:
++                    z.write(f, f.relative_to(out).as_posix())
++    for process in sorted({c["process"] for c in config["configurations"]}):
++        files = sorted((out / "healthy_logs" / process).glob("*.csv.gz"))
++        if files:
++            with zipfile.ZipFile(arch / f"healthy_{process}.zip", "w", zipfile.ZIP_STORED) as z:
++                for f in files:
++                    z.write(f, f.relative_to(out).as_posix())
++
++
++# --------------------------------------------------------------- summaries ---
++
++def summary_rows(rec: dict, cfg: dict) -> list[dict]:
++    rows = []
++    loop = rec.get("loop") or {}
++    for phase in ("initial", "final"):
++        ev = (rec.get("evaluation") or {}).get(phase) or {}
++        sc = ev.get("scores") or {}
++        util = ev.get("utilization_rule") or {}
++        row = {"config_id": rec["config_id"], "process": rec["process"], "goal_config": rec["goal_config"],
++               "rep": rec["rep"], "status": rec["status"], "phase": phase, "iteration": ev.get("iteration"),
++               "iterations_used": len(loop.get("iterations") or []),
++               "valid": ev.get("valid"), "patch_validator_passed": ev.get("patch_validator_passed"),
++               "simulation_ran": ev.get("multi_seed_ok"), "violations": " | ".join(ev.get("violations") or []),
++               "post_merge_validation_errors": len(ev.get("post_merge_validation_errors") or [])}
++        kpis = ev.get("kpis") or []
++        for i in range(3):
++            k = kpis[i] if i < len(kpis) else {}
++            row[f"kpi{i + 1}"] = k.get("kpi", "")
++            row[f"kpi{i + 1}_scored_by"] = k.get("scored_by", "")
++            row[f"kpi{i + 1}_improved"] = k.get("improved", "")
++            row[f"kpi{i + 1}_p_value"] = k.get("p_value", "")
++            row[f"kpi{i + 1}_pct_change"] = k.get("pct_change", "")
++        row["all_kpis_improved"] = bool(kpis) and all(k.get("improved") is True for k in kpis)
++        row["utilization_verdict"] = util.get("verdict", "")
++        row["utilization_baseline"] = util.get("baseline_mean_utilization", "")
++        row["utilization_proposed"] = util.get("proposed_mean_utilization", "")
++        for g in ("G1", "G2", "G3"):
++            row[f"addressed_{g}"] = sc.get(f"addressed_{g}", "") if g in cfg["injected_problems"] else ""
++        row.update({"precision": sc.get("precision"), "recall": sc.get("recall"),
++                    "n_modifications": sc.get("n_modifications"), "n_off_target": sc.get("n_off_target")})
++        for m in MEASURES:
++            row[f"improvement_ratio_{m}"] = (ev.get("improvement_ratio") or {}).get(m)
++        rows.append(row)
++    return rows
++
++
++def write_summaries(out: Path, config: dict) -> None:
++    summary, per_config = [], []
++    for cfg in config["configurations"]:
++        files = sorted((out / "raw" / cfg["config_id"]).glob("rep_*.json"), key=lambda p: int(p.stem.split("_")[1]))
++        recs = [s1.load_json(p) for p in files]
++        rows = [r for rec in recs for r in summary_rows(rec, cfg)]
++        if not rows:
++            continue
++        summary += rows
++        row = {"config_id": cfg["config_id"], "process": cfg["process"], "goal_config": cfg["goal_config"],
++               "injected_problems": "|".join(cfg["injected_problems"]), "reps": len(recs),
++               "reps_ok": sum(r["status"] == "ok" for r in recs),
++               "mean_iterations_used": round(mean(len((r.get("loop") or {}).get("iterations") or []) for r in recs), 2)}
++        for phase in ("initial", "final"):
++            pr = [r for r in rows if r["phase"] == phase and r["status"] == "ok"]
++            row[f"{phase}_valid"] = sum(r["valid"] is True for r in pr)
++            row[f"{phase}_all_kpis_improved"] = sum(r["all_kpis_improved"] is True for r in pr)
++            row[f"{phase}_valid_and_improved"] = sum(r["valid"] is True and r["all_kpis_improved"] is True for r in pr)
++            for g in cfg["injected_problems"]:
++                row[f"{phase}_addressed_{g}"] = sum(r[f"addressed_{g}"] is True for r in pr)
++            for key in ["precision", "recall"] + [f"improvement_ratio_{m}" for m in MEASURES]:
++                vals = [r[key] for r in pr if r[key] is not None]
++                row[f"{phase}_mean_{key}"] = round(mean(vals), 3) if vals else ""
++        per_config.append(row)
++    s1.write_csv(out / "stage2_summary.csv", summary)
++    keys = list(dict.fromkeys(k for r in per_config for k in r))
++    with open(out / "stage2_per_config.csv", "w", newline="", encoding="utf-8") as f:
++        w = csv.DictWriter(f, fieldnames=keys)
++        w.writeheader()
++        w.writerows(per_config)
++
++
++def write_readme(out: Path, args, config: dict, started: str, ended: str, commit: str, config_sha: str) -> None:
++    stamps = [s1.load_json(p)["timestamp"] for p in (out / "raw").glob("*/rep_*.json")]
++    rules = __doc__.split("SCORING", 1)[1].split("END SCORING")[0]
++    s = config["settings"]
++    lines = [
++        "# GLASS Stage-2 batch evaluation: replication record", "",
++        f"Generated by `{s1.rel(__file__)}` at the end of the run.", "",
++        "## Run", "",
++        f"- GLASS commit: `{commit}` (goal_to_parameters/ unmodified at run time)",
++        f"- `setup/stage2_config.json` SHA-256: `{config_sha}`",
++        f"- Model: `{s['model']}`; temperature: GLASS's loop schedule min(0.3 + 0.1 x (iteration - 1), 0.7), "
++        f"i.e. 0.3 for the initial proposal (config: {s['temperature']}); GLASS's context-summary and "
++        "compliance calls: 0.1",
++        f"- Iterations: max {s['max_iterations']}; multi-seed: {s['seeds']} seeds ({BASE_SEED}..{BASE_SEED + s['seeds'] - 1}), "
++        f"{s['cases']} cases, start {s['start']}",
++        f"- Repetitions: {args.reps}; workers: {args.workers} (processes)",
++        f"- This invocation: start {started}, end {ended}; earliest / latest rep timestamp: "
++        f"{min(stamps, default='')} / {max(stamps, default='')}",
++        f"- Python {sys.version.split()[0]}; prosimos {version('prosimos')}; log-distance-measures "
++        f"{version('log-distance-measures')}; numpy {np.__version__}; pandas {pd.__version__}", "",
++        "## KPI validation (lead author's interpretation)", "",
++        "Every KPI object of category utilization passed to Stage 2 gets `target_direction = \"minimize\"` and the "
++        f"sentence \"{OVERLOAD_TEXT}\" appended to its description. The Stage-1 direction (maximize, in all but one "
++        "case) is kept in each record as `stage1_target_direction`.",
++        "",
++        "Rationale: in the G3 configurations the target pool is overloaded. Maximizing its utilization would reward "
++        "overloading it further and would score the injected change's recovery (more staff) as a degradation.",
++        "",
++        "GLASS evaluates the KPI with its own minimize rule on its utilization value, which is the mean of all "
++        "resources' busy time over wall-clock time. The batch scores utilization KPIs with its own utilization rule "
++        "on the target pool against its working time (see Scoring). GLASS's own verdicts are kept in each record "
++        "(`glass_improved`).", "",
++        "## Prosimos midnight end times (distance measures only)", "",
++        "Prosimos logs a task that ends exactly at the end of a working interval (e.g. 17:00) with an end time of "
++        "00:00 on the next day. Fixed durations proposed by patches hit that boundary regularly; the stochastic "
++        "baseline durations rarely do.",
++        "",
++        "CWD then compares a weekday that appears in only one log (e.g. a Saturday 00:00) and charges its maximum "
++        "penalty of 23 for that weekday.",
++        "",
++        "For the distance measures only, every log (baseline, initial, final, healthy) is preprocessed: an end of "
++        "exactly 00:00:00 that directly follows the end of the resource's working day on the previous day is mapped "
++        "back to that end. The number of mapped events is recorded per log. The raw logs are not changed.",
++        "",
++        "The records hold CWD on the raw logs (`CWD_raw`) and on the mapped logs; the summary columns use the mapped "
++        "values.", "",
++        "## How GLASS was driven (differences from the UI)", "",
++        "- Clarification chat: the three business-context answers (staffing, budget, immutable) as three user "
++        "turns. No greeting, no assistant replies; the chatbot's readiness signal and keyword gate are not applied. "
++        "GLASS summarises the chat into the prompt itself (`build_context_summary`, as after the chat in the app).",
++        "- KPI objects: first proposals come from `results/stage1_results_normalised/` (same names, measurable_as set); "
++        "refinement-pilot records as configured. measurable_as is asserted non-null for every passed KPI.",
++        "- The event-log profile (app.py `extract_log_artifacts`) is passed to the loop; the UI's Generate button passes none.",
++        "- Start time from the config; the UI's loop uses 2024-01-01 09:00 UTC.",
++        "- Seeds: GLASS passes a seed to `run_prosimos_simulation`, which does not apply it. A shim seeds Python's "
++        "`random` and NumPy's global RNG with that seed before each call (loop and multi-seed evaluation), so the "
++        "loop's baseline and proposals use seed 42 and every model's run k uses seed 42 + k.",
++        "- Paired baseline: the baseline is simulated once per configuration for the 10 seeds "
++        "(`baseline_logs/<id>/`, determinism checked by re-running the first seed); `evaluate_multi_seed` gets those "
++        "runs for the baseline (served by the shim) for both the initial and the final comparison.",
++        "- KPI targets: the loop gets the UI's `_get_evaluation_targets`, the multi-seed evaluation the evaluation "
++        "panel's `_get_kpi_targets_from_workspace` (with measurable_as); cost map: `_build_cost_map`.",
++        "- GLASS's Stage 2 has no process-description input; the description entered through the Stage-1 KPIs.",
++        "- cost_per_hour in the baseline resource profiles is set from business_context (the BIMP files carry none).",
++        "- Capture-only wrappers record what `validate_patch`, `apply_patch` and `build_legacy_proposal` receive and "
++        "return inside GLASS (same arguments, unchanged results).",
++        "- When the best iteration is iteration 1, the final evaluation is the initial one.",
++        "- Simulated logs (`logs/`, `baseline_logs/`, `healthy_logs/`) are not in git; their SHA-256 values are in "
++        "the records (and `baseline_logs/<id>/baseline.json`), and `log_archives/` holds one zip per configuration "
++        "plus one per healthy model.", "",
++        "## Scoring (copied from the script header)", "", "```" + rules.rstrip(), "```", "",
++    ]
++    (out / "README.md").write_text("\n".join(lines), encoding="utf-8")
++
++
++# -------------------------------------------------------------------- main ---
++
++def smoke_report(rec: dict) -> str:
++    L = [f"== {rec['config_id']} rep {rec['rep']}: status {rec['status']} ({rec.get('elapsed_s')} s)"]
++    if rec.get("error"):
++        L.append(rec["error"][-2000:])
++    L.append(f"\n-- KPI objects passed (from {rec['kpi_source_record']})")
++    for k in rec["stage1_result_passed"]["kpis"]:
++        L.append(f"   {k['name']} | category {k['category']} | measurable_as {k['measurable_as']} | direction "
++                 f"{rec['stage1_target_direction'][k['name']]} (Stage 1) -> {k['target_direction']} (passed)")
++        L.append(f"   description: {k['description']}")
++    its = (rec.get("loop") or {}).get("iterations", [])
++    if its:
++        L.append("\n-- Context summary (as rendered into the prompt, iteration 1)\n"
++                 + ((its[0]["generation"] or {}).get("context_block_in_prompt") or "(empty)"))
++    L.append("\n-- Iterations")
++    for it in its:
++        g = it["generation"] or {}
++        ev = it["single_run_evaluation"] or {}
++        kp = "; ".join(f"{c['kpi_name']}: {c['baseline_value']} -> {c['proposed_value']} ({c['percentage_change']}%, "
++                       f"improved={c['improved']}, safeguard_violated={c.get('violated_safeguard')})"
++                       for c in ev.get("kpi_comparisons") or [])
++        L.append(f"   it {it['iteration']} | T {it['temperature']} | status {it['status']} | score {it['score']:.1f} | "
++                 f"validator {it['patch_validator_passed']} | attempts {g.get('attempts')} | {kp}")
++        for m in (it["patch"] or {}).get("modifications", []):
++            L.append(f"       {m['parameter_type']:28s} {m['direction']:12s} {m['target_element']}: "
++                     f"{m['baseline_value']} -> {m['proposed_value']}")
++        if it["feedback_text"]:
++            L.append("       feedback (first lines): " + " / ".join(it["feedback_text"].splitlines()[3:7]))
++    L.append(f"\n-- Final = iteration {(rec.get('loop') or {}).get('best_iteration')}")
++    for phase, ev in (rec.get("evaluation") or {}).items():
++        L.append(f"\n-- {phase} (iteration {ev.get('iteration')}): valid={ev.get('valid')} violations={ev.get('violations')}")
++        for k in ev.get("kpis", []):
++            L.append(f"   {k['kpi']}: baseline {k['baseline_mean']} {k['baseline_ci']} | proposed {k['proposed_mean']} "
++                     f"{k['proposed_ci']} | {k['pct_change']}% p={k['p_value']} | GLASS improved={k['glass_improved']} "
++                     f"safeguard_violated={k['glass_violated_safeguard']} | scored_by={k['scored_by']} improved={k['improved']}")
++        if ev.get("utilization_rule"):
++            b = ev["utilization_rule"]
++            L.append(f"   utilization rule: pool utilization baseline {b['baseline_mean_utilization']} -> proposed "
++                     f"{b['proposed_mean_utilization']} verdict {b['verdict']} p={b['p_value']}")
++        L.append(f"   midnight ends mapped per seed: {ev.get('midnight_ends_mapped_per_seed')}")
++        L.append(f"   scores: {ev.get('scores')}")
++        L.append(f"   distance to healthy: {ev.get('distance_to_healthy')}  improvement ratio: {ev.get('improvement_ratio')}")
++    if rec.get("baseline_distance_to_healthy"):
++        L.append(f"\n-- baseline distance to healthy: {rec['baseline_distance_to_healthy']}")
++    return "\n".join(L)
++
++
++def main() -> None:
++    started = datetime.now(timezone.utc).isoformat(timespec="seconds")
++    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
++    settings = config["settings"]
++    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
++    ap.add_argument("--reps", type=int, default=settings["repetitions"])
++    ap.add_argument("--only", help="configuration id(s), comma-separated")
++    ap.add_argument("--smoke", action="store_true", help="= --reps 1 --only LoanApp_G3")
++    ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
++    ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
++    args = ap.parse_args()
++    if args.smoke:
++        args.reps, args.only = 1, "LoanApp_G3"
++    only = args.only.split(",") if args.only else None
++    selected = [c for c in config["configurations"] if only is None or c["config_id"] in only]
++    if not selected or (only and len(selected) != len(only)):
++        sys.exit(f"Unknown configuration id in: {args.only}")
++    if git("status", "--porcelain", "--", "goal_to_parameters"):
++        sys.exit("goal_to_parameters/ has local changes; Stage 2 must run on committed GLASS code")
++    quiet()
++    commit, config_sha = git("rev-parse", "HEAD"), s1.sha256(CONFIG_PATH.read_bytes())
++    for cfg in selected:                              # assert the KPI objects before any LLM call
++        load_inputs(cfg, config)
++    app, _ = s1.load_app_stage1()
++    healthy_sha = {}
++    for process in sorted({c["process"] for c in selected}):
++        s1.log(f"healthy logs for {process} ...")
++        healthy_sha[process] = prepare_healthy(process, next(c["healthy_dir"] for c in selected
++                                                             if c["process"] == process), config, args.out)
++    shared = {}
++    for cfg in selected:
++        s1.log(f"baseline runs for {cfg['config_id']} ...")
++        shared[cfg["config_id"]] = prepare_config(cfg, config, args.out, app)
++    log_profile = {cid: sh.pop("log_profile") for cid, sh in shared.items()}
++    healthy_scn = {p: healthy_scenario(p, next(c["healthy_dir"] for c in selected if c["process"] == p), config)
++                   for p in healthy_sha}
++
++    jobs = []
++    for cfg in selected:
++        for rep in range(1, args.reps + 1):
++            path = args.out / "raw" / cfg["config_id"] / f"rep_{rep}.json"
++            if (existing := s1.load_json(path)) and existing.get("status") in FINAL_STATUSES:
++                s1.log(f"{cfg['config_id']} rep {rep} skipped (exists: {existing['status']})")
++                continue
++            jobs.append({"config": config, "cfg": cfg, "rep": rep, "out": str(args.out), "glass_commit": commit,
++                         "config_sha": config_sha, "script_sha": s1.sha256(Path(__file__).read_bytes()),
++                         "log_profile": log_profile, "shared": shared, "healthy_sha": healthy_sha,
++                         "healthy_scenario": healthy_scn})
++    s1.log(f"{len(jobs)} run(s) to do; model {settings['model']}; workers {args.workers}; GLASS {commit[:7]}")
++    with ProcessPoolExecutor(max_workers=args.workers) as pool:
++        futures = [pool.submit(run_rep, job) for job in jobs]
++        for done, fut in enumerate(futures, 1):
++            res = fut.result()
++            if "fatal" in res:
++                pool.shutdown(wait=True, cancel_futures=True)
++                sys.exit(f"Fatal API error: {res['fatal']}\nAborted; runs written so far are kept, rerun to resume.")
++            s1.log(f"[{done}/{len(jobs)}] {res['config_id']} rep {res['rep']}: {res['status']} ({res['elapsed_s']} s) "
++                   f"{' '.join(res['error'])}")
++    write_summaries(args.out, config)
++    zip_logs(args.out, config)
++    write_readme(args.out, args, config, started, datetime.now(timezone.utc).isoformat(timespec="seconds"),
++                 commit, config_sha)
++    if args.smoke:
++        text = "\n\n".join(smoke_report(s1.load_json(args.out / "raw" / c["config_id"] / "rep_1.json")) for c in selected)
++        (args.out / "smoke_report.txt").write_text(text, encoding="utf-8")
++        s1.log(f"smoke report: {args.out / 'smoke_report.txt'}")
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/goal_to_parameters/app.py b/goal_to_parameters/app.py
+index 4174151..940e6b6 100644
+--- a/goal_to_parameters/app.py
++++ b/goal_to_parameters/app.py
+@@ -1003,15 +1003,54 @@ _DURATION_FORMULA_RE = re.compile(
+ )
+ 
+ 
++# A minus sign used as an operator (next to whitespace or a parenthesis), as opposed
++# to a hyphen inside a name such as 'Re-check'.
++_FORMULA_SUBTRACTION_RE = re.compile(r"(?:(?<=[\s)])-|-(?=[\s(]))")
++
++# What follows start_time('X') in a waiting-time formula: minus the end of the
++# predecessor(s), e.g. "- complete_time('P')", "- MAX(end_time('P'), ...)", "- End_Time of ...".
++_FORMULA_PREDECESSOR_END_RE = re.compile(
++    r"""\s*-\s*(?:max\s*\(\s*)?(?:end|complete)_?time""",
++    re.IGNORECASE,
++)
++
++
++def _unquote_formula_activity(raw: str) -> str:
++    """Activity name from the inside of start_time(...), without quotes or escapes."""
++    raw = raw.strip()
++    # Strip surrounding quote characters (handles ', ", and unescaped apostrophes)
++    if len(raw) >= 2 and raw[0] in ("'", '"') and raw[-1] in ("'", '"'):
++        raw = raw[1:-1]
++    elif raw and raw[0] in ("'", '"'):
++        raw = raw[1:]
++    # Unescape backslash-escaped chars (e.g. \' → ')
++    return re.sub(r'\\(.)', r'\1', raw).strip()
++
++
++def _waiting_activity_from_formula(formula: str) -> tuple[str, int] | None:
++    """Activity X whose waiting time the formula measures: the first start_time('X') term,
++    provided it is not itself subtracted (no minus operator before it).
++
++    In start_time('X') - complete_time('P') the wait belongs to X. In
++    end_time('Y') - start_time('X') or complete_time(X) - start_time(X) the start_time term
++    is the subtracted one, so no activity is returned. Also returns the end offset of the
++    start_time term in the formula.
++    """
++    match = _FORMULA_ACTIVITY_RE.search(formula)
++    if not match or _FORMULA_SUBTRACTION_RE.search(formula, 0, match.start()):
++        return None
++    return _unquote_formula_activity(match.group(1)), match.end()
++
++
+ def _fill_missing_activity_measurable_as(
+     result: KPIGenerationResult,
+ ) -> tuple[KPIGenerationResult, list[dict[str, Any]]]:
+     """Auto-fill measurable_as for activity-level time KPIs whose LLM left it null.
+ 
+-    Extracts the activity name from suggested_formula using the pattern
+-    start_time('Activity Name') and constructs '{Activity Name} Waiting Time'.
+-    This prevents the fuzzy matcher in scenario_evaluation from silently
+-    matching the KPI against the wrong global metric (e.g. Average Waiting Time).
++    Extracts the activity name from suggested_formula using the start_time('Activity Name')
++    term that is not subtracted (see _waiting_activity_from_formula) and constructs
++    '{Activity Name} Waiting Time'. This prevents the fuzzy matcher in scenario_evaluation
++    from silently matching the KPI against the wrong global metric (e.g. Average Waiting Time).
+     """
+     payload = result.model_dump()
+     warnings: list[dict[str, Any]] = []
+@@ -1024,28 +1063,13 @@ def _fill_missing_activity_measurable_as(
+         if kpi_payload.get("category") != "time":
+             continue
+ 
+-        formula = kpi_payload.get("suggested_formula") or ""
+-
+-        # Skip duration-pattern formulas: complete_time(X) - start_time(X).
+-        # "{X} Waiting Time" is queue wait, not activity processing time.
+-        formula_lower = formula.lower()
+-        complete_pos = formula_lower.find("complete_time(")
+-        start_pos = formula_lower.find("start_time(")
+-        if complete_pos != -1 and start_pos != -1 and complete_pos < start_pos:
+-            continue
+-
+-        match = _FORMULA_ACTIVITY_RE.search(formula)
+-        if not match:
++        # Duration formulas (complete_time(X) - start_time(X)) and spans that subtract the
++        # start of X yield no activity: "{X} Waiting Time" is the queue wait before X starts.
++        waiting = _waiting_activity_from_formula(kpi_payload.get("suggested_formula") or "")
++        if waiting is None:
+             continue
+ 
+-        raw = match.group(1).strip()
+-        # Strip surrounding quote characters (handles ', ", and unescaped apostrophes)
+-        if len(raw) >= 2 and raw[0] in ("'", '"') and raw[-1] in ("'", '"'):
+-            raw = raw[1:-1]
+-        elif raw and raw[0] in ("'", '"'):
+-            raw = raw[1:]
+-        # Unescape backslash-escaped chars (e.g. \' → ')
+-        activity_name = re.sub(r'\\(.)', r'\1', raw).strip()
++        activity_name = waiting[0]
+         inferred = f"{activity_name} Waiting Time"
+         kpi_payload["measurable_as"] = inferred
+         warnings.append({
+@@ -1061,6 +1085,151 @@ def _fill_missing_activity_measurable_as(
+     return KPIGenerationResult.model_validate(payload), warnings
+ 
+ 
++# Metric labels from GLASS's own log-evidence prompt that the model sometimes copies into
++# measurable_as; the simulation evaluator does not compute KPIs under these names.
++_INTERNAL_METRIC_LABELS = frozenset({
++    "case_cycle_time_hours",
++    "case_wait_time_hours",
++    "activity_wait_time_hours",
++    "activity_duration_hours",
++    "resource_workload",
++})
++
++# Whole-case span: the case cycle-time metric, case end - case start, or bare
++# End_Time - Start_Time without an activity argument.
++_FORMULA_WHOLE_CASE_RE = re.compile(
++    r"""case_cycle_time|case[_ ](?:end|completion)[_ ]time\s*-\s*case[_ ]start[_ ]time""",
++    re.IGNORECASE,
++)
++_FORMULA_BARE_SPAN_RE = re.compile(
++    r"""\b(?:end|complete)_?time(?!\s*\()\s*-\s*start_?time\b(?!\s*\()""",
++    re.IGNORECASE,
++)
++# Sum of waits over the case.
++_FORMULA_SUM_OF_WAITS_RE = re.compile(
++    r"""case_wait_time|\bsum\s*\([^)]*wait""",
++    re.IGNORECASE,
++)
++# complete_time(X) - start_time(X) / end_time(X) - start_time(X).
++_FORMULA_SAME_ACTIVITY_SPAN_RE = re.compile(
++    r"""(?:end|complete)_?time\s*\(\s*([^)]+?)\s*\)\s*-\s*start_time\s*\(\s*([^)]+?)\s*\)""",
++    re.IGNORECASE,
++)
++_WAITING_NAME_RE = re.compile(r"wait|delay", re.IGNORECASE)
++
++
++def _log_activity_names(log_profile: dict[str, Any] | None) -> dict[str, str]:
++    """Lower-cased activity name -> spelling in the event log, for every logged activity."""
++    if not log_profile:
++        return {}
++    names = {name: name for name in (log_profile.get("_lookup") or {}).get("activities", [])}
++    for entry in log_profile.get("top_activities", []):
++        if entry.get("name") and entry["name"].lower() in names:
++            names[entry["name"].lower()] = entry["name"]
++    return names
++
++
++def _is_activity_duration_formula(formula: str, process_scope: str | None) -> bool:
++    """Formula measures the processing time of a single activity."""
++    span = _FORMULA_SAME_ACTIVITY_SPAN_RE.search(formula)
++    if span and _unquote_formula_activity(span.group(1)).lower() == _unquote_formula_activity(span.group(2)).lower():
++        return True
++    if process_scope == "activity_level" and _FORMULA_BARE_SPAN_RE.search(formula):
++        return True
++    return "duration" in formula.lower() and "case" not in formula.lower()
++
++
++def _measurable_as_from_content(
++    kpi_payload: dict[str, Any],
++    log_activities: dict[str, str],
++) -> tuple[str, str] | None:
++    """(measurable_as, rule) derived from category, scope, name and formula, or None."""
++    category = kpi_payload.get("category")
++    scope = kpi_payload.get("process_scope")
++    name = kpi_payload.get("name") or ""
++    formula = kpi_payload.get("suggested_formula") or ""
++
++    if category == "utilization":
++        return "Resource Utilization", "utilization KPI"
++    if category != "time":
++        return None
++    if scope == "end_to_end" and (_FORMULA_WHOLE_CASE_RE.search(formula) or _FORMULA_BARE_SPAN_RE.search(formula)):
++        return "Average Cycle Time", "end-to-end formula spans the whole case"
++    is_waiting = bool(_WAITING_NAME_RE.search(name))
++    if is_waiting:
++        waiting = _waiting_activity_from_formula(formula)
++        if waiting is not None and _FORMULA_PREDECESSOR_END_RE.match(formula, waiting[1]):
++            activity = log_activities.get(waiting[0].lower())
++            if activity is not None:
++                return f"{activity} Waiting Time", "start of activity minus end of predecessor"
++    if scope == "end_to_end" and _FORMULA_SUM_OF_WAITS_RE.search(formula):
++        return "Average Waiting Time", "end-to-end sum of waits"
++    if not is_waiting and _is_activity_duration_formula(formula, scope):
++        return "Average Processing Time", "activity duration"
++    return None
++
++
++def normalise_measurable_as(
++    kpi_payload: dict[str, Any],
++    log_activities: dict[str, str],
++) -> dict[str, Any] | None:
++    """Set a KPI payload's measurable_as from its content (category, scope, name, formula).
++
++    Overrides the LLM's value, including internal metric labels such as
++    activity_wait_time_hours, and fills nulls when one of these rules applies:
++      - utilization                                          -> Resource Utilization
++      - time, end_to_end, formula spans the whole case       -> Average Cycle Time
++      - time, name contains wait/delay, formula is
++        start_time('X') - end of predecessor, X in the log   -> {X} Waiting Time
++      - time, end_to_end, formula is a sum of waits          -> Average Waiting Time
++      - time, activity-duration formula                      -> Average Processing Time
++    Anything else keeps its value. When the value changes, the previous one is recorded in
++    measurable_as_raw unless a value is already recorded there (first value wins, so a KPI
++    carried over from an earlier round keeps its original); measurable_as_raw stays null when
++    measurable_as is left as generated. Returns a measurable_as_normalised warning when the
++    value changes.
++    """
++    original = kpi_payload.get("measurable_as")
++    derived = _measurable_as_from_content(kpi_payload, log_activities)
++    if derived is None or derived[0] == original:
++        return None
++    value, rule = derived
++    if kpi_payload.get("measurable_as_raw") is None:
++        kpi_payload["measurable_as_raw"] = original
++    kpi_payload["measurable_as"] = value
++    return {
++        "severity": "warning",
++        "code": "measurable_as_normalised",
++        "message": (
++            f"measurable_as of KPI '{kpi_payload.get('name')}' set from {original!r} to {value!r} "
++            f"({rule})."
++        ),
++        "kpi_names": [kpi_payload.get("name")],
++        "details": {
++            "measurable_as_raw": original,
++            "measurable_as": value,
++            "rule": rule,
++            "replaced_internal_label": original in _INTERNAL_METRIC_LABELS,
++        },
++    }
++
++
++def _normalise_result_measurable_as(
++    result: KPIGenerationResult,
++    *,
++    log_profile: dict[str, Any] | None,
++) -> tuple[KPIGenerationResult, list[dict[str, Any]]]:
++    """Apply normalise_measurable_as to every KPI of a generation result."""
++    payload = result.model_dump()
++    log_activities = _log_activity_names(log_profile)
++    warnings = [
++        warning
++        for kpi_payload in payload.get("kpis", [])
++        if (warning := normalise_measurable_as(kpi_payload, log_activities)) is not None
++    ]
++    return KPIGenerationResult.model_validate(payload), warnings
++
++
+ def _finalize_generated_result(
+     result: KPIGenerationResult,
+     *,
+@@ -1075,6 +1244,7 @@ def _finalize_generated_result(
+         log_profile=log_profile,
+         context_evidence=context_evidence,
+     )
++    result, normalise_warnings = _normalise_result_measurable_as(result, log_profile=log_profile)
+     result, infer_warnings = _fill_missing_activity_measurable_as(result)
+     semantic_validation = validate_kpi_generation_semantics(
+         result,
+@@ -1082,9 +1252,9 @@ def _finalize_generated_result(
+         log_profile=log_profile,
+         context_evidence=context_evidence,
+     ).to_dict()
+-    semantic_validation["issues"].extend(sanitation_warnings + infer_warnings)
++    semantic_validation["issues"].extend(sanitation_warnings + normalise_warnings + infer_warnings)
+     semantic_validation["has_warnings"] = bool(
+-        semantic_validation.get("has_warnings") or sanitation_warnings or infer_warnings
++        semantic_validation.get("has_warnings") or sanitation_warnings or normalise_warnings or infer_warnings
+     )
+     return result, semantic_validation
+ 
+diff --git a/goal_to_parameters/models/smart_kpi.py b/goal_to_parameters/models/smart_kpi.py
+index 3e28293..766aac3 100644
+--- a/goal_to_parameters/models/smart_kpi.py
++++ b/goal_to_parameters/models/smart_kpi.py
+@@ -126,6 +126,10 @@ class SMARTKpi(BaseModel):
+         default=None,
+         description="Exact name of the computed KPI this maps to for simulation evaluation, or null if not computable from a Prosimos event log",
+     )
++    measurable_as_raw: str | None = Field(
++        default=None,
++        description="measurable_as as generated, before GLASS's deterministic normalisation",
++    )
+ 
+     @model_validator(mode="before")
+     @classmethod
+diff --git a/goal_to_parameters/prompts/scenario_patch_prompt.py b/goal_to_parameters/prompts/scenario_patch_prompt.py
+index be5e089..33a768c 100644
+--- a/goal_to_parameters/prompts/scenario_patch_prompt.py
++++ b/goal_to_parameters/prompts/scenario_patch_prompt.py
+@@ -160,9 +160,21 @@ def _build_constraints_block(operational_context: Any) -> str:
+             role_lines.append(f"max {info['max_hours_per_week']} h/week")
+         if info.get("overtime_available") is False:
+             role_lines.append("NO overtime available")
++        elif info.get("overtime_available") is True:
++            hours = info.get("max_overtime_hours_per_day")
++            role_lines.append(f"overtime up to {hours} h/day" if hours is not None else "overtime available")
++        if info.get("external_party") is True:
++            role_lines.append("external party (headcount cannot be changed)")
+         if role_lines:
+             lines.append(f"- **{role_name}**: {'; '.join(role_lines)}.")
+ 
++    # --- Relative budget limit ---
++    budget = getattr(operational_context, "budget", {}) or {}
++    if budget.get("max_increase_pct") is not None:
++        lines.append(
++            f"- **Budget**: total staff cost may increase by at most {budget['max_increase_pct']} %."
++        )
++
+     # --- Immutable elements ---
+     immutable = getattr(operational_context, "get_immutable_elements", lambda: set())()
+     if immutable:
+@@ -199,12 +211,18 @@ def build_scenario_patch_prompt(
+     simod_output: str = "",
+     kb_context: str = "",
+     context_evidence: str | None = None,
++    intermediate_events_summary: str = "",
+ ) -> tuple[str, list[dict[str, str]], str]:
+     """Build the patch-only prompt for the second LLM step.
+ 
+     Reuses the evidence-briefing user prompt from the legacy builder and
+     replaces the trailing schema + task instructions so the model emits
+     a :class:`ScenarioPatch` instead of a full :class:`ScenarioProposal`.
++
++    ``intermediate_events_summary`` (from
++    :func:`second_llm.payload_builder.summarize_intermediate_events`) lists the
++    baseline's timer events. When it is non-empty, the ``event_duration`` parameter
++    type and the event list are added to the prompt; when empty the prompt is unchanged.
+     """
+     system_prompt, _, legacy_user_prompt = build_scenario_proposal_prompt(
+         first_llm_json=first_llm_json,
+@@ -233,6 +251,21 @@ def build_scenario_patch_prompt(
+     patch_instructions = _PATCH_OUTPUT_INSTRUCTIONS.format(
+         schema=SCENARIO_PATCH_JSON_SCHEMA,
+     )
++    if intermediate_events_summary:
++        patch_instructions = patch_instructions.replace(
++            "resource_activity_assignment, resource_cost.",
++            "resource_activity_assignment, resource_cost, event_duration "
++            "(a timer-caused waiting time before an activity; can be shortened or set to 0; "
++            "target = the timer's display name).",
++            1,
++        ).replace("| resource_cost>", "| resource_cost | event_duration>", 1)
++        briefing += (
++            "\n\n## Intermediate (timer) events in the SIMOD baseline\n\n"
++            "Each timer adds a waiting time before its successor activity. Change it with "
++            "parameter_type event_duration, target_element = the display name below, and "
++            "baseline_value quoted in the unit shown.\n\n"
++            + intermediate_events_summary
++        )
+ 
+     # Build an explicit budget clause for the task instruction so the
+     # constraint appears in the final, highest-attention position.
+diff --git a/goal_to_parameters/second_llm/context_summary.py b/goal_to_parameters/second_llm/context_summary.py
+index 51689ec..3104d48 100644
+--- a/goal_to_parameters/second_llm/context_summary.py
++++ b/goal_to_parameters/second_llm/context_summary.py
+@@ -37,19 +37,23 @@ CONTEXT_SUMMARY_SCHEMA = """\
+ {
+   "resource_constraints": {
+     "<role_name>": {
+-      "staffing_flexible": <true|false>,
++      "staffing_flexible": <true|false|null>,
+       "reason": "<why fixed or flexible>",
+-      "overtime_available": <true|false>,
++      "overtime_available": <true|false|null>,
++      "max_overtime_hours_per_day": <number or null>,
+       "overtime_rate_multiplier": <float or null>,
+       "max_headcount": <integer or null>,
+       "max_additional": <integer or null>,
+       "max_hours_per_week": <number or null>,
+       "cross_trained_with": ["<other role names>"],
+-      "shared_across_processes": <true|false>
++      "shared_across_processes": <true|false>,
++      "external_party": <true|false|null>,
++      "cost_per_hour": <number or null>
+     }
+   },
+   "budget": {
+     "additional_monthly": <number or null>,
++    "max_increase_pct": <number or null>,
+     "currency": "<EUR|USD|...>",
+     "notes": "<any budget context>"
+   },
+@@ -122,7 +126,9 @@ Rules:
+   hires total", "we can bring in 2 new staff"), capture it in \
+   calendar_constraints.total_max_additional_resources as an integer. \
+   This is different from per-role limits: when the user says "2 more people" \
+-  without naming a specific role, it is a global limit.
++  without naming a specific role, it is a global limit. A limit stated for \
++  each role (e.g. "for every role up to 2 more") is a per-role limit, not a \
++  total: leave total_max_additional_resources null unless a total was stated.
+ - If the user stated a maximum number of **working hours per week** for a \
+   role or for added resources (e.g. "they can only work 20 hours a week", \
+   "max 30h/week"), capture it in resource_constraints.<role>.max_hours_per_week \
+@@ -133,12 +139,27 @@ Rules:
+   "no one can work more than 20 hours", "everyone is part-time at most 25h") \
+   — capture it in calendar_constraints.new_hire_max_hours_per_week \
+   as a number instead of (or in addition to) the per-role field.
++- Use null for every field the user did not state for a role. Set   staffing_flexible or overtime_available to false only when the user   explicitly said so for that role or for a group that includes it; naming   a role (e.g. together with its hourly cost) says nothing about its flexibility.
++- When a statement applies to a group of roles (e.g. "each internal role",   "every team", "all staff"), record it under every role of that group that is   named anywhere in the conversation, not under an invented group name.
++- A party the user describes as external (e.g. a customer or an outside   partner whose headcount the organisation cannot change) is not part of an   internal-staff group: add it to resource_constraints under its own name   with external_party true and staffing_flexible false.
++- If the user stated how far working hours can be extended (e.g. "by up to   one hour per day"), set overtime_available true and   max_overtime_hours_per_day for the roles it applies to, and   calendar_constraints.shift_extension_possible true.
++- If the user stated a relative budget limit (e.g. "up to 10% higher cost"),   capture it in budget.max_increase_pct as a number.
++- If the user stated hourly costs per role, capture them in   resource_constraints.<role>.cost_per_hour.
++- Write role names as the user wrote them, in plain words (not snake_case).
+ - Output ONLY the JSON object. No explanation, no markdown fences.
+ 
+ Output schema:
+ """ + CONTEXT_SUMMARY_SCHEMA
+ 
+ 
++def _same_role(a: str, b: str) -> bool:
++    """Role names compared case-insensitively, with '_' and '-' read as spaces and a
++    plural 's' ignored ("purchasing agents" matches "Purchasing Agent")."""
++    norm = lambda s: [w[:-1] if len(w) > 3 and w.endswith("s") else w
++                      for w in str(s).replace("_", " ").replace("-", " ").lower().split()]
++    return norm(a) == norm(b)
++
++
+ # -- Public API -----------------------------------------------------------
+ 
+ 
+@@ -199,7 +220,7 @@ class OperationalContextSummary:
+         """Return the user-stated absolute maximum headcount for a role, or None."""
+         rc = self.resource_constraints
+         for name, info in rc.items():
+-            if name.lower() == role_name.lower():
++            if _same_role(name, role_name):
+                 val = info.get("max_headcount")
+                 if val is not None:
+                     try:
+@@ -212,7 +233,7 @@ class OperationalContextSummary:
+         """Return how many extra resources the user said can be added, or None."""
+         rc = self.resource_constraints
+         for name, info in rc.items():
+-            if name.lower() == role_name.lower():
++            if _same_role(name, role_name):
+                 val = info.get("max_additional")
+                 if val is not None:
+                     try:
+@@ -225,7 +246,7 @@ class OperationalContextSummary:
+         """Return the working-hours/week cap for a role, or the global new-hire cap."""
+         rc = self.resource_constraints
+         for name, info in rc.items():
+-            if name.lower() == role_name.lower():
++            if _same_role(name, role_name):
+                 val = info.get("max_hours_per_week")
+                 if val is not None:
+                     try:
+@@ -277,7 +298,7 @@ class OperationalContextSummary:
+         """Check if a role was declared as having fixed staffing."""
+         rc = self.resource_constraints
+         for name, info in rc.items():
+-            if name.lower() == role_name.lower():
++            if _same_role(name, role_name):
+                 return info.get("staffing_flexible") is False
+         return False
+ 
+@@ -285,7 +306,7 @@ class OperationalContextSummary:
+         """Check if the user declared that a role can work overtime."""
+         rc = self.resource_constraints
+         for name, info in rc.items():
+-            if name.lower() == role_name.lower():
++            if _same_role(name, role_name):
+                 return bool(info.get("overtime_available"))
+         return False
+ 
+diff --git a/goal_to_parameters/second_llm/cost_estimation.py b/goal_to_parameters/second_llm/cost_estimation.py
+index 94f6e1f..a805b77 100644
+--- a/goal_to_parameters/second_llm/cost_estimation.py
++++ b/goal_to_parameters/second_llm/cost_estimation.py
+@@ -737,6 +737,8 @@ def build_cost_report(
+             _estimate_calendar_cost(
+                 idx, mod, role_map, tt_map, report, proposal,
+             )
++        elif mod.parameter_type == "event_duration":
++            continue  # cost-neutral: a timer delay uses no resources
+ 
+     # --- Combined queueing estimates (grouped by shared activity) ---
+     _build_combined_queueing_estimates(proposal, report)
+diff --git a/goal_to_parameters/second_llm/output_schema.py b/goal_to_parameters/second_llm/output_schema.py
+index e0984ef..b774272 100644
+--- a/goal_to_parameters/second_llm/output_schema.py
++++ b/goal_to_parameters/second_llm/output_schema.py
+@@ -27,7 +27,8 @@ from __future__ import annotations
+ from enum import Enum
+ from typing import Any
+ 
+-from pydantic import BaseModel, Field, field_validator, model_validator
++from pydantic import BaseModel, Field, field_validator, model_serializer, model_validator
++from pydantic.json_schema import SkipJsonSchema
+ 
+ 
+ # ===================================================================
+@@ -85,6 +86,19 @@ class DistributionParameter(BaseModel):
+     id: str = Field(description="Parameter name: mean, variance, lower, upper, peak, constantValue, order, probability, amount")
+     value: float
+ 
++    @model_validator(mode="before")
++    @classmethod
++    def _std_to_variance(cls, data: Any) -> Any:
++        # A standard deviation is stored as variance = std ** 2; an explicit
++        # "variance"/"var" id keeps its value.
++        if isinstance(data, dict) and isinstance(data.get("id"), str):
++            if data["id"].strip().lower() in _STD_PARAM_ALIASES:
++                try:
++                    return {**data, "id": "variance", "value": float(data.get("value")) ** 2}
++                except (TypeError, ValueError):
++                    return data
++        return data
++
+     @field_validator("id", mode="before")
+     @classmethod
+     def _normalise_id(cls, v: Any) -> str:
+@@ -139,6 +153,12 @@ _PARAM_ID_ALIASES: dict[str, str] = {
+     "lambda": "mean",
+ }
+ 
++# Aliases naming a standard deviation (squared into "variance" on validation).
++_STD_PARAM_ALIASES = frozenset(
++    alias for alias, canonical in _PARAM_ID_ALIASES.items()
++    if canonical == "variance" and alias not in ("variance", "var")
++)
++
+ 
+ # Normalise common LLM aliases for distribution type names.
+ _DISTRIBUTION_TYPE_ALIASES: dict[str, str] = {
+@@ -300,6 +320,16 @@ class Resource(BaseModel):
+     """An individual resource (worker or machine)."""
+ 
+     id: str
++    # The resource's own calendar when it differs from its role's schedule (e.g. one calendar
++    # per resource in the baseline). Not part of the LLM-facing JSON schema; omitted when None.
++    calendar: SkipJsonSchema[str | None] = None
++
++    @model_serializer(mode="wrap")
++    def _omit_unset_calendar(self, handler: Any) -> Any:
++        data = handler(self)
++        if isinstance(data, dict) and self.calendar is None:
++            data.pop("calendar", None)
++        return data
+ 
+ 
+ class Role(BaseModel):
+@@ -327,6 +357,12 @@ class ResourceParameters(BaseModel):
+                     f"Role '{role.id}' references timetable '{role.schedule}' "
+                     f"which is not defined. Available: {timetable_ids}"
+                 )
++            for res in role.resources:
++                if res.calendar is not None and res.calendar not in timetable_ids:
++                    raise ValueError(
++                        f"Resource '{res.id}' of role '{role.id}' references timetable "
++                        f"'{res.calendar}' which is not defined."
++                    )
+         return self
+ 
+ 
+@@ -375,6 +411,30 @@ class StartEvent(BaseModel):
+ 
+     id: str = Field(description="BPMN start event element ID")
+     interArrivalTime: TimeDistribution
++    # Arrival calendar of the baseline (Prosimos ``arrival_time_calendar``); empty means 24/7.
++    # Not part of the LLM-facing JSON schema, and omitted from serialisation when empty.
++    arrivalCalendar: SkipJsonSchema[list[TimetableItem]] = Field(default_factory=list)
++
++    @model_serializer(mode="wrap")
++    def _omit_empty_arrival_calendar(self, handler: Any) -> Any:
++        data = handler(self)
++        if isinstance(data, dict) and not self.arrivalCalendar:
++            data.pop("arrivalCalendar", None)
++        return data
++
++
++class IntermediateEvent(BaseModel):
++    """An intermediate (timer) event and the delay it adds before its successor.
++
++    Imported from the ``event_distribution`` of a Prosimos baseline. Timers carry no
++    BPMN name, so ``name`` is a display name derived from the successor activity.
++    """
++
++    id: str = Field(description="BPMN intermediate event element ID")
++    name: str = Field(default="", description="Display name, e.g. 'Timer before <successor activity>'")
++    duration: TimeDistribution
++    predecessor: str = Field(default="", description="Name of the activity before the event")
++    successor: str = Field(default="", description="Name of the activity after the event")
+ 
+ 
+ class ModelParameter(BaseModel):
+@@ -383,6 +443,16 @@ class ModelParameter(BaseModel):
+     activities: list[Activity] = Field(default_factory=list)
+     gateways: list[Gateway] = Field(default_factory=list)
+     events: list[StartEvent] = Field(default_factory=list)
++    # Not part of the LLM-facing JSON schema, and omitted from serialisation when empty, so
++    # scenarios without timers serialise exactly as before.
++    intermediateEvents: SkipJsonSchema[list[IntermediateEvent]] = Field(default_factory=list)
++
++    @model_serializer(mode="wrap")
++    def _omit_empty_intermediate_events(self, handler: Any) -> Any:
++        data = handler(self)
++        if isinstance(data, dict) and not self.intermediateEvents:
++            data.pop("intermediateEvents", None)
++        return data
+ 
+ 
+ class ProcessModel(BaseModel):
+@@ -549,6 +619,7 @@ class ParameterModification(BaseModel):
+             "resource_calendar": "resource availability calendar",
+             "resource_activity_assignment": "resource activity assignment",
+             "resource_cost": "resource cost",
++            "event_duration": "timer delay",
+         }
+         direction_labels = {
+             ModificationDirection.INCREASE: "increase",
+diff --git a/goal_to_parameters/second_llm/output_schema_patch.py b/goal_to_parameters/second_llm/output_schema_patch.py
+index c8fd4de..4418a3a 100644
+--- a/goal_to_parameters/second_llm/output_schema_patch.py
++++ b/goal_to_parameters/second_llm/output_schema_patch.py
+@@ -65,6 +65,7 @@ class PatchParameterType(str, Enum):
+     RESOURCE_CALENDAR = "resource_calendar"
+     RESOURCE_ACTIVITY_ASSIGNMENT = "resource_activity_assignment"
+     RESOURCE_COST = "resource_cost"
++    EVENT_DURATION = "event_duration"
+ 
+ 
+ class PatchTargetKind(str, Enum):
+@@ -75,6 +76,7 @@ class PatchTargetKind(str, Enum):
+     ROLE = "role"
+     TIMETABLE = "timetable"
+     START_EVENT = "start_event"
++    INTERMEDIATE_EVENT = "intermediate_event"
+ 
+ 
+ # Mapping from parameter_type to the expected element kind.
+@@ -86,6 +88,9 @@ _PARAM_TO_KIND: dict[PatchParameterType, PatchTargetKind] = {
+     PatchParameterType.RESOURCE_CALENDAR: PatchTargetKind.TIMETABLE,
+     PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT: PatchTargetKind.ACTIVITY,
+     PatchParameterType.RESOURCE_COST: PatchTargetKind.ROLE,
++    # A timer-caused delay; target = the event's display name or id. Proposed value is a
++    # duration as for activity_duration; 0 removes the delay.
++    PatchParameterType.EVENT_DURATION: PatchTargetKind.INTERMEDIATE_EVENT,
+ }
+ 
+ 
+@@ -390,6 +395,15 @@ SCENARIO_PATCH_JSON_SCHEMA: str = """\
+ """
+ 
+ 
+-def get_patch_constrained_decoding_schema() -> dict:
+-    """Return the Pydantic JSON Schema for constrained decoding of ScenarioPatch."""
+-    return ScenarioPatch.model_json_schema()
++def get_patch_constrained_decoding_schema(include_event_duration: bool = False) -> dict:
++    """Return the Pydantic JSON Schema for constrained decoding of ScenarioPatch.
++
++    ``event_duration`` is offered only when the baseline has intermediate (timer) events;
++    otherwise the schema is the one used before that parameter type existed.
++    """
++    schema = ScenarioPatch.model_json_schema()
++    if not include_event_duration:
++        enum = schema.get("$defs", {}).get("PatchParameterType", {}).get("enum")
++        if isinstance(enum, list) and PatchParameterType.EVENT_DURATION.value in enum:
++            enum.remove(PatchParameterType.EVENT_DURATION.value)
++    return schema
+diff --git a/goal_to_parameters/second_llm/patch_validator.py b/goal_to_parameters/second_llm/patch_validator.py
+index 786b968..957933b 100644
+--- a/goal_to_parameters/second_llm/patch_validator.py
++++ b/goal_to_parameters/second_llm/patch_validator.py
+@@ -159,6 +159,29 @@ def _check_direction_consistency(
+     return None
+ 
+ 
++def _check_event_duration_value(
++    mod: PatchModification, idx: int,
++) -> PatchDiagnostic | None:
++    """event_duration: the proposed delay must not be negative (0 removes the delay)."""
++    if mod.parameter_type != PatchParameterType.EVENT_DURATION:
++        return None
++    values = [_extract_first_number(mod.proposed_value)]
++    if isinstance(mod.proposed_structured, dict):
++        for param in mod.proposed_structured.get("values") or []:
++            if isinstance(param, dict) and isinstance(param.get("value"), (int, float)):
++                values.append(float(param["value"]))
++    if any(v is not None and v < 0 for v in values):
++        return PatchDiagnostic(
++            severity="error", category="invalid_value",
++            message=(
++                f"Modification #{idx} on '{mod.target_element}': an event duration "
++                f"cannot be negative (proposed '{mod.proposed_value}'); use 0 to remove the delay."
++            ),
++            modification_index=idx, element=mod.target_element,
++        )
++    return None
++
++
+ # -------------------------------------------------------------------
+ # KPI coverage — every declared KPI is either targeted or explicitly unresolved
+ # -------------------------------------------------------------------
+@@ -218,6 +241,7 @@ def _check_baseline_faithfulness(
+         # ADD_NEW here means the role is genuinely absent, which is an error.
+         check_exists = (
+             mod.parameter_type in _ROLE_PARAM_TYPES
++            or mod.parameter_type == PatchParameterType.EVENT_DURATION  # timers cannot be added
+             or mod.direction != ModificationDirection.ADD_NEW
+         )
+         if check_exists:
+@@ -242,6 +266,21 @@ def _check_baseline_faithfulness(
+                         modification_index=i,
+                         element=mod.target_element,
+                     ))
++                elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
++                    available = [
++                        f"{e.name} ({e.id})"
++                        for m in baseline.models for e in m.modelParameter.intermediateEvents
++                    ]
++                    out.append(PatchDiagnostic(
++                        severity="error",
++                        category=exists.category,
++                        message=(
++                            f"'{mod.target_element}' is not an intermediate event in the "
++                            f"SIMOD baseline. Use one of: [{', '.join(available) or 'none'}]."
++                        ),
++                        modification_index=i,
++                        element=mod.target_element,
++                    ))
+                 else:
+                     # Non-role targets: downgrade to warning — the merger skips
+                     # them gracefully in tolerant mode.
+@@ -504,6 +543,9 @@ def validate_patch(
+         d = _check_direction_consistency(mod, i)
+         if d is not None:
+             result.diagnostics.append(d)
++        e = _check_event_duration_value(mod, i)
++        if e is not None:
++            result.diagnostics.append(e)
+ 
+     # 3. KPI coverage.
+     if declared_kpis is not None:
+diff --git a/goal_to_parameters/second_llm/payload_builder.py b/goal_to_parameters/second_llm/payload_builder.py
+index 082a708..acaa445 100644
+--- a/goal_to_parameters/second_llm/payload_builder.py
++++ b/goal_to_parameters/second_llm/payload_builder.py
+@@ -21,6 +21,27 @@ from second_llm.models import (
+ )
+ 
+ 
++def summarize_intermediate_events(scenario: Any) -> str:
++    """Baseline summary of intermediate (timer) events for the second-LLM prompt.
++
++    One line per event: display name, id, predecessor -> successor activity and the
++    current mean delay in the event's own time unit (the unit the merger compares a
++    quoted ``baseline_value`` against). Empty string when the baseline has no events.
++    """
++    from second_llm.scenario_merger import _distribution_mean
++
++    lines: list[str] = []
++    for model in getattr(scenario, "models", None) or []:
++        for evt in model.modelParameter.intermediateEvents:
++            mean = _distribution_mean(evt.duration)
++            mean_text = f"{mean:g} {evt.duration.timeUnit.value}" if mean is not None else "unknown"
++            lines.append(
++                f"- {evt.name} (id {evt.id}): {evt.predecessor or '?'} -> {evt.successor or '?'}; "
++                f"current mean duration {mean_text} ({evt.duration.distributionType.value})"
++            )
++    return "\n".join(lines)
++
++
+ class DraftPayloadBuilder:
+     """Builds the second-LLM request from workspace state."""
+ 
+diff --git a/goal_to_parameters/second_llm/prosimos_runner.py b/goal_to_parameters/second_llm/prosimos_runner.py
+index 69f951a..97d9a46 100644
+--- a/goal_to_parameters/second_llm/prosimos_runner.py
++++ b/goal_to_parameters/second_llm/prosimos_runner.py
+@@ -231,45 +231,23 @@ def scenario_to_prosimos_json(
+     rp = scenario.resourceParameters
+ 
+     # --- Resource calendars ---
+-    # Prosimos's CalendarIterator crashes if a day has no work intervals.
+-    # Extend all calendars to cover Mon–Sun to prevent IndexError on weekends.
++    # Exported as they are: Prosimos 2.x handles calendars without weekend (or other)
++    # days. Only a calendar with no periods at all falls back to Mon–Sun 09–17.
+     _ALL_DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+ 
+     resource_calendars: list[dict[str, Any]] = []
+     for tt in rp.timeTables:
+         periods: list[dict[str, Any]] = []
+-        covered_days: set[str] = set()
+-        default_begin = "09:00:00"
+-        default_end = "17:00:00"
+-
+         for item in tt.timeTableItems:
+-            from_day = _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value)
+-            to_day = _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value)
+-            begin_time = f"{item.startTime:02d}:00:00"
+-            end_time = f"{item.endTime:02d}:00:00"
+-            default_begin = begin_time
+-            default_end = end_time
+             periods.append({
+-                "from": from_day,
+-                "to": to_day,
+-                "beginTime": begin_time,
+-                "endTime": end_time,
++                "from": _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value),
++                "to": _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value),
++                "beginTime": f"{item.startTime:02d}:00:00",
++                "endTime": f"{item.endTime:02d}:00:00",
+             })
+-            # Track which days are covered
+-            start_idx = _ALL_DAYS.index(from_day)
+-            end_idx = _ALL_DAYS.index(to_day)
+-            for i in range(start_idx, end_idx + 1):
+-                covered_days.add(_ALL_DAYS[i])
+-
+-        # Add missing days with the same hours to avoid CalendarIterator crash
+-        for day in _ALL_DAYS:
+-            if day not in covered_days:
+-                periods.append({
+-                    "from": day,
+-                    "to": day,
+-                    "beginTime": default_begin,
+-                    "endTime": default_end,
+-                })
++        if not periods:
++            periods = [{"from": day, "to": day, "beginTime": "09:00:00", "endTime": "17:00:00"}
++                       for day in _ALL_DAYS]
+ 
+         resource_calendars.append({"id": tt.id, "time_periods": periods})
+ 
+@@ -283,7 +261,7 @@ def scenario_to_prosimos_json(
+                 "name": r.id,
+                 "cost_per_hour": role.costHour,
+                 "amount": 1,
+-                "calendar": role.schedule,
++                "calendar": r.calendar or role.schedule,
+             })
+         resource_profiles.append({
+             "id": role.id,
+@@ -352,8 +330,19 @@ def scenario_to_prosimos_json(
+                 ],
+             }
+ 
+-    # --- Arrival time calendar (24/7 — cases can arrive any time) ---
++    # --- Arrival time calendar ---
++    # The baseline's arrival calendar when the scenario holds one; otherwise 24/7
++    # (cases can arrive any time). An end hour of 24 is written as 23:59:59, as in the 24/7 default.
++    arrival_items = model.modelParameter.events[0].arrivalCalendar if model.modelParameter.events else []
+     arrival_calendar: list[dict[str, Any]] = [
++        {
++            "from": _WEEKDAY_TO_SIMOD.get(item.startWeekday.value, item.startWeekday.value),
++            "to": _WEEKDAY_TO_SIMOD.get(item.endWeekday.value, item.endWeekday.value),
++            "beginTime": f"{item.startTime:02d}:00:00",
++            "endTime": "23:59:59" if item.endTime == 24 else f"{item.endTime:02d}:00:00",
++        }
++        for item in arrival_items
++    ] or [
+         {
+             "from": "MONDAY",
+             "to": "SUNDAY",
+@@ -363,9 +352,17 @@ def scenario_to_prosimos_json(
+     ]
+ 
+     # --- Intermediate event distributions (timer events from BPMN) ---
++    # Events stored on the scenario keep their (possibly patched) delay; events the
++    # scenario does not hold keep the zero default.
++    stored_events = {e.id: e for e in model.modelParameter.intermediateEvents}
+     event_distribution: list[dict[str, Any]] = []
+     intermediate_event_ids = _extract_intermediate_event_ids(bpmn_xml)
+     for evt_id in intermediate_event_ids:
++        if evt_id in stored_events:
++            event_distribution.append(
++                {"event_id": evt_id, **_distribution_to_prosimos(stored_events[evt_id].duration)}
++            )
++            continue
+         event_distribution.append({
+             "event_id": evt_id,
+             "distribution_name": "expon",
+diff --git a/goal_to_parameters/second_llm/scenario_generator.py b/goal_to_parameters/second_llm/scenario_generator.py
+index beb2f2f..e8d800e 100644
+--- a/goal_to_parameters/second_llm/scenario_generator.py
++++ b/goal_to_parameters/second_llm/scenario_generator.py
+@@ -36,6 +36,7 @@ from second_llm.output_schema_patch import (
+     get_patch_constrained_decoding_schema,
+ )
+ from second_llm.compatibility_adapter import build_legacy_proposal
++from second_llm.payload_builder import summarize_intermediate_events
+ from second_llm.patch_validator import (
+     enforce_headcount_constraints,
+     repair_patch_against_baseline,
+@@ -532,9 +533,8 @@ def generate_scenario_patch(
+     use_constrained = (
+         constrained_decoding and provider.supports_structured_output()
+     )
+-    schema_dict: dict[str, Any] | None = None
++    schema_dict: dict[str, Any] | None = None  # built once the baseline is known
+     if use_constrained:
+-        schema_dict = get_patch_constrained_decoding_schema()
+         result.decoding_mode = "patch-constrained"
+         notes.append(
+             f"Patch constrained decoding enabled "
+@@ -581,6 +581,13 @@ def generate_scenario_patch(
+         return result
+     baseline = baseline_build.scenario
+ 
++    # Timer events: offered to the LLM (event_duration) only when the baseline has any.
++    events_summary = summarize_intermediate_events(baseline)
++    if use_constrained:
++        schema_dict = get_patch_constrained_decoding_schema(
++            include_event_duration=bool(events_summary),
++        )
++
+     # --- Patch prompt ---
+     from prompts.scenario_patch_prompt import build_scenario_patch_prompt
+ 
+@@ -589,6 +596,7 @@ def generate_scenario_patch(
+         evidence=evidence,
+         chat_history=chat_history,
+         operational_context=ctx_summary,
++        intermediate_events_summary=events_summary,
+     )
+     notes.append(
+         f"Patch prompt: system={len(system_prompt)} chars, "
+diff --git a/goal_to_parameters/second_llm/scenario_merger.py b/goal_to_parameters/second_llm/scenario_merger.py
+index f8c7595..cda2cfd 100644
+--- a/goal_to_parameters/second_llm/scenario_merger.py
++++ b/goal_to_parameters/second_llm/scenario_merger.py
+@@ -191,6 +191,48 @@ def _apply_activity_duration(
+     return True
+ 
+ 
++def _apply_event_duration(
++    scenario: SimuBridgeScenario,
++    mod: PatchModification,
++    diag: list[PatchDiagnostic],
++    idx: int,
++) -> bool:
++    """Set the delay of an intermediate (timer) event; same handling as activity durations.
++
++    A proposed value of 0 removes the delay (constant distribution of 0).
++    """
++    events = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
++    evt = _resolve(events, mod.target_element)
++    if evt is None:
++        diag.append(PatchDiagnostic(
++            severity="error", category="missing_element",
++            message=(
++                f"Intermediate event '{mod.target_element}' not found in baseline — "
++                f"cannot apply event_duration modification."
++            ),
++            modification_index=idx, element=mod.target_element,
++        ))
++        return False
++
++    new_dist = _distribution_from_payload(
++        mod.proposed_structured, evt.duration.timeUnit, mod.proposed_value,
++    )
++    if new_dist is None:
++        diag.append(PatchDiagnostic(
++            severity="error", category="invalid_value",
++            message=(
++                f"Intermediate event '{mod.target_element}': could not parse a valid "
++                f"duration from proposed_value='{mod.proposed_value}' or "
++                f"proposed_structured."
++            ),
++            modification_index=idx, element=mod.target_element,
++        ))
++        return False
++
++    evt.duration = new_dist
++    return True
++
++
+ def _apply_inter_arrival_time(
+     scenario: SimuBridgeScenario,
+     mod: PatchModification,
+@@ -423,13 +465,42 @@ def _apply_resource_cost(
+     return True
+ 
+ 
++def _role_timetables(scenario: SimuBridgeScenario, target: str) -> list[Any]:
++    """Every timetable used by the role(s) a resource_calendar target refers to.
++
++    The target may name a role or one of the timetables a role uses (its schedule or
++    one of its resources' calendars); the change then applies to all resources of that
++    role. A timetable no role uses resolves to itself.
++    """
++    rp = scenario.resourceParameters
++    by_id = {t.id: t for t in rp.timeTables}
++    role = _resolve(rp.roles, target)
++    tt = _resolve(rp.timeTables, target)
++    if role is not None:
++        owners = [role]
++    elif tt is not None:
++        owners = [r for r in rp.roles
++                  if tt.id == r.schedule or any(res.calendar == tt.id for res in r.resources)]
++        if not owners:
++            return [tt]
++    else:
++        return []
++    ids: list[str] = []
++    for r in owners:
++        for tid in [r.schedule] + [res.calendar for res in r.resources if res.calendar]:
++            if tid not in ids:
++                ids.append(tid)
++    return [by_id[i] for i in ids if i in by_id]
++
++
+ def _apply_resource_calendar(
+     scenario: SimuBridgeScenario,
+     mod: PatchModification,
+     diag: list[PatchDiagnostic],
+     idx: int,
+ ) -> bool:
+-    tt = _resolve(scenario.resourceParameters.timeTables, mod.target_element)
++    targets = _role_timetables(scenario, mod.target_element)
++    tt = targets[0] if targets else None
+     if tt is None:
+         diag.append(PatchDiagnostic(
+             severity="error", category="missing_element",
+@@ -465,7 +536,8 @@ def _apply_resource_calendar(
+             modification_index=idx, element=mod.target_element,
+         ))
+         return False
+-    tt.timeTableItems = new_items
++    for t in targets:
++        t.timeTableItems = [it.model_copy() for it in new_items]
+     return True
+ 
+ 
+@@ -534,6 +606,7 @@ _APPLIERS = {
+     PatchParameterType.RESOURCE_COST: _apply_resource_cost,
+     PatchParameterType.RESOURCE_CALENDAR: _apply_resource_calendar,
+     PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT: _apply_resource_activity_assignment,
++    PatchParameterType.EVENT_DURATION: _apply_event_duration,
+ }
+ 
+ 
+@@ -571,7 +644,10 @@ def _check_element_kind(
+     elif kind == PatchTargetKind.ROLE:
+         pool = list(scenario.resourceParameters.roles)
+     elif kind == PatchTargetKind.TIMETABLE:
+-        pool = list(scenario.resourceParameters.timeTables)
++        # A role name is accepted: the change applies to every timetable of the role.
++        pool = list(scenario.resourceParameters.timeTables) + list(scenario.resourceParameters.roles)
++    elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
++        pool = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
+     else:
+         pool = []
+ 
+@@ -584,6 +660,9 @@ def _check_element_kind(
+                 for a in pool[:6]
+             ]
+             hint = f" Known activities (first 6): {candidates}."
++        elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
++            candidates = [f"{e.name} ({e.id})" for e in pool[:6]]
++            hint = f" Known intermediate events (first 6): {candidates}."
+         return PatchDiagnostic(
+             severity="warning", category="missing_element",
+             message=(
+@@ -631,6 +710,13 @@ def _check_baseline_value_match(
+         event = _resolve(events, mod.target_element) or (events[0] if events else None)
+         if event is not None:
+             actual_numeric = _distribution_mean(event.interArrivalTime)
++    elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
++        evt = _resolve(
++            [e for m in scenario.models for e in m.modelParameter.intermediateEvents],
++            mod.target_element,
++        )
++        if evt is not None:
++            actual_numeric = _distribution_mean(evt.duration)
+ 
+     if actual_numeric is None:
+         return None
+diff --git a/goal_to_parameters/second_llm/simod_to_simubridge.py b/goal_to_parameters/second_llm/simod_to_simubridge.py
+index 79c77bb..5e39c75 100644
+--- a/goal_to_parameters/second_llm/simod_to_simubridge.py
++++ b/goal_to_parameters/second_llm/simod_to_simubridge.py
+@@ -34,6 +34,7 @@ from second_llm.output_schema import (
+     DistributionParameter,
+     DistributionType,
+     Gateway,
++    IntermediateEvent,
+     ModelParameter,
+     ProcessModel,
+     Resource,
+@@ -235,10 +236,10 @@ def _positional_to_named(
+         if m is not None:
+             out.append(DistributionParameter(id="mean", value=m))
+         if v is not None:
+-            # SIMOD often stores standard deviation; the Pydantic model
+-            # normalises "std" -> "variance" via its aliases so we store
+-            # the raw numeric value under "variance" here.
+-            out.append(DistributionParameter(id="variance", value=v))
++            # Prosimos norm params are [mean, std, min, max]; SimuBridge's
++            # normal is (mean, variance), so square the std (export takes
++            # the square root again).
++            out.append(DistributionParameter(id="variance", value=v ** 2))
+         return out
+     if dist_type == DistributionType.UNIFORM:
+         lo = _f(0)
+@@ -285,7 +286,8 @@ def _named_fields_to_params(
+ ) -> list[DistributionParameter]:
+     """Fallback path: read mean/sd/min/max directly off the SIMOD dict."""
+     mean = raw.get("mean")
+-    sd = raw.get("sd") or raw.get("std") or raw.get("stddev") or raw.get("variance")
++    sd = raw.get("sd") or raw.get("std") or raw.get("stddev")
++    variance = float(sd) ** 2 if sd is not None else raw.get("variance")
+     lo = raw.get("min") or raw.get("lower") or raw.get("lo")
+     hi = raw.get("max") or raw.get("upper") or raw.get("hi")
+ 
+@@ -295,8 +297,8 @@ def _named_fields_to_params(
+     elif dist_type == DistributionType.NORMAL:
+         if mean is not None:
+             out.append(DistributionParameter(id="mean", value=float(mean)))
+-        if sd is not None:
+-            out.append(DistributionParameter(id="variance", value=float(sd)))
++        if variance is not None:
++            out.append(DistributionParameter(id="variance", value=float(variance)))
+     elif dist_type == DistributionType.UNIFORM:
+         if lo is not None:
+             out.append(DistributionParameter(id="lower", value=float(lo)))
+@@ -376,6 +378,7 @@ def _build_roles_and_resources(
+ 
+         res_list_raw = prof.get("resource_list") or prof.get("resources") or []
+         res_ids: list[str] = []
++        res_calendar: dict[str, str] = {}
+         pool_cost = 0.0
+         pool_calendar: str | None = None
+ 
+@@ -400,6 +403,7 @@ def _build_roles_and_resources(
+                 cal = r.get("calendar") or r.get("calendar_id")
+                 if cal and str(cal) in timetables:
+                     pool_calendar = str(cal)
++                    res_calendar[rid] = str(cal)
+ 
+         # Profile-level overrides
+         top_cost = prof.get("cost_per_hour") or prof.get("costHour")
+@@ -434,7 +438,9 @@ def _build_roles_and_resources(
+             id=role_id,
+             schedule=pool_calendar,
+             costHour=pool_cost,
+-            resources=[Resource(id=rid) for rid in res_ids],
++            # Each resource keeps its own calendar when it differs from the role's schedule.
++            resources=[Resource(id=rid, calendar=res_calendar.get(rid) if res_calendar.get(rid) != pool_calendar
++                                else None) for rid in res_ids],
+         ))
+ 
+     return roles, resources, notes
+@@ -678,18 +684,92 @@ def _build_gateways(gw_probs: list[dict[str, Any]]) -> list[Gateway]:
+ def _build_start_events(
+     arrival: dict[str, Any] | None,
+     start_event_id: str = "StartEvent_1",
++    arrival_calendar: Any = None,
+ ) -> list[StartEvent]:
+-    """Produce a single :class:`StartEvent` from the SIMOD arrival distribution."""
++    """Produce a single :class:`StartEvent` from the SIMOD arrival distribution and calendar."""
+     if not isinstance(arrival, dict):
+         arrival = {"distribution_name": "exponential", "distribution_params": [{"value": 1.0}]}
++    calendar = _build_timetable({"id": "arrival_calendar", "time_periods": arrival_calendar})
+     return [
+         StartEvent(
+             id=start_event_id,
+             interArrivalTime=_parse_distribution(arrival, default_mean_seconds=3600.0),
++            arrivalCalendar=calendar.timeTableItems if calendar else [],
+         ),
+     ]
+ 
+ 
++_BPMN_ACTIVITY_TAGS = {
++    "task", "userTask", "serviceTask", "manualTask", "scriptTask", "sendTask",
++    "receiveTask", "businessRuleTask", "subProcess", "callActivity",
++}
++
++
++def _build_intermediate_events(
++    entries: list[dict[str, Any]],
++    bpmn_xml: str,
++) -> list[IntermediateEvent]:
++    """Produce :class:`IntermediateEvent` entries from Prosimos ``event_distribution``.
++
++    Predecessor / successor activities are resolved from the BPMN sequence flows,
++    walking through gateways and other events while the path is unambiguous. Timers
++    have no BPMN name, so the display name is ``Timer before <successor activity>``
++    (the event id when the successor cannot be resolved).
++    """
++    tags: dict[str, str] = {}
++    names: dict[str, str] = {}
++    incoming: dict[str, list[str]] = {}
++    outgoing: dict[str, list[str]] = {}
++    if bpmn_xml:
++        try:
++            import xml.etree.ElementTree as ET
++            for elem in ET.fromstring(bpmn_xml).iter():
++                tag = elem.tag.split("}")[-1]
++                eid = elem.get("id") or ""
++                if tag == "sequenceFlow":
++                    src, tgt = elem.get("sourceRef") or "", elem.get("targetRef") or ""
++                    outgoing.setdefault(src, []).append(tgt)
++                    incoming.setdefault(tgt, []).append(src)
++                elif eid:
++                    tags[eid] = tag
++                    names[eid] = (elem.get("name") or "").strip()
++        except Exception:
++            tags, names, incoming, outgoing = {}, {}, {}, {}
++
++    def _neighbour_activity(start: str, links: dict[str, list[str]]) -> str:
++        node, seen = start, {start}
++        while True:
++            nxt = links.get(node, [])
++            if len(nxt) != 1 or nxt[0] in seen:
++                return ""
++            node = nxt[0]
++            seen.add(node)
++            if tags.get(node) in _BPMN_ACTIVITY_TAGS:
++                return names.get(node) or node
++
++    out: list[IntermediateEvent] = []
++    for entry in entries:
++        evt_id = str(entry.get("event_id") or "").strip()
++        if not evt_id:
++            continue
++        successor = _neighbour_activity(evt_id, outgoing)
++        out.append(IntermediateEvent(
++            id=evt_id,
++            name=f"Timer before {successor}" if successor else evt_id,
++            duration=_parse_distribution(entry, default_mean_seconds=0.0),
++            predecessor=_neighbour_activity(evt_id, incoming),
++            successor=successor,
++        ))
++    # Display names must resolve to one event: disambiguate duplicates with the id.
++    counts: dict[str, int] = {}
++    for evt in out:
++        counts[evt.name] = counts.get(evt.name, 0) + 1
++    for evt in out:
++        if counts[evt.name] > 1 and evt.name != evt.id:
++            evt.name = f"{evt.name} ({evt.id})"
++    return out
++
++
+ # -------------------------------------------------------------------
+ # Top-level builder
+ # -------------------------------------------------------------------
+@@ -815,12 +895,25 @@ def build_baseline_scenario(
+     events = _build_start_events(
+         simod_dict.get("arrival_time_distribution")
+         or simod_dict.get("case_arrival_distribution"),
++        arrival_calendar=simod_dict.get("arrival_time_calendar"),
+     )
+ 
++    # --- Intermediate (timer) events ---
++    intermediate_events = _build_intermediate_events(
++        _as_list_of_dicts(simod_dict.get("event_distribution") or [], id_key="event_id"),
++        bpmn_xml,
++    )
++    if intermediate_events:
++        result.notes.append(
++            f"Imported {len(intermediate_events)} intermediate (timer) event(s) from "
++            f"event_distribution: {', '.join(e.name for e in intermediate_events)}."
++        )
++
+     model_parameter = ModelParameter(
+         activities=activities,
+         gateways=gateways,
+         events=events,
++        intermediateEvents=intermediate_events,
+     )
+     process_model = ProcessModel(
+         name=process_name,
+diff --git a/goal_to_parameters/utils/parsing.py b/goal_to_parameters/utils/parsing.py
+index 19e0fab..960ad8f 100644
+--- a/goal_to_parameters/utils/parsing.py
++++ b/goal_to_parameters/utils/parsing.py
+@@ -4,12 +4,22 @@
+ from __future__ import annotations
+ 
+ import json
++import logging
+ import re
+ 
+ from pydantic import ValidationError
+ 
+ from models import EvidenceBasis, KPIGenerationResult
+ 
++logger = logging.getLogger(__name__)
++
++# Metric status labels used in GLASS's own log-evidence prompt that the model sometimes
++# copies into evidence_basis; mapped to the closest valid EvidenceBasis value.
++_EVIDENCE_BASIS_ALIASES = {
++    "derived_from_log": EvidenceBasis.EVENT_LOG_ONLY.value,
++    "approximated": EvidenceBasis.PROXY_FROM_LOG.value,
++}
++
+ CODE_FENCE_PATTERN = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE | re.MULTILINE)
+ JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
+ 
+@@ -24,6 +34,14 @@ def _normalize_kpi_payload(kpi_payload: object) -> object:
+         normalized["category"] = "throughput"
+ 
+     evidence_basis = normalized.get("evidence_basis")
++    alias = _EVIDENCE_BASIS_ALIASES.get(
++        evidence_basis.strip().lower().replace("-", "_").replace(" ", "_")
++    ) if isinstance(evidence_basis, str) else None
++    if alias is not None:
++        logger.warning(
++            "evidence_basis %r normalised to %r for KPI %r", evidence_basis, alias, normalized.get("name")
++        )
++        normalized["evidence_basis"] = evidence_basis = alias
+     if evidence_basis in (None, ""):
+         normalized["evidence_basis"] = (
+             EvidenceBasis.BOTH.value if normalized.get("supported_by_log") is True
+diff --git a/goal_to_parameters/utils/semantic_validation.py b/goal_to_parameters/utils/semantic_validation.py
+index d8af3a9..3b55d56 100644
+--- a/goal_to_parameters/utils/semantic_validation.py
++++ b/goal_to_parameters/utils/semantic_validation.py
+@@ -639,11 +639,13 @@ def validate_kpi_generation_semantics(
+                     details={"unsupported_segments": unsupported_evidence_segments},
+                 )
+             if unsupported_conditions:
++                # Drop the unsupported segmentation instead of failing; the KPI keeps its plain target.
++                kpi.context_segmentation = []
+                 _make_issue(
+                     issues,
+-                    severity="error",
+-                    code="unsupported_context_condition",
+-                    message="The KPI uses segmented targets whose context conditions do not match accepted evidence-supported relationships.",
++                    severity="warning",
++                    code="unsupported_context_condition_dropped",
++                    message="The KPI used segmented targets whose context conditions do not match accepted evidence-supported relationships; its context segmentation was removed and the KPI keeps its plain target.",
+                     kpi_names=[kpi.name],
+                     details={"unsupported_conditions": unsupported_conditions},
+                 )

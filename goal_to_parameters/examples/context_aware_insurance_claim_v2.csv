@@ -1,0 +1,881 @@
+case_id,activity,timestamp,end_time,resource,claim_type,priority,claim_amount,channel
+IC-7001,Submit Claim,2025-01-06 08:00,2025-01-06 08:08,Customer Portal,simple,normal,43071,portal
+IC-7001,Check Documents,2025-01-06 08:52,2025-01-06 09:34,Claims Agent C,simple,normal,43071,portal
+IC-7001,Assess Claim,2025-01-06 11:03,2025-01-06 12:18,Assessor Lee,simple,normal,43071,portal
+IC-7001,Review Recommendation,2025-01-06 13:42,2025-01-06 14:07,Supervisor Diaz,simple,normal,43071,portal
+IC-7001,Notify Customer,2025-01-06 14:41,2025-01-06 14:47,Notification Service,simple,normal,43071,portal
+IC-7002,Submit Claim,2025-01-06 11:26,2025-01-06 11:34,Customer Portal,simple,low,22727,email
+IC-7002,Check Documents,2025-01-06 12:15,2025-01-06 12:36,Claims Agent B,simple,low,22727,email
+IC-7002,Assess Claim,2025-01-06 14:04,2025-01-06 14:43,Assessor Lee,simple,low,22727,email
+IC-7002,Review Recommendation,2025-01-06 15:55,2025-01-06 16:25,Supervisor Diaz,simple,low,22727,email
+IC-7002,Notify Customer,2025-01-06 16:47,2025-01-06 16:58,Notification Service,simple,low,22727,email
+IC-7003,Submit Claim,2025-01-06 14:32,2025-01-06 14:40,Customer Portal,simple,normal,10537,phone
+IC-7003,Check Documents,2025-01-06 14:59,2025-01-06 15:41,Claims Agent B,simple,normal,10537,phone
+IC-7003,Assess Claim,2025-01-06 16:57,2025-01-06 18:07,Assessor Kim,simple,normal,10537,phone
+IC-7003,Review Recommendation,2025-01-06 19:16,2025-01-06 19:49,Supervisor Diaz,simple,normal,10537,phone
+IC-7003,Notify Customer,2025-01-06 20:23,2025-01-06 20:28,Notification Service,simple,normal,10537,phone
+IC-7004,Submit Claim,2025-01-06 18:16,2025-01-06 18:25,Customer Portal,simple,high,24309,phone
+IC-7004,Check Documents,2025-01-06 19:08,2025-01-06 19:41,Claims Agent A,simple,high,24309,phone
+IC-7004,Assess Claim,2025-01-06 20:29,2025-01-06 21:04,Assessor Lee,simple,high,24309,phone
+IC-7004,Review Recommendation,2025-01-06 23:14,2025-01-06 23:35,Supervisor Chen,simple,high,24309,phone
+IC-7004,Notify Customer,2025-01-07 00:12,2025-01-07 00:22,Notification Service,simple,high,24309,phone
+IC-7005,Submit Claim,2025-01-06 20:15,2025-01-06 20:25,Customer Portal,simple,high,34442,phone
+IC-7005,Check Documents,2025-01-06 20:40,2025-01-06 21:23,Claims Agent A,simple,high,34442,phone
+IC-7005,Assess Claim,2025-01-06 22:00,2025-01-06 23:17,Assessor Park,simple,high,34442,phone
+IC-7005,Review Recommendation,2025-01-07 01:21,2025-01-07 01:47,Supervisor Diaz,simple,high,34442,phone
+IC-7005,Notify Customer,2025-01-07 02:25,2025-01-07 02:33,Notification Service,simple,high,34442,phone
+IC-7006,Submit Claim,2025-01-06 22:43,2025-01-06 22:51,Customer Portal,simple,high,33751,phone
+IC-7006,Check Documents,2025-01-06 23:08,2025-01-06 23:50,Claims Agent B,simple,high,33751,phone
+IC-7006,Assess Claim,2025-01-07 01:41,2025-01-07 02:16,Assessor Kim,simple,high,33751,phone
+IC-7006,Review Recommendation,2025-01-07 03:22,2025-01-07 03:48,Supervisor Chen,simple,high,33751,phone
+IC-7006,Notify Customer,2025-01-07 04:32,2025-01-07 04:37,Notification Service,simple,high,33751,phone
+IC-7007,Submit Claim,2025-01-07 00:34,2025-01-07 00:44,Customer Portal,simple,high,21017,email
+IC-7007,Check Documents,2025-01-07 01:00,2025-01-07 01:45,Claims Agent C,simple,high,21017,email
+IC-7007,Assess Claim,2025-01-07 03:40,2025-01-07 04:26,Assessor Lee,simple,high,21017,email
+IC-7007,Review Recommendation,2025-01-07 06:02,2025-01-07 06:27,Supervisor Diaz,simple,high,21017,email
+IC-7007,Notify Customer,2025-01-07 07:18,2025-01-07 07:29,Notification Service,simple,high,21017,email
+IC-7008,Submit Claim,2025-01-07 03:09,2025-01-07 03:14,Customer Portal,simple,low,9181,phone
+IC-7008,Check Documents,2025-01-07 03:52,2025-01-07 04:33,Claims Agent B,simple,low,9181,phone
+IC-7008,Assess Claim,2025-01-07 05:46,2025-01-07 07:10,Assessor Lee,simple,low,9181,phone
+IC-7008,Review Recommendation,2025-01-07 07:59,2025-01-07 08:24,Supervisor Diaz,simple,low,9181,phone
+IC-7008,Notify Customer,2025-01-07 09:03,2025-01-07 09:12,Notification Service,simple,low,9181,phone
+IC-7009,Submit Claim,2025-01-07 05:40,2025-01-07 05:51,Customer Portal,simple,normal,15774,email
+IC-7009,Check Documents,2025-01-07 06:08,2025-01-07 06:38,Claims Agent B,simple,normal,15774,email
+IC-7009,Assess Claim,2025-01-07 08:23,2025-01-07 09:00,Assessor Kim,simple,normal,15774,email
+IC-7009,Review Recommendation,2025-01-07 10:53,2025-01-07 11:17,Supervisor Diaz,simple,normal,15774,email
+IC-7009,Notify Customer,2025-01-07 11:47,2025-01-07 11:57,Notification Service,simple,normal,15774,email
+IC-7010,Submit Claim,2025-01-07 08:17,2025-01-07 08:22,Customer Portal,simple,normal,23018,email
+IC-7010,Check Documents,2025-01-07 08:50,2025-01-07 09:37,Claims Agent C,simple,normal,23018,email
+IC-7010,Assess Claim,2025-01-07 10:05,2025-01-07 11:18,Assessor Lee,simple,normal,23018,email
+IC-7010,Review Recommendation,2025-01-07 12:57,2025-01-07 13:18,Supervisor Diaz,simple,normal,23018,email
+IC-7010,Notify Customer,2025-01-07 13:59,2025-01-07 14:05,Notification Service,simple,normal,23018,email
+IC-7011,Submit Claim,2025-01-07 11:44,2025-01-07 11:49,Customer Portal,simple,normal,36253,phone
+IC-7011,Check Documents,2025-01-07 12:21,2025-01-07 12:43,Claims Agent B,simple,normal,36253,phone
+IC-7011,Request Missing Documents,2025-01-07 13:05,2025-01-07 13:22,Claims Agent B,simple,normal,36253,phone
+IC-7011,Assess Claim,2025-01-07 20:01,2025-01-07 20:55,Assessor Lee,simple,normal,36253,phone
+IC-7011,Review Recommendation,2025-01-07 22:04,2025-01-07 22:32,Supervisor Chen,simple,normal,36253,phone
+IC-7011,Notify Customer,2025-01-07 22:57,2025-01-07 23:06,Notification Service,simple,normal,36253,phone
+IC-7012,Submit Claim,2025-01-07 15:22,2025-01-07 15:29,Customer Portal,simple,high,46330,portal
+IC-7012,Check Documents,2025-01-07 16:02,2025-01-07 16:39,Claims Agent C,simple,high,46330,portal
+IC-7012,Request Missing Documents,2025-01-07 16:52,2025-01-07 17:11,Claims Agent C,simple,high,46330,portal
+IC-7012,Assess Claim,2025-01-08 02:44,2025-01-08 03:17,Assessor Kim,simple,high,46330,portal
+IC-7012,Review Recommendation,2025-01-08 04:46,2025-01-08 05:02,Supervisor Diaz,simple,high,46330,portal
+IC-7012,Notify Customer,2025-01-08 05:48,2025-01-08 05:56,Notification Service,simple,high,46330,portal
+IC-7013,Submit Claim,2025-01-07 18:20,2025-01-07 18:28,Customer Portal,simple,normal,24200,email
+IC-7013,Check Documents,2025-01-07 18:58,2025-01-07 19:43,Claims Agent A,simple,normal,24200,email
+IC-7013,Request Missing Documents,2025-01-07 20:01,2025-01-07 20:14,Claims Agent A,simple,normal,24200,email
+IC-7013,Assess Claim,2025-01-08 08:49,2025-01-08 10:08,Assessor Park,simple,normal,24200,email
+IC-7013,Review Recommendation,2025-01-08 11:44,2025-01-08 12:05,Supervisor Diaz,simple,normal,24200,email
+IC-7013,Notify Customer,2025-01-08 12:29,2025-01-08 12:38,Notification Service,simple,normal,24200,email
+IC-7014,Submit Claim,2025-01-07 22:11,2025-01-07 22:16,Customer Portal,simple,normal,36622,email
+IC-7014,Check Documents,2025-01-07 22:49,2025-01-07 23:36,Claims Agent C,simple,normal,36622,email
+IC-7014,Assess Claim,2025-01-08 00:31,2025-01-08 01:09,Assessor Park,simple,normal,36622,email
+IC-7014,Review Recommendation,2025-01-08 02:24,2025-01-08 02:50,Supervisor Diaz,simple,normal,36622,email
+IC-7014,Notify Customer,2025-01-08 03:22,2025-01-08 03:32,Notification Service,simple,normal,36622,email
+IC-7015,Submit Claim,2025-01-08 00:23,2025-01-08 00:34,Customer Portal,simple,normal,47692,phone
+IC-7015,Check Documents,2025-01-08 00:56,2025-01-08 01:45,Claims Agent A,simple,normal,47692,phone
+IC-7015,Assess Claim,2025-01-08 02:59,2025-01-08 04:25,Assessor Kim,simple,normal,47692,phone
+IC-7015,Review Recommendation,2025-01-08 05:47,2025-01-08 06:21,Supervisor Chen,simple,normal,47692,phone
+IC-7015,Notify Customer,2025-01-08 07:20,2025-01-08 07:26,Notification Service,simple,normal,47692,phone
+IC-7016,Submit Claim,2025-01-08 03:55,2025-01-08 04:02,Customer Portal,simple,low,44778,email
+IC-7016,Check Documents,2025-01-08 04:17,2025-01-08 05:00,Claims Agent A,simple,low,44778,email
+IC-7016,Assess Claim,2025-01-08 07:09,2025-01-08 08:32,Assessor Kim,simple,low,44778,email
+IC-7016,Review Recommendation,2025-01-08 10:32,2025-01-08 10:48,Supervisor Diaz,simple,low,44778,email
+IC-7016,Notify Customer,2025-01-08 11:23,2025-01-08 11:29,Notification Service,simple,low,44778,email
+IC-7017,Submit Claim,2025-01-08 07:17,2025-01-08 07:27,Customer Portal,simple,high,7015,portal
+IC-7017,Check Documents,2025-01-08 07:47,2025-01-08 08:18,Claims Agent C,simple,high,7015,portal
+IC-7017,Assess Claim,2025-01-08 10:38,2025-01-08 11:43,Assessor Park,simple,high,7015,portal
+IC-7017,Review Recommendation,2025-01-08 12:51,2025-01-08 13:25,Supervisor Diaz,simple,high,7015,portal
+IC-7017,Notify Customer,2025-01-08 14:16,2025-01-08 14:23,Notification Service,simple,high,7015,portal
+IC-7018,Submit Claim,2025-01-08 11:07,2025-01-08 11:12,Customer Portal,simple,high,1682,email
+IC-7018,Check Documents,2025-01-08 11:27,2025-01-08 12:07,Claims Agent A,simple,high,1682,email
+IC-7018,Request Missing Documents,2025-01-08 12:22,2025-01-08 12:37,Claims Agent A,simple,high,1682,email
+IC-7018,Assess Claim,2025-01-08 22:57,2025-01-08 23:52,Assessor Lee,simple,high,1682,email
+IC-7018,Review Recommendation,2025-01-09 01:58,2025-01-09 02:16,Supervisor Diaz,simple,high,1682,email
+IC-7018,Notify Customer,2025-01-09 02:37,2025-01-09 02:47,Notification Service,simple,high,1682,email
+IC-7019,Submit Claim,2025-01-08 13:53,2025-01-08 14:04,Customer Portal,simple,high,7063,phone
+IC-7019,Check Documents,2025-01-08 14:28,2025-01-08 14:51,Claims Agent C,simple,high,7063,phone
+IC-7019,Assess Claim,2025-01-08 17:09,2025-01-08 18:08,Assessor Lee,simple,high,7063,phone
+IC-7019,Review Recommendation,2025-01-08 19:12,2025-01-08 19:46,Supervisor Diaz,simple,high,7063,phone
+IC-7019,Notify Customer,2025-01-08 20:42,2025-01-08 20:50,Notification Service,simple,high,7063,phone
+IC-7020,Submit Claim,2025-01-08 17:13,2025-01-08 17:20,Customer Portal,simple,normal,6188,portal
+IC-7020,Check Documents,2025-01-08 17:35,2025-01-08 18:23,Claims Agent C,simple,normal,6188,portal
+IC-7020,Assess Claim,2025-01-08 19:23,2025-01-08 20:37,Assessor Lee,simple,normal,6188,portal
+IC-7020,Review Recommendation,2025-01-08 22:03,2025-01-08 22:34,Supervisor Chen,simple,normal,6188,portal
+IC-7020,Notify Customer,2025-01-08 23:19,2025-01-08 23:29,Notification Service,simple,normal,6188,portal
+IC-7021,Submit Claim,2025-01-08 20:07,2025-01-08 20:14,Customer Portal,simple,high,41642,portal
+IC-7021,Check Documents,2025-01-08 20:44,2025-01-08 21:26,Claims Agent C,simple,high,41642,portal
+IC-7021,Assess Claim,2025-01-09 00:15,2025-01-09 01:21,Assessor Kim,simple,high,41642,portal
+IC-7021,Review Recommendation,2025-01-09 02:41,2025-01-09 02:58,Supervisor Diaz,simple,high,41642,portal
+IC-7021,Notify Customer,2025-01-09 03:32,2025-01-09 03:43,Notification Service,simple,high,41642,portal
+IC-7022,Submit Claim,2025-01-08 21:39,2025-01-08 21:45,Customer Portal,simple,low,23240,phone
+IC-7022,Check Documents,2025-01-08 22:29,2025-01-08 23:11,Claims Agent B,simple,low,23240,phone
+IC-7022,Assess Claim,2025-01-09 02:26,2025-01-09 03:48,Assessor Lee,simple,low,23240,phone
+IC-7022,Review Recommendation,2025-01-09 05:29,2025-01-09 05:45,Supervisor Diaz,simple,low,23240,phone
+IC-7022,Notify Customer,2025-01-09 06:19,2025-01-09 06:25,Notification Service,simple,low,23240,phone
+IC-7023,Submit Claim,2025-01-09 00:47,2025-01-09 00:53,Customer Portal,simple,normal,8049,email
+IC-7023,Check Documents,2025-01-09 01:16,2025-01-09 01:53,Claims Agent C,simple,normal,8049,email
+IC-7023,Request Missing Documents,2025-01-09 02:06,2025-01-09 02:21,Claims Agent C,simple,normal,8049,email
+IC-7023,Assess Claim,2025-01-09 08:26,2025-01-09 08:57,Assessor Kim,simple,normal,8049,email
+IC-7023,Review Recommendation,2025-01-09 09:33,2025-01-09 09:56,Supervisor Diaz,simple,normal,8049,email
+IC-7023,Notify Customer,2025-01-09 10:39,2025-01-09 10:47,Notification Service,simple,normal,8049,email
+IC-7024,Submit Claim,2025-01-09 04:21,2025-01-09 04:31,Customer Portal,simple,normal,25721,email
+IC-7024,Check Documents,2025-01-09 05:02,2025-01-09 05:23,Claims Agent C,simple,normal,25721,email
+IC-7024,Assess Claim,2025-01-09 08:34,2025-01-09 09:17,Assessor Park,simple,normal,25721,email
+IC-7024,Review Recommendation,2025-01-09 10:56,2025-01-09 11:15,Supervisor Chen,simple,normal,25721,email
+IC-7024,Notify Customer,2025-01-09 12:12,2025-01-09 12:19,Notification Service,simple,normal,25721,email
+IC-7025,Submit Claim,2025-01-09 06:50,2025-01-09 06:55,Customer Portal,simple,normal,26663,email
+IC-7025,Check Documents,2025-01-09 07:11,2025-01-09 07:43,Claims Agent A,simple,normal,26663,email
+IC-7025,Request Missing Documents,2025-01-09 08:11,2025-01-09 08:29,Claims Agent A,simple,normal,26663,email
+IC-7025,Assess Claim,2025-01-09 20:32,2025-01-09 21:52,Assessor Lee,simple,normal,26663,email
+IC-7025,Review Recommendation,2025-01-09 23:58,2025-01-10 00:24,Supervisor Chen,simple,normal,26663,email
+IC-7025,Notify Customer,2025-01-10 01:15,2025-01-10 01:24,Notification Service,simple,normal,26663,email
+IC-7026,Submit Claim,2025-01-09 08:27,2025-01-09 08:38,Customer Portal,simple,high,27267,phone
+IC-7026,Check Documents,2025-01-09 09:18,2025-01-09 09:51,Claims Agent A,simple,high,27267,phone
+IC-7026,Assess Claim,2025-01-09 11:28,2025-01-09 12:12,Assessor Kim,simple,high,27267,phone
+IC-7026,Review Recommendation,2025-01-09 12:58,2025-01-09 13:18,Supervisor Chen,simple,high,27267,phone
+IC-7026,Notify Customer,2025-01-09 13:55,2025-01-09 14:03,Notification Service,simple,high,27267,phone
+IC-7027,Submit Claim,2025-01-09 11:54,2025-01-09 12:02,Customer Portal,simple,high,19008,phone
+IC-7027,Check Documents,2025-01-09 12:28,2025-01-09 12:53,Claims Agent B,simple,high,19008,phone
+IC-7027,Assess Claim,2025-01-09 15:10,2025-01-09 16:21,Assessor Park,simple,high,19008,phone
+IC-7027,Review Recommendation,2025-01-09 18:41,2025-01-09 19:13,Supervisor Diaz,simple,high,19008,phone
+IC-7027,Notify Customer,2025-01-09 19:52,2025-01-09 20:02,Notification Service,simple,high,19008,phone
+IC-7028,Submit Claim,2025-01-09 14:27,2025-01-09 14:35,Customer Portal,simple,low,32976,portal
+IC-7028,Check Documents,2025-01-09 15:12,2025-01-09 15:50,Claims Agent A,simple,low,32976,portal
+IC-7028,Assess Claim,2025-01-09 17:55,2025-01-09 18:27,Assessor Park,simple,low,32976,portal
+IC-7028,Review Recommendation,2025-01-09 20:21,2025-01-09 20:40,Supervisor Chen,simple,low,32976,portal
+IC-7028,Notify Customer,2025-01-09 21:20,2025-01-09 21:31,Notification Service,simple,low,32976,portal
+IC-7029,Submit Claim,2025-01-09 17:17,2025-01-09 17:25,Customer Portal,simple,normal,5659,phone
+IC-7029,Check Documents,2025-01-09 18:08,2025-01-09 18:49,Claims Agent C,simple,normal,5659,phone
+IC-7029,Assess Claim,2025-01-09 20:00,2025-01-09 20:38,Assessor Kim,simple,normal,5659,phone
+IC-7029,Review Recommendation,2025-01-09 22:20,2025-01-09 22:43,Supervisor Diaz,simple,normal,5659,phone
+IC-7029,Notify Customer,2025-01-09 23:34,2025-01-09 23:45,Notification Service,simple,normal,5659,phone
+IC-7030,Submit Claim,2025-01-09 19:07,2025-01-09 19:16,Customer Portal,simple,high,29913,email
+IC-7030,Check Documents,2025-01-09 19:36,2025-01-09 20:01,Claims Agent A,simple,high,29913,email
+IC-7030,Assess Claim,2025-01-09 21:53,2025-01-09 22:51,Assessor Lee,simple,high,29913,email
+IC-7030,Review Recommendation,2025-01-10 00:23,2025-01-10 00:47,Supervisor Chen,simple,high,29913,email
+IC-7030,Notify Customer,2025-01-10 01:36,2025-01-10 01:46,Notification Service,simple,high,29913,email
+IC-7031,Submit Claim,2025-01-09 22:59,2025-01-09 23:09,Customer Portal,simple,normal,30380,portal
+IC-7031,Check Documents,2025-01-09 23:27,2025-01-10 00:08,Claims Agent C,simple,normal,30380,portal
+IC-7031,Assess Claim,2025-01-10 02:08,2025-01-10 02:43,Assessor Park,simple,normal,30380,portal
+IC-7031,Review Recommendation,2025-01-10 04:46,2025-01-10 05:05,Supervisor Diaz,simple,normal,30380,portal
+IC-7031,Notify Customer,2025-01-10 05:51,2025-01-10 06:01,Notification Service,simple,normal,30380,portal
+IC-7032,Submit Claim,2025-01-10 02:29,2025-01-10 02:36,Customer Portal,simple,normal,14256,phone
+IC-7032,Check Documents,2025-01-10 03:00,2025-01-10 03:24,Claims Agent C,simple,normal,14256,phone
+IC-7032,Request Missing Documents,2025-01-10 03:35,2025-01-10 03:54,Claims Agent C,simple,normal,14256,phone
+IC-7032,Assess Claim,2025-01-10 12:49,2025-01-10 13:26,Assessor Kim,simple,normal,14256,phone
+IC-7032,Review Recommendation,2025-01-10 15:03,2025-01-10 15:32,Supervisor Chen,simple,normal,14256,phone
+IC-7032,Notify Customer,2025-01-10 16:29,2025-01-10 16:40,Notification Service,simple,normal,14256,phone
+IC-7033,Submit Claim,2025-01-10 06:13,2025-01-10 06:23,Customer Portal,simple,normal,19441,phone
+IC-7033,Check Documents,2025-01-10 07:06,2025-01-10 07:38,Claims Agent C,simple,normal,19441,phone
+IC-7033,Assess Claim,2025-01-10 09:01,2025-01-10 09:38,Assessor Lee,simple,normal,19441,phone
+IC-7033,Review Recommendation,2025-01-10 10:23,2025-01-10 10:47,Supervisor Chen,simple,normal,19441,phone
+IC-7033,Notify Customer,2025-01-10 11:30,2025-01-10 11:35,Notification Service,simple,normal,19441,phone
+IC-7034,Submit Claim,2025-01-10 09:40,2025-01-10 09:48,Customer Portal,simple,normal,41444,email
+IC-7034,Check Documents,2025-01-10 10:12,2025-01-10 10:45,Claims Agent B,simple,normal,41444,email
+IC-7034,Assess Claim,2025-01-10 12:34,2025-01-10 13:48,Assessor Lee,simple,normal,41444,email
+IC-7034,Review Recommendation,2025-01-10 14:31,2025-01-10 15:01,Supervisor Chen,simple,normal,41444,email
+IC-7034,Notify Customer,2025-01-10 15:36,2025-01-10 15:47,Notification Service,simple,normal,41444,email
+IC-7035,Submit Claim,2025-01-10 11:12,2025-01-10 11:17,Customer Portal,simple,high,42007,portal
+IC-7035,Check Documents,2025-01-10 11:51,2025-01-10 12:15,Claims Agent A,simple,high,42007,portal
+IC-7035,Request Missing Documents,2025-01-10 12:38,2025-01-10 12:54,Claims Agent A,simple,high,42007,portal
+IC-7035,Assess Claim,2025-01-10 18:13,2025-01-10 19:36,Assessor Kim,simple,high,42007,portal
+IC-7035,Review Recommendation,2025-01-10 20:23,2025-01-10 20:55,Supervisor Chen,simple,high,42007,portal
+IC-7035,Notify Customer,2025-01-10 21:46,2025-01-10 21:56,Notification Service,simple,high,42007,portal
+IC-7036,Submit Claim,2025-01-10 14:54,2025-01-10 14:59,Customer Portal,simple,normal,2771,portal
+IC-7036,Check Documents,2025-01-10 15:38,2025-01-10 16:16,Claims Agent A,simple,normal,2771,portal
+IC-7036,Assess Claim,2025-01-10 16:53,2025-01-10 17:40,Assessor Lee,simple,normal,2771,portal
+IC-7036,Review Recommendation,2025-01-10 18:17,2025-01-10 18:48,Supervisor Diaz,simple,normal,2771,portal
+IC-7036,Notify Customer,2025-01-10 19:34,2025-01-10 19:44,Notification Service,simple,normal,2771,portal
+IC-7037,Submit Claim,2025-01-10 18:41,2025-01-10 18:49,Customer Portal,simple,normal,35207,email
+IC-7037,Check Documents,2025-01-10 19:10,2025-01-10 19:33,Claims Agent C,simple,normal,35207,email
+IC-7037,Assess Claim,2025-01-10 21:51,2025-01-10 22:28,Assessor Kim,simple,normal,35207,email
+IC-7037,Review Recommendation,2025-01-11 00:14,2025-01-11 00:30,Supervisor Diaz,simple,normal,35207,email
+IC-7037,Notify Customer,2025-01-11 01:24,2025-01-11 01:32,Notification Service,simple,normal,35207,email
+IC-7038,Submit Claim,2025-01-10 22:30,2025-01-10 22:41,Customer Portal,simple,high,14267,portal
+IC-7038,Check Documents,2025-01-10 23:18,2025-01-10 23:56,Claims Agent A,simple,high,14267,portal
+IC-7038,Request Missing Documents,2025-01-11 00:07,2025-01-11 00:23,Claims Agent A,simple,high,14267,portal
+IC-7038,Assess Claim,2025-01-11 06:08,2025-01-11 07:05,Assessor Park,simple,high,14267,portal
+IC-7038,Review Recommendation,2025-01-11 07:56,2025-01-11 08:25,Supervisor Chen,simple,high,14267,portal
+IC-7038,Notify Customer,2025-01-11 08:59,2025-01-11 09:04,Notification Service,simple,high,14267,portal
+IC-7039,Submit Claim,2025-01-11 01:50,2025-01-11 02:01,Customer Portal,simple,low,23469,phone
+IC-7039,Check Documents,2025-01-11 02:33,2025-01-11 03:06,Claims Agent C,simple,low,23469,phone
+IC-7039,Assess Claim,2025-01-11 04:24,2025-01-11 05:02,Assessor Lee,simple,low,23469,phone
+IC-7039,Review Recommendation,2025-01-11 06:41,2025-01-11 07:06,Supervisor Chen,simple,low,23469,phone
+IC-7039,Notify Customer,2025-01-11 07:53,2025-01-11 07:59,Notification Service,simple,low,23469,phone
+IC-7040,Submit Claim,2025-01-11 03:48,2025-01-11 03:56,Customer Portal,simple,high,25909,phone
+IC-7040,Check Documents,2025-01-11 04:14,2025-01-11 04:37,Claims Agent C,simple,high,25909,phone
+IC-7040,Request Missing Documents,2025-01-11 05:05,2025-01-11 05:17,Claims Agent C,simple,high,25909,phone
+IC-7040,Assess Claim,2025-01-11 12:42,2025-01-11 13:59,Assessor Kim,simple,high,25909,phone
+IC-7040,Review Recommendation,2025-01-11 15:46,2025-01-11 16:13,Supervisor Chen,simple,high,25909,phone
+IC-7040,Notify Customer,2025-01-11 17:11,2025-01-11 17:18,Notification Service,simple,high,25909,phone
+IC-7041,Submit Claim,2025-01-11 07:39,2025-01-11 07:46,Customer Portal,simple,high,29827,phone
+IC-7041,Check Documents,2025-01-11 08:13,2025-01-11 08:47,Claims Agent A,simple,high,29827,phone
+IC-7041,Assess Claim,2025-01-11 09:42,2025-01-11 10:40,Assessor Park,simple,high,29827,phone
+IC-7041,Review Recommendation,2025-01-11 12:18,2025-01-11 12:44,Supervisor Diaz,simple,high,29827,phone
+IC-7041,Notify Customer,2025-01-11 13:32,2025-01-11 13:40,Notification Service,simple,high,29827,phone
+IC-7042,Submit Claim,2025-01-11 10:10,2025-01-11 10:18,Customer Portal,simple,normal,39584,phone
+IC-7042,Check Documents,2025-01-11 10:48,2025-01-11 11:26,Claims Agent B,simple,normal,39584,phone
+IC-7042,Assess Claim,2025-01-11 13:04,2025-01-11 14:22,Assessor Kim,simple,normal,39584,phone
+IC-7042,Review Recommendation,2025-01-11 16:38,2025-01-11 17:07,Supervisor Diaz,simple,normal,39584,phone
+IC-7042,Notify Customer,2025-01-11 17:32,2025-01-11 17:43,Notification Service,simple,normal,39584,phone
+IC-7043,Submit Claim,2025-01-11 13:18,2025-01-11 13:25,Customer Portal,simple,normal,40193,portal
+IC-7043,Check Documents,2025-01-11 13:54,2025-01-11 14:15,Claims Agent A,simple,normal,40193,portal
+IC-7043,Request Missing Documents,2025-01-11 14:27,2025-01-11 14:45,Claims Agent A,simple,normal,40193,portal
+IC-7043,Assess Claim,2025-01-11 20:31,2025-01-11 21:51,Assessor Kim,simple,normal,40193,portal
+IC-7043,Review Recommendation,2025-01-11 23:01,2025-01-11 23:25,Supervisor Chen,simple,normal,40193,portal
+IC-7043,Notify Customer,2025-01-11 23:51,2025-01-12 00:01,Notification Service,simple,normal,40193,portal
+IC-7044,Submit Claim,2025-01-11 16:03,2025-01-11 16:10,Customer Portal,simple,high,41531,portal
+IC-7044,Check Documents,2025-01-11 16:46,2025-01-11 17:10,Claims Agent C,simple,high,41531,portal
+IC-7044,Assess Claim,2025-01-11 17:46,2025-01-11 18:46,Assessor Park,simple,high,41531,portal
+IC-7044,Review Recommendation,2025-01-11 21:11,2025-01-11 21:33,Supervisor Diaz,simple,high,41531,portal
+IC-7044,Notify Customer,2025-01-11 21:56,2025-01-11 22:07,Notification Service,simple,high,41531,portal
+IC-7045,Submit Claim,2025-01-11 19:25,2025-01-11 19:36,Customer Portal,simple,normal,34695,portal
+IC-7045,Check Documents,2025-01-11 20:10,2025-01-11 20:40,Claims Agent C,simple,normal,34695,portal
+IC-7045,Assess Claim,2025-01-11 22:22,2025-01-11 22:52,Assessor Park,simple,normal,34695,portal
+IC-7045,Review Recommendation,2025-01-11 23:42,2025-01-12 00:11,Supervisor Diaz,simple,normal,34695,portal
+IC-7045,Notify Customer,2025-01-12 00:37,2025-01-12 00:44,Notification Service,simple,normal,34695,portal
+IC-7046,Submit Claim,2025-01-11 22:51,2025-01-11 22:56,Customer Portal,simple,normal,42114,email
+IC-7046,Check Documents,2025-01-11 23:26,2025-01-11 23:59,Claims Agent C,simple,normal,42114,email
+IC-7046,Assess Claim,2025-01-12 02:21,2025-01-12 03:41,Assessor Park,simple,normal,42114,email
+IC-7046,Review Recommendation,2025-01-12 05:03,2025-01-12 05:33,Supervisor Chen,simple,normal,42114,email
+IC-7046,Notify Customer,2025-01-12 06:12,2025-01-12 06:20,Notification Service,simple,normal,42114,email
+IC-7047,Submit Claim,2025-01-12 02:49,2025-01-12 02:55,Customer Portal,simple,high,45448,email
+IC-7047,Check Documents,2025-01-12 03:18,2025-01-12 03:43,Claims Agent A,simple,high,45448,email
+IC-7047,Assess Claim,2025-01-12 03:55,2025-01-12 04:54,Assessor Kim,simple,high,45448,email
+IC-7047,Review Recommendation,2025-01-12 05:34,2025-01-12 05:54,Supervisor Diaz,simple,high,45448,email
+IC-7047,Notify Customer,2025-01-12 06:23,2025-01-12 06:33,Notification Service,simple,high,45448,email
+IC-7048,Submit Claim,2025-01-12 04:42,2025-01-12 04:47,Customer Portal,simple,normal,33839,email
+IC-7048,Check Documents,2025-01-12 05:23,2025-01-12 05:53,Claims Agent C,simple,normal,33839,email
+IC-7048,Assess Claim,2025-01-12 07:46,2025-01-12 09:11,Assessor Park,simple,normal,33839,email
+IC-7048,Review Recommendation,2025-01-12 10:39,2025-01-12 11:10,Supervisor Chen,simple,normal,33839,email
+IC-7048,Notify Customer,2025-01-12 11:51,2025-01-12 12:01,Notification Service,simple,normal,33839,email
+IC-7049,Submit Claim,2025-01-12 07:47,2025-01-12 07:54,Customer Portal,simple,normal,45568,portal
+IC-7049,Check Documents,2025-01-12 08:19,2025-01-12 08:56,Claims Agent B,simple,normal,45568,portal
+IC-7049,Assess Claim,2025-01-12 09:54,2025-01-12 10:53,Assessor Lee,simple,normal,45568,portal
+IC-7049,Review Recommendation,2025-01-12 12:11,2025-01-12 12:45,Supervisor Chen,simple,normal,45568,portal
+IC-7049,Notify Customer,2025-01-12 13:41,2025-01-12 13:50,Notification Service,simple,normal,45568,portal
+IC-7050,Submit Claim,2025-01-12 11:25,2025-01-12 11:36,Customer Portal,simple,normal,10388,phone
+IC-7050,Check Documents,2025-01-12 12:11,2025-01-12 12:44,Claims Agent A,simple,normal,10388,phone
+IC-7050,Assess Claim,2025-01-12 13:22,2025-01-12 14:25,Assessor Lee,simple,normal,10388,phone
+IC-7050,Review Recommendation,2025-01-12 15:28,2025-01-12 15:43,Supervisor Chen,simple,normal,10388,phone
+IC-7050,Notify Customer,2025-01-12 16:09,2025-01-12 16:18,Notification Service,simple,normal,10388,phone
+IC-7051,Submit Claim,2025-01-12 13:22,2025-01-12 13:31,Customer Portal,simple,low,31397,email
+IC-7051,Check Documents,2025-01-12 14:13,2025-01-12 14:48,Claims Agent B,simple,low,31397,email
+IC-7051,Assess Claim,2025-01-12 16:07,2025-01-12 17:20,Assessor Park,simple,low,31397,email
+IC-7051,Review Recommendation,2025-01-12 19:34,2025-01-12 19:50,Supervisor Chen,simple,low,31397,email
+IC-7051,Notify Customer,2025-01-12 20:14,2025-01-12 20:22,Notification Service,simple,low,31397,email
+IC-7052,Submit Claim,2025-01-12 16:27,2025-01-12 16:38,Customer Portal,simple,normal,33051,email
+IC-7052,Check Documents,2025-01-12 16:57,2025-01-12 17:25,Claims Agent B,simple,normal,33051,email
+IC-7052,Assess Claim,2025-01-12 17:55,2025-01-12 18:42,Assessor Park,simple,normal,33051,email
+IC-7052,Review Recommendation,2025-01-12 20:46,2025-01-12 21:01,Supervisor Diaz,simple,normal,33051,email
+IC-7052,Notify Customer,2025-01-12 21:59,2025-01-12 22:07,Notification Service,simple,normal,33051,email
+IC-7053,Submit Claim,2025-01-12 19:03,2025-01-12 19:12,Customer Portal,simple,normal,48917,portal
+IC-7053,Check Documents,2025-01-12 19:29,2025-01-12 19:55,Claims Agent B,simple,normal,48917,portal
+IC-7053,Assess Claim,2025-01-12 21:44,2025-01-12 22:47,Assessor Lee,simple,normal,48917,portal
+IC-7053,Review Recommendation,2025-01-13 00:56,2025-01-13 01:15,Supervisor Chen,simple,normal,48917,portal
+IC-7053,Notify Customer,2025-01-13 01:36,2025-01-13 01:41,Notification Service,simple,normal,48917,portal
+IC-7054,Submit Claim,2025-01-12 23:01,2025-01-12 23:11,Customer Portal,simple,high,34089,phone
+IC-7054,Check Documents,2025-01-12 23:26,2025-01-13 00:11,Claims Agent C,simple,high,34089,phone
+IC-7054,Assess Claim,2025-01-13 02:06,2025-01-13 02:58,Assessor Park,simple,high,34089,phone
+IC-7054,Review Recommendation,2025-01-13 03:56,2025-01-13 04:11,Supervisor Chen,simple,high,34089,phone
+IC-7054,Notify Customer,2025-01-13 04:35,2025-01-13 04:44,Notification Service,simple,high,34089,phone
+IC-7055,Submit Claim,2025-01-13 00:38,2025-01-13 00:48,Customer Portal,simple,high,26216,portal
+IC-7055,Check Documents,2025-01-13 01:15,2025-01-13 01:55,Claims Agent C,simple,high,26216,portal
+IC-7055,Assess Claim,2025-01-13 02:47,2025-01-13 04:10,Assessor Kim,simple,high,26216,portal
+IC-7055,Review Recommendation,2025-01-13 06:23,2025-01-13 06:48,Supervisor Diaz,simple,high,26216,portal
+IC-7055,Notify Customer,2025-01-13 07:21,2025-01-13 07:31,Notification Service,simple,high,26216,portal
+IC-7056,Submit Claim,2025-01-13 04:17,2025-01-13 04:28,Customer Portal,simple,normal,20450,email
+IC-7056,Check Documents,2025-01-13 05:08,2025-01-13 05:33,Claims Agent A,simple,normal,20450,email
+IC-7056,Request Missing Documents,2025-01-13 05:56,2025-01-13 06:09,Claims Agent A,simple,normal,20450,email
+IC-7056,Assess Claim,2025-01-13 17:48,2025-01-13 18:50,Assessor Lee,simple,normal,20450,email
+IC-7056,Review Recommendation,2025-01-13 19:56,2025-01-13 20:30,Supervisor Chen,simple,normal,20450,email
+IC-7056,Notify Customer,2025-01-13 21:21,2025-01-13 21:28,Notification Service,simple,normal,20450,email
+IC-7057,Submit Claim,2025-01-13 06:31,2025-01-13 06:36,Customer Portal,simple,normal,49881,email
+IC-7057,Check Documents,2025-01-13 07:02,2025-01-13 07:36,Claims Agent C,simple,normal,49881,email
+IC-7057,Assess Claim,2025-01-13 09:00,2025-01-13 10:24,Assessor Park,simple,normal,49881,email
+IC-7057,Review Recommendation,2025-01-13 11:38,2025-01-13 11:54,Supervisor Chen,simple,normal,49881,email
+IC-7057,Notify Customer,2025-01-13 12:16,2025-01-13 12:23,Notification Service,simple,normal,49881,email
+IC-7058,Submit Claim,2025-01-13 08:22,2025-01-13 08:29,Customer Portal,simple,normal,32092,portal
+IC-7058,Check Documents,2025-01-13 09:10,2025-01-13 09:58,Claims Agent C,simple,normal,32092,portal
+IC-7058,Assess Claim,2025-01-13 10:55,2025-01-13 12:23,Assessor Kim,simple,normal,32092,portal
+IC-7058,Review Recommendation,2025-01-13 14:41,2025-01-13 15:01,Supervisor Diaz,simple,normal,32092,portal
+IC-7058,Notify Customer,2025-01-13 15:36,2025-01-13 15:42,Notification Service,simple,normal,32092,portal
+IC-7059,Submit Claim,2025-01-13 09:55,2025-01-13 10:04,Customer Portal,simple,low,26947,email
+IC-7059,Check Documents,2025-01-13 10:38,2025-01-13 10:58,Claims Agent C,simple,low,26947,email
+IC-7059,Assess Claim,2025-01-13 12:58,2025-01-13 13:45,Assessor Lee,simple,low,26947,email
+IC-7059,Review Recommendation,2025-01-13 14:33,2025-01-13 14:54,Supervisor Chen,simple,low,26947,email
+IC-7059,Notify Customer,2025-01-13 15:48,2025-01-13 15:53,Notification Service,simple,low,26947,email
+IC-7060,Submit Claim,2025-01-13 12:13,2025-01-13 12:21,Customer Portal,simple,normal,39407,portal
+IC-7060,Check Documents,2025-01-13 13:04,2025-01-13 13:53,Claims Agent B,simple,normal,39407,portal
+IC-7060,Assess Claim,2025-01-13 15:08,2025-01-13 16:06,Assessor Kim,simple,normal,39407,portal
+IC-7060,Review Recommendation,2025-01-13 17:43,2025-01-13 18:01,Supervisor Chen,simple,normal,39407,portal
+IC-7060,Notify Customer,2025-01-13 18:33,2025-01-13 18:38,Notification Service,simple,normal,39407,portal
+IC-7061,Submit Claim,2025-01-13 15:08,2025-01-13 15:19,Customer Portal,complex,low,26123,email
+IC-7061,Check Documents,2025-01-13 16:02,2025-01-13 16:44,Claims Agent B,complex,low,26123,email
+IC-7061,Request Missing Documents,2025-01-13 16:56,2025-01-13 17:06,Claims Agent B,complex,low,26123,email
+IC-7061,Assess Claim,2025-01-14 06:52,2025-01-14 07:36,Assessor Lee,complex,low,26123,email
+IC-7061,Review Recommendation,2025-01-14 09:08,2025-01-14 09:38,Supervisor Diaz,complex,low,26123,email
+IC-7061,Notify Customer,2025-01-14 10:10,2025-01-14 10:15,Notification Service,complex,low,26123,email
+IC-7062,Submit Claim,2025-01-13 18:16,2025-01-13 18:22,Customer Portal,complex,normal,3965,portal
+IC-7062,Check Documents,2025-01-13 19:06,2025-01-13 19:35,Claims Agent C,complex,normal,3965,portal
+IC-7062,Assess Claim,2025-01-14 09:31,2025-01-14 10:10,Assessor Park,complex,normal,3965,portal
+IC-7062,Review Recommendation,2025-01-14 10:54,2025-01-14 11:09,Supervisor Diaz,complex,normal,3965,portal
+IC-7062,Notify Customer,2025-01-14 11:45,2025-01-14 11:56,Notification Service,complex,normal,3965,portal
+IC-7063,Submit Claim,2025-01-13 20:02,2025-01-13 20:10,Customer Portal,complex,normal,24985,portal
+IC-7063,Check Documents,2025-01-13 20:48,2025-01-13 21:22,Claims Agent A,complex,normal,24985,portal
+IC-7063,Assess Claim,2025-01-14 12:45,2025-01-14 14:05,Assessor Kim,complex,normal,24985,portal
+IC-7063,Review Recommendation,2025-01-14 15:04,2025-01-14 15:37,Supervisor Diaz,complex,normal,24985,portal
+IC-7063,Notify Customer,2025-01-14 16:16,2025-01-14 16:27,Notification Service,complex,normal,24985,portal
+IC-7064,Submit Claim,2025-01-13 21:32,2025-01-13 21:40,Customer Portal,complex,normal,46588,email
+IC-7064,Check Documents,2025-01-13 22:20,2025-01-13 23:01,Claims Agent B,complex,normal,46588,email
+IC-7064,Assess Claim,2025-01-14 12:40,2025-01-14 13:29,Assessor Lee,complex,normal,46588,email
+IC-7064,Review Recommendation,2025-01-14 15:49,2025-01-14 16:06,Supervisor Diaz,complex,normal,46588,email
+IC-7064,Notify Customer,2025-01-14 16:29,2025-01-14 16:34,Notification Service,complex,normal,46588,email
+IC-7065,Submit Claim,2025-01-13 23:37,2025-01-13 23:42,Customer Portal,complex,high,6420,email
+IC-7065,Check Documents,2025-01-14 00:14,2025-01-14 00:40,Claims Agent B,complex,high,6420,email
+IC-7065,Assess Claim,2025-01-14 12:58,2025-01-14 14:03,Assessor Kim,complex,high,6420,email
+IC-7065,Review Recommendation,2025-01-14 16:15,2025-01-14 16:40,Supervisor Diaz,complex,high,6420,email
+IC-7065,Notify Customer,2025-01-14 17:24,2025-01-14 17:32,Notification Service,complex,high,6420,email
+IC-7066,Submit Claim,2025-01-14 01:35,2025-01-14 01:43,Customer Portal,complex,low,13458,portal
+IC-7066,Check Documents,2025-01-14 02:27,2025-01-14 03:05,Claims Agent A,complex,low,13458,portal
+IC-7066,Assess Claim,2025-01-14 18:29,2025-01-14 19:43,Assessor Park,complex,low,13458,portal
+IC-7066,Review Recommendation,2025-01-14 20:52,2025-01-14 21:23,Supervisor Chen,complex,low,13458,portal
+IC-7066,Notify Customer,2025-01-14 22:04,2025-01-14 22:14,Notification Service,complex,low,13458,portal
+IC-7067,Submit Claim,2025-01-14 05:01,2025-01-14 05:12,Customer Portal,complex,high,21287,phone
+IC-7067,Check Documents,2025-01-14 05:27,2025-01-14 06:09,Claims Agent A,complex,high,21287,phone
+IC-7067,Request Missing Documents,2025-01-14 06:25,2025-01-14 06:42,Claims Agent A,complex,high,21287,phone
+IC-7067,Assess Claim,2025-01-15 09:33,2025-01-15 10:12,Assessor Park,complex,high,21287,phone
+IC-7067,Review Recommendation,2025-01-15 12:10,2025-01-15 12:41,Supervisor Diaz,complex,high,21287,phone
+IC-7067,Notify Customer,2025-01-15 13:13,2025-01-15 13:18,Notification Service,complex,high,21287,phone
+IC-7068,Submit Claim,2025-01-14 08:01,2025-01-14 08:07,Customer Portal,complex,high,8042,email
+IC-7068,Check Documents,2025-01-14 08:45,2025-01-14 09:20,Claims Agent C,complex,high,8042,email
+IC-7068,Assess Claim,2025-01-14 21:11,2025-01-14 22:36,Assessor Park,complex,high,8042,email
+IC-7068,Review Recommendation,2025-01-15 01:05,2025-01-15 01:20,Supervisor Diaz,complex,high,8042,email
+IC-7068,Notify Customer,2025-01-15 02:03,2025-01-15 02:12,Notification Service,complex,high,8042,email
+IC-7069,Submit Claim,2025-01-14 11:00,2025-01-14 11:06,Customer Portal,complex,low,44138,phone
+IC-7069,Check Documents,2025-01-14 11:29,2025-01-14 12:10,Claims Agent B,complex,low,44138,phone
+IC-7069,Assess Claim,2025-01-15 01:42,2025-01-15 02:15,Assessor Lee,complex,low,44138,phone
+IC-7069,Review Recommendation,2025-01-15 04:05,2025-01-15 04:39,Supervisor Chen,complex,low,44138,phone
+IC-7069,Notify Customer,2025-01-15 05:32,2025-01-15 05:38,Notification Service,complex,low,44138,phone
+IC-7070,Submit Claim,2025-01-14 12:49,2025-01-14 12:58,Customer Portal,complex,high,43820,portal
+IC-7070,Check Documents,2025-01-14 13:18,2025-01-14 13:54,Claims Agent C,complex,high,43820,portal
+IC-7070,Assess Claim,2025-01-15 03:02,2025-01-15 04:03,Assessor Lee,complex,high,43820,portal
+IC-7070,Review Recommendation,2025-01-15 05:41,2025-01-15 06:10,Supervisor Chen,complex,high,43820,portal
+IC-7070,Notify Customer,2025-01-15 06:40,2025-01-15 06:50,Notification Service,complex,high,43820,portal
+IC-7071,Submit Claim,2025-01-14 15:48,2025-01-14 15:55,Customer Portal,complex,normal,26214,email
+IC-7071,Check Documents,2025-01-14 16:25,2025-01-14 16:57,Claims Agent A,complex,normal,26214,email
+IC-7071,Request Missing Documents,2025-01-14 17:15,2025-01-14 17:32,Claims Agent A,complex,normal,26214,email
+IC-7071,Assess Claim,2025-01-15 13:26,2025-01-15 14:49,Assessor Lee,complex,normal,26214,email
+IC-7071,Review Recommendation,2025-01-15 15:37,2025-01-15 15:59,Supervisor Chen,complex,normal,26214,email
+IC-7071,Notify Customer,2025-01-15 16:57,2025-01-15 17:03,Notification Service,complex,normal,26214,email
+IC-7072,Submit Claim,2025-01-14 19:46,2025-01-14 19:54,Customer Portal,complex,low,45716,portal
+IC-7072,Check Documents,2025-01-14 20:35,2025-01-14 21:17,Claims Agent A,complex,low,45716,portal
+IC-7072,Assess Claim,2025-01-15 09:23,2025-01-15 10:17,Assessor Lee,complex,low,45716,portal
+IC-7072,Review Recommendation,2025-01-15 12:16,2025-01-15 12:41,Supervisor Diaz,complex,low,45716,portal
+IC-7072,Notify Customer,2025-01-15 13:27,2025-01-15 13:37,Notification Service,complex,low,45716,portal
+IC-7073,Submit Claim,2025-01-14 21:46,2025-01-14 21:57,Customer Portal,complex,normal,6126,email
+IC-7073,Check Documents,2025-01-14 22:35,2025-01-14 23:10,Claims Agent C,complex,normal,6126,email
+IC-7073,Assess Claim,2025-01-15 16:41,2025-01-15 17:16,Assessor Park,complex,normal,6126,email
+IC-7073,Review Recommendation,2025-01-15 17:48,2025-01-15 18:07,Supervisor Chen,complex,normal,6126,email
+IC-7073,Notify Customer,2025-01-15 19:06,2025-01-15 19:17,Notification Service,complex,normal,6126,email
+IC-7074,Submit Claim,2025-01-15 01:13,2025-01-15 01:22,Customer Portal,complex,low,20336,phone
+IC-7074,Check Documents,2025-01-15 01:54,2025-01-15 02:31,Claims Agent B,complex,low,20336,phone
+IC-7074,Assess Claim,2025-01-15 17:26,2025-01-15 18:30,Assessor Lee,complex,low,20336,phone
+IC-7074,Review Recommendation,2025-01-15 19:56,2025-01-15 20:29,Supervisor Diaz,complex,low,20336,phone
+IC-7074,Notify Customer,2025-01-15 20:51,2025-01-15 20:57,Notification Service,complex,low,20336,phone
+IC-7075,Submit Claim,2025-01-15 04:31,2025-01-15 04:36,Customer Portal,complex,normal,7424,portal
+IC-7075,Check Documents,2025-01-15 05:01,2025-01-15 05:21,Claims Agent A,complex,normal,7424,portal
+IC-7075,Assess Claim,2025-01-15 13:02,2025-01-15 14:29,Assessor Lee,complex,normal,7424,portal
+IC-7075,Review Recommendation,2025-01-15 16:29,2025-01-15 16:55,Supervisor Chen,complex,normal,7424,portal
+IC-7075,Notify Customer,2025-01-15 17:50,2025-01-15 17:57,Notification Service,complex,normal,7424,portal
+IC-7076,Submit Claim,2025-01-15 06:58,2025-01-15 07:04,Customer Portal,complex,high,26578,portal
+IC-7076,Check Documents,2025-01-15 07:22,2025-01-15 07:43,Claims Agent A,complex,high,26578,portal
+IC-7076,Assess Claim,2025-01-15 21:53,2025-01-15 22:37,Assessor Kim,complex,high,26578,portal
+IC-7076,Review Recommendation,2025-01-16 00:07,2025-01-16 00:35,Supervisor Diaz,complex,high,26578,portal
+IC-7076,Notify Customer,2025-01-16 01:30,2025-01-16 01:35,Notification Service,complex,high,26578,portal
+IC-7077,Submit Claim,2025-01-15 08:58,2025-01-15 09:03,Customer Portal,complex,high,38475,portal
+IC-7077,Check Documents,2025-01-15 09:47,2025-01-15 10:25,Claims Agent C,complex,high,38475,portal
+IC-7077,Assess Claim,2025-01-15 19:08,2025-01-15 20:36,Assessor Park,complex,high,38475,portal
+IC-7077,Review Recommendation,2025-01-15 21:23,2025-01-15 21:56,Supervisor Chen,complex,high,38475,portal
+IC-7077,Notify Customer,2025-01-15 22:28,2025-01-15 22:34,Notification Service,complex,high,38475,portal
+IC-7078,Submit Claim,2025-01-15 11:06,2025-01-15 11:12,Customer Portal,complex,low,31221,phone
+IC-7078,Check Documents,2025-01-15 11:29,2025-01-15 11:56,Claims Agent B,complex,low,31221,phone
+IC-7078,Assess Claim,2025-01-16 03:05,2025-01-16 03:57,Assessor Kim,complex,low,31221,phone
+IC-7078,Review Recommendation,2025-01-16 05:55,2025-01-16 06:21,Supervisor Chen,complex,low,31221,phone
+IC-7078,Notify Customer,2025-01-16 07:10,2025-01-16 07:17,Notification Service,complex,low,31221,phone
+IC-7079,Submit Claim,2025-01-15 12:51,2025-01-15 13:00,Customer Portal,complex,normal,38240,portal
+IC-7079,Check Documents,2025-01-15 13:43,2025-01-15 14:15,Claims Agent C,complex,normal,38240,portal
+IC-7079,Assess Claim,2025-01-15 22:25,2025-01-15 23:02,Assessor Lee,complex,normal,38240,portal
+IC-7079,Review Recommendation,2025-01-16 00:03,2025-01-16 00:21,Supervisor Diaz,complex,normal,38240,portal
+IC-7079,Notify Customer,2025-01-16 01:14,2025-01-16 01:23,Notification Service,complex,normal,38240,portal
+IC-7080,Submit Claim,2025-01-15 15:16,2025-01-15 15:26,Customer Portal,complex,normal,13017,portal
+IC-7080,Check Documents,2025-01-15 15:58,2025-01-15 16:44,Claims Agent C,complex,normal,13017,portal
+IC-7080,Assess Claim,2025-01-16 06:20,2025-01-16 07:33,Assessor Park,complex,normal,13017,portal
+IC-7080,Review Recommendation,2025-01-16 08:32,2025-01-16 08:51,Supervisor Diaz,complex,normal,13017,portal
+IC-7080,Notify Customer,2025-01-16 09:22,2025-01-16 09:28,Notification Service,complex,normal,13017,portal
+IC-7081,Submit Claim,2025-01-15 17:48,2025-01-15 17:56,Customer Portal,complex,low,39090,portal
+IC-7081,Check Documents,2025-01-15 18:26,2025-01-15 18:57,Claims Agent B,complex,low,39090,portal
+IC-7081,Assess Claim,2025-01-16 07:11,2025-01-16 08:13,Assessor Lee,complex,low,39090,portal
+IC-7081,Review Recommendation,2025-01-16 08:58,2025-01-16 09:16,Supervisor Diaz,complex,low,39090,portal
+IC-7081,Notify Customer,2025-01-16 10:14,2025-01-16 10:19,Notification Service,complex,low,39090,portal
+IC-7082,Submit Claim,2025-01-15 21:39,2025-01-15 21:45,Customer Portal,complex,high,28166,phone
+IC-7082,Check Documents,2025-01-15 22:26,2025-01-15 22:46,Claims Agent C,complex,high,28166,phone
+IC-7082,Request Missing Documents,2025-01-15 22:59,2025-01-15 23:18,Claims Agent C,complex,high,28166,phone
+IC-7082,Assess Claim,2025-01-16 19:21,2025-01-16 19:55,Assessor Lee,complex,high,28166,phone
+IC-7082,Review Recommendation,2025-01-16 21:13,2025-01-16 21:37,Supervisor Diaz,complex,high,28166,phone
+IC-7082,Notify Customer,2025-01-16 22:18,2025-01-16 22:26,Notification Service,complex,high,28166,phone
+IC-7083,Submit Claim,2025-01-16 01:32,2025-01-16 01:42,Customer Portal,complex,low,41097,email
+IC-7083,Check Documents,2025-01-16 02:01,2025-01-16 02:45,Claims Agent C,complex,low,41097,email
+IC-7083,Assess Claim,2025-01-16 12:37,2025-01-16 14:02,Assessor Kim,complex,low,41097,email
+IC-7083,Review Recommendation,2025-01-16 15:13,2025-01-16 15:29,Supervisor Diaz,complex,low,41097,email
+IC-7083,Notify Customer,2025-01-16 16:20,2025-01-16 16:29,Notification Service,complex,low,41097,email
+IC-7084,Submit Claim,2025-01-16 03:30,2025-01-16 03:38,Customer Portal,complex,normal,11385,phone
+IC-7084,Check Documents,2025-01-16 04:01,2025-01-16 04:40,Claims Agent A,complex,normal,11385,phone
+IC-7084,Request Missing Documents,2025-01-16 05:01,2025-01-16 05:20,Claims Agent A,complex,normal,11385,phone
+IC-7084,Assess Claim,2025-01-16 21:22,2025-01-16 22:15,Assessor Park,complex,normal,11385,phone
+IC-7084,Review Recommendation,2025-01-16 23:00,2025-01-16 23:24,Supervisor Chen,complex,normal,11385,phone
+IC-7084,Notify Customer,2025-01-17 00:01,2025-01-17 00:07,Notification Service,complex,normal,11385,phone
+IC-7085,Submit Claim,2025-01-16 06:53,2025-01-16 07:03,Customer Portal,complex,normal,46170,phone
+IC-7085,Check Documents,2025-01-16 07:31,2025-01-16 08:00,Claims Agent A,complex,normal,46170,phone
+IC-7085,Assess Claim,2025-01-16 21:20,2025-01-16 22:29,Assessor Kim,complex,normal,46170,phone
+IC-7085,Review Recommendation,2025-01-17 00:53,2025-01-17 01:18,Supervisor Chen,complex,normal,46170,phone
+IC-7085,Notify Customer,2025-01-17 01:51,2025-01-17 01:59,Notification Service,complex,normal,46170,phone
+IC-7086,Submit Claim,2025-01-16 09:58,2025-01-16 10:09,Customer Portal,complex,low,2972,portal
+IC-7086,Check Documents,2025-01-16 10:46,2025-01-16 11:28,Claims Agent C,complex,low,2972,portal
+IC-7086,Assess Claim,2025-01-16 22:33,2025-01-16 23:48,Assessor Kim,complex,low,2972,portal
+IC-7086,Review Recommendation,2025-01-17 00:55,2025-01-17 01:23,Supervisor Diaz,complex,low,2972,portal
+IC-7086,Notify Customer,2025-01-17 01:57,2025-01-17 02:08,Notification Service,complex,low,2972,portal
+IC-7087,Submit Claim,2025-01-16 13:10,2025-01-16 13:19,Customer Portal,complex,normal,20753,email
+IC-7087,Check Documents,2025-01-16 13:49,2025-01-16 14:30,Claims Agent B,complex,normal,20753,email
+IC-7087,Assess Claim,2025-01-17 02:19,2025-01-17 03:43,Assessor Lee,complex,normal,20753,email
+IC-7087,Review Recommendation,2025-01-17 04:54,2025-01-17 05:22,Supervisor Chen,complex,normal,20753,email
+IC-7087,Notify Customer,2025-01-17 05:58,2025-01-17 06:06,Notification Service,complex,normal,20753,email
+IC-7088,Submit Claim,2025-01-16 15:34,2025-01-16 15:43,Customer Portal,complex,high,33707,phone
+IC-7088,Check Documents,2025-01-16 16:07,2025-01-16 16:27,Claims Agent A,complex,high,33707,phone
+IC-7088,Assess Claim,2025-01-17 08:47,2025-01-17 09:26,Assessor Kim,complex,high,33707,phone
+IC-7088,Review Recommendation,2025-01-17 11:39,2025-01-17 12:09,Supervisor Chen,complex,high,33707,phone
+IC-7088,Notify Customer,2025-01-17 12:59,2025-01-17 13:05,Notification Service,complex,high,33707,phone
+IC-7089,Submit Claim,2025-01-16 17:23,2025-01-16 17:29,Customer Portal,complex,high,14482,email
+IC-7089,Check Documents,2025-01-16 18:04,2025-01-16 18:51,Claims Agent A,complex,high,14482,email
+IC-7089,Assess Claim,2025-01-17 08:42,2025-01-17 10:06,Assessor Lee,complex,high,14482,email
+IC-7089,Review Recommendation,2025-01-17 12:00,2025-01-17 12:30,Supervisor Diaz,complex,high,14482,email
+IC-7089,Notify Customer,2025-01-17 13:28,2025-01-17 13:37,Notification Service,complex,high,14482,email
+IC-7090,Submit Claim,2025-01-16 20:34,2025-01-16 20:41,Customer Portal,complex,normal,16704,phone
+IC-7090,Check Documents,2025-01-16 21:09,2025-01-16 21:49,Claims Agent C,complex,normal,16704,phone
+IC-7090,Request Missing Documents,2025-01-16 22:09,2025-01-16 22:23,Claims Agent C,complex,normal,16704,phone
+IC-7090,Assess Claim,2025-01-18 00:20,2025-01-18 01:11,Assessor Park,complex,normal,16704,phone
+IC-7090,Review Recommendation,2025-01-18 03:33,2025-01-18 03:56,Supervisor Chen,complex,normal,16704,phone
+IC-7090,Notify Customer,2025-01-18 04:49,2025-01-18 04:59,Notification Service,complex,normal,16704,phone
+IC-7091,Submit Claim,2025-01-16 22:42,2025-01-16 22:52,Customer Portal,complex,normal,25001,phone
+IC-7091,Check Documents,2025-01-16 23:14,2025-01-16 23:46,Claims Agent B,complex,normal,25001,phone
+IC-7091,Assess Claim,2025-01-17 08:54,2025-01-17 10:18,Assessor Park,complex,normal,25001,phone
+IC-7091,Review Recommendation,2025-01-17 12:45,2025-01-17 13:00,Supervisor Diaz,complex,normal,25001,phone
+IC-7091,Notify Customer,2025-01-17 13:49,2025-01-17 14:00,Notification Service,complex,normal,25001,phone
+IC-7092,Submit Claim,2025-01-17 01:00,2025-01-17 01:09,Customer Portal,complex,normal,23366,email
+IC-7092,Check Documents,2025-01-17 01:43,2025-01-17 02:11,Claims Agent C,complex,normal,23366,email
+IC-7092,Assess Claim,2025-01-17 15:31,2025-01-17 16:22,Assessor Lee,complex,normal,23366,email
+IC-7092,Review Recommendation,2025-01-17 17:18,2025-01-17 17:41,Supervisor Chen,complex,normal,23366,email
+IC-7092,Notify Customer,2025-01-17 18:27,2025-01-17 18:37,Notification Service,complex,normal,23366,email
+IC-7093,Submit Claim,2025-01-17 04:25,2025-01-17 04:30,Customer Portal,complex,high,1367,portal
+IC-7093,Check Documents,2025-01-17 05:10,2025-01-17 05:37,Claims Agent B,complex,high,1367,portal
+IC-7093,Assess Claim,2025-01-17 14:16,2025-01-17 14:54,Assessor Kim,complex,high,1367,portal
+IC-7093,Review Recommendation,2025-01-17 16:11,2025-01-17 16:35,Supervisor Chen,complex,high,1367,portal
+IC-7093,Notify Customer,2025-01-17 17:34,2025-01-17 17:41,Notification Service,complex,high,1367,portal
+IC-7094,Submit Claim,2025-01-17 08:04,2025-01-17 08:15,Customer Portal,complex,normal,31363,portal
+IC-7094,Check Documents,2025-01-17 08:48,2025-01-17 09:10,Claims Agent C,complex,normal,31363,portal
+IC-7094,Request Missing Documents,2025-01-17 09:31,2025-01-17 09:48,Claims Agent C,complex,normal,31363,portal
+IC-7094,Assess Claim,2025-01-18 04:17,2025-01-18 05:00,Assessor Park,complex,normal,31363,portal
+IC-7094,Review Recommendation,2025-01-18 05:44,2025-01-18 06:12,Supervisor Diaz,complex,normal,31363,portal
+IC-7094,Notify Customer,2025-01-18 07:00,2025-01-18 07:10,Notification Service,complex,normal,31363,portal
+IC-7095,Submit Claim,2025-01-17 09:57,2025-01-17 10:07,Customer Portal,complex,normal,28057,portal
+IC-7095,Check Documents,2025-01-17 10:41,2025-01-17 11:01,Claims Agent B,complex,normal,28057,portal
+IC-7095,Assess Claim,2025-01-17 22:49,2025-01-18 00:18,Assessor Lee,complex,normal,28057,portal
+IC-7095,Review Recommendation,2025-01-18 00:59,2025-01-18 01:27,Supervisor Chen,complex,normal,28057,portal
+IC-7095,Notify Customer,2025-01-18 02:16,2025-01-18 02:21,Notification Service,complex,normal,28057,portal
+IC-7096,Submit Claim,2025-01-17 11:53,2025-01-17 12:02,Customer Portal,complex,normal,21814,email
+IC-7096,Check Documents,2025-01-17 12:39,2025-01-17 13:09,Claims Agent A,complex,normal,21814,email
+IC-7096,Assess Claim,2025-01-17 21:05,2025-01-17 22:29,Assessor Lee,complex,normal,21814,email
+IC-7096,Review Recommendation,2025-01-17 23:49,2025-01-18 00:20,Supervisor Diaz,complex,normal,21814,email
+IC-7096,Notify Customer,2025-01-18 00:55,2025-01-18 01:02,Notification Service,complex,normal,21814,email
+IC-7097,Submit Claim,2025-01-17 14:11,2025-01-17 14:19,Customer Portal,complex,low,25071,portal
+IC-7097,Check Documents,2025-01-17 15:00,2025-01-17 15:47,Claims Agent C,complex,low,25071,portal
+IC-7097,Assess Claim,2025-01-18 04:50,2025-01-18 05:25,Assessor Lee,complex,low,25071,portal
+IC-7097,Review Recommendation,2025-01-18 06:03,2025-01-18 06:28,Supervisor Diaz,complex,low,25071,portal
+IC-7097,Notify Customer,2025-01-18 06:50,2025-01-18 06:56,Notification Service,complex,low,25071,portal
+IC-7098,Submit Claim,2025-01-17 17:33,2025-01-17 17:43,Customer Portal,complex,normal,2707,portal
+IC-7098,Check Documents,2025-01-17 18:08,2025-01-17 18:33,Claims Agent B,complex,normal,2707,portal
+IC-7098,Request Missing Documents,2025-01-17 18:44,2025-01-17 19:02,Claims Agent B,complex,normal,2707,portal
+IC-7098,Assess Claim,2025-01-18 16:50,2025-01-18 17:47,Assessor Kim,complex,normal,2707,portal
+IC-7098,Review Recommendation,2025-01-18 18:28,2025-01-18 18:59,Supervisor Chen,complex,normal,2707,portal
+IC-7098,Notify Customer,2025-01-18 19:35,2025-01-18 19:42,Notification Service,complex,normal,2707,portal
+IC-7099,Submit Claim,2025-01-17 20:09,2025-01-17 20:19,Customer Portal,complex,high,37864,portal
+IC-7099,Check Documents,2025-01-17 20:47,2025-01-17 21:16,Claims Agent B,complex,high,37864,portal
+IC-7099,Assess Claim,2025-01-18 07:38,2025-01-18 08:30,Assessor Kim,complex,high,37864,portal
+IC-7099,Review Recommendation,2025-01-18 10:30,2025-01-18 11:04,Supervisor Chen,complex,high,37864,portal
+IC-7099,Notify Customer,2025-01-18 11:28,2025-01-18 11:38,Notification Service,complex,high,37864,portal
+IC-7100,Submit Claim,2025-01-17 23:29,2025-01-17 23:40,Customer Portal,complex,high,41332,portal
+IC-7100,Check Documents,2025-01-18 00:20,2025-01-18 00:44,Claims Agent A,complex,high,41332,portal
+IC-7100,Assess Claim,2025-01-18 14:50,2025-01-18 16:15,Assessor Kim,complex,high,41332,portal
+IC-7100,Review Recommendation,2025-01-18 18:30,2025-01-18 18:52,Supervisor Chen,complex,high,41332,portal
+IC-7100,Notify Customer,2025-01-18 19:50,2025-01-18 20:01,Notification Service,complex,high,41332,portal
+IC-7101,Submit Claim,2025-01-18 01:26,2025-01-18 01:32,Customer Portal,complex,high,11819,phone
+IC-7101,Check Documents,2025-01-18 02:09,2025-01-18 02:29,Claims Agent B,complex,high,11819,phone
+IC-7101,Assess Claim,2025-01-18 21:51,2025-01-18 22:54,Assessor Park,complex,high,11819,phone
+IC-7101,Review Recommendation,2025-01-19 00:49,2025-01-19 01:13,Supervisor Diaz,complex,high,11819,phone
+IC-7101,Notify Customer,2025-01-19 01:34,2025-01-19 01:42,Notification Service,complex,high,11819,phone
+IC-7102,Submit Claim,2025-01-18 05:07,2025-01-18 05:17,Customer Portal,complex,normal,13749,portal
+IC-7102,Check Documents,2025-01-18 05:35,2025-01-18 06:19,Claims Agent A,complex,normal,13749,portal
+IC-7102,Assess Claim,2025-01-18 18:45,2025-01-18 20:00,Assessor Kim,complex,normal,13749,portal
+IC-7102,Review Recommendation,2025-01-18 21:33,2025-01-18 21:53,Supervisor Diaz,complex,normal,13749,portal
+IC-7102,Notify Customer,2025-01-18 22:19,2025-01-18 22:26,Notification Service,complex,normal,13749,portal
+IC-7103,Submit Claim,2025-01-18 08:07,2025-01-18 08:16,Customer Portal,complex,normal,4237,phone
+IC-7103,Check Documents,2025-01-18 08:57,2025-01-18 09:40,Claims Agent A,complex,normal,4237,phone
+IC-7103,Assess Claim,2025-01-18 21:15,2025-01-18 22:23,Assessor Lee,complex,normal,4237,phone
+IC-7103,Review Recommendation,2025-01-18 23:49,2025-01-19 00:20,Supervisor Diaz,complex,normal,4237,phone
+IC-7103,Notify Customer,2025-01-19 00:59,2025-01-19 01:09,Notification Service,complex,normal,4237,phone
+IC-7104,Submit Claim,2025-01-18 11:02,2025-01-18 11:11,Customer Portal,complex,high,29702,email
+IC-7104,Check Documents,2025-01-18 11:26,2025-01-18 11:52,Claims Agent B,complex,high,29702,email
+IC-7104,Request Missing Documents,2025-01-18 12:10,2025-01-18 12:22,Claims Agent B,complex,high,29702,email
+IC-7104,Assess Claim,2025-01-19 09:00,2025-01-19 09:34,Assessor Lee,complex,high,29702,email
+IC-7104,Review Recommendation,2025-01-19 11:47,2025-01-19 12:04,Supervisor Diaz,complex,high,29702,email
+IC-7104,Notify Customer,2025-01-19 12:31,2025-01-19 12:38,Notification Service,complex,high,29702,email
+IC-7105,Submit Claim,2025-01-18 12:40,2025-01-18 12:47,Customer Portal,complex,high,18511,phone
+IC-7105,Check Documents,2025-01-18 13:08,2025-01-18 13:52,Claims Agent A,complex,high,18511,phone
+IC-7105,Assess Claim,2025-01-18 17:55,2025-01-18 19:18,Assessor Park,complex,high,18511,phone
+IC-7105,Review Recommendation,2025-01-18 20:01,2025-01-18 20:17,Supervisor Chen,complex,high,18511,phone
+IC-7105,Notify Customer,2025-01-18 20:41,2025-01-18 20:49,Notification Service,complex,high,18511,phone
+IC-7106,Submit Claim,2025-01-18 15:05,2025-01-18 15:13,Customer Portal,complex,low,37959,phone
+IC-7106,Check Documents,2025-01-18 15:32,2025-01-18 16:21,Claims Agent A,complex,low,37959,phone
+IC-7106,Request Missing Documents,2025-01-18 16:35,2025-01-18 16:49,Claims Agent A,complex,low,37959,phone
+IC-7106,Assess Claim,2025-01-19 09:40,2025-01-19 10:15,Assessor Park,complex,low,37959,phone
+IC-7106,Review Recommendation,2025-01-19 12:22,2025-01-19 12:48,Supervisor Chen,complex,low,37959,phone
+IC-7106,Notify Customer,2025-01-19 13:44,2025-01-19 13:50,Notification Service,complex,low,37959,phone
+IC-7107,Submit Claim,2025-01-18 16:53,2025-01-18 17:03,Customer Portal,complex,normal,25189,portal
+IC-7107,Check Documents,2025-01-18 17:29,2025-01-18 18:12,Claims Agent C,complex,normal,25189,portal
+IC-7107,Request Missing Documents,2025-01-18 18:33,2025-01-18 18:49,Claims Agent C,complex,normal,25189,portal
+IC-7107,Assess Claim,2025-01-19 17:01,2025-01-19 17:50,Assessor Park,complex,normal,25189,portal
+IC-7107,Review Recommendation,2025-01-19 20:04,2025-01-19 20:19,Supervisor Diaz,complex,normal,25189,portal
+IC-7107,Notify Customer,2025-01-19 21:02,2025-01-19 21:11,Notification Service,complex,normal,25189,portal
+IC-7108,Submit Claim,2025-01-18 20:50,2025-01-18 21:01,Customer Portal,complex,normal,32024,phone
+IC-7108,Check Documents,2025-01-18 21:37,2025-01-18 22:08,Claims Agent B,complex,normal,32024,phone
+IC-7108,Assess Claim,2025-01-19 13:02,2025-01-19 14:30,Assessor Park,complex,normal,32024,phone
+IC-7108,Review Recommendation,2025-01-19 15:55,2025-01-19 16:21,Supervisor Chen,complex,normal,32024,phone
+IC-7108,Notify Customer,2025-01-19 16:52,2025-01-19 17:01,Notification Service,complex,normal,32024,phone
+IC-7109,Submit Claim,2025-01-18 23:21,2025-01-18 23:28,Customer Portal,complex,normal,17940,portal
+IC-7109,Check Documents,2025-01-18 23:47,2025-01-19 00:22,Claims Agent B,complex,normal,17940,portal
+IC-7109,Assess Claim,2025-01-19 14:45,2025-01-19 15:58,Assessor Kim,complex,normal,17940,portal
+IC-7109,Review Recommendation,2025-01-19 17:36,2025-01-19 18:06,Supervisor Diaz,complex,normal,17940,portal
+IC-7109,Notify Customer,2025-01-19 18:56,2025-01-19 19:04,Notification Service,complex,normal,17940,portal
+IC-7110,Submit Claim,2025-01-19 02:14,2025-01-19 02:19,Customer Portal,complex,low,30272,portal
+IC-7110,Check Documents,2025-01-19 02:53,2025-01-19 03:41,Claims Agent A,complex,low,30272,portal
+IC-7110,Assess Claim,2025-01-19 16:48,2025-01-19 18:13,Assessor Park,complex,low,30272,portal
+IC-7110,Review Recommendation,2025-01-19 18:44,2025-01-19 19:10,Supervisor Chen,complex,low,30272,portal
+IC-7110,Notify Customer,2025-01-19 19:54,2025-01-19 19:59,Notification Service,complex,low,30272,portal
+IC-7111,Submit Claim,2025-01-19 05:48,2025-01-19 05:54,Customer Portal,complex,normal,2300,phone
+IC-7111,Check Documents,2025-01-19 06:23,2025-01-19 06:49,Claims Agent C,complex,normal,2300,phone
+IC-7111,Request Missing Documents,2025-01-19 07:08,2025-01-19 07:23,Claims Agent C,complex,normal,2300,phone
+IC-7111,Assess Claim,2025-01-20 01:58,2025-01-20 03:15,Assessor Lee,complex,normal,2300,phone
+IC-7111,Review Recommendation,2025-01-20 04:30,2025-01-20 05:02,Supervisor Chen,complex,normal,2300,phone
+IC-7111,Notify Customer,2025-01-20 05:44,2025-01-20 05:49,Notification Service,complex,normal,2300,phone
+IC-7112,Submit Claim,2025-01-19 09:00,2025-01-19 09:11,Customer Portal,complex,normal,25332,portal
+IC-7112,Check Documents,2025-01-19 09:28,2025-01-19 10:16,Claims Agent A,complex,normal,25332,portal
+IC-7112,Assess Claim,2025-01-19 18:48,2025-01-19 20:13,Assessor Kim,complex,normal,25332,portal
+IC-7112,Review Recommendation,2025-01-19 22:28,2025-01-19 22:54,Supervisor Diaz,complex,normal,25332,portal
+IC-7112,Notify Customer,2025-01-19 23:37,2025-01-19 23:44,Notification Service,complex,normal,25332,portal
+IC-7113,Submit Claim,2025-01-19 10:54,2025-01-19 11:04,Customer Portal,complex,low,24606,portal
+IC-7113,Check Documents,2025-01-19 11:37,2025-01-19 12:24,Claims Agent B,complex,low,24606,portal
+IC-7113,Assess Claim,2025-01-19 23:22,2025-01-20 00:17,Assessor Kim,complex,low,24606,portal
+IC-7113,Review Recommendation,2025-01-20 01:01,2025-01-20 01:33,Supervisor Chen,complex,low,24606,portal
+IC-7113,Notify Customer,2025-01-20 02:24,2025-01-20 02:30,Notification Service,complex,low,24606,portal
+IC-7114,Submit Claim,2025-01-19 12:39,2025-01-19 12:47,Customer Portal,complex,normal,43842,email
+IC-7114,Check Documents,2025-01-19 13:17,2025-01-19 13:50,Claims Agent A,complex,normal,43842,email
+IC-7114,Assess Claim,2025-01-19 23:34,2025-01-20 00:41,Assessor Lee,complex,normal,43842,email
+IC-7114,Review Recommendation,2025-01-20 01:56,2025-01-20 02:24,Supervisor Chen,complex,normal,43842,email
+IC-7114,Notify Customer,2025-01-20 03:15,2025-01-20 03:24,Notification Service,complex,normal,43842,email
+IC-7115,Submit Claim,2025-01-19 14:52,2025-01-19 15:01,Customer Portal,complex,normal,26590,email
+IC-7115,Check Documents,2025-01-19 15:21,2025-01-19 15:55,Claims Agent A,complex,normal,26590,email
+IC-7115,Request Missing Documents,2025-01-19 16:11,2025-01-19 16:26,Claims Agent A,complex,normal,26590,email
+IC-7115,Assess Claim,2025-01-20 12:55,2025-01-20 14:21,Assessor Kim,complex,normal,26590,email
+IC-7115,Review Recommendation,2025-01-20 16:48,2025-01-20 17:07,Supervisor Diaz,complex,normal,26590,email
+IC-7115,Notify Customer,2025-01-20 17:30,2025-01-20 17:39,Notification Service,complex,normal,26590,email
+IC-7116,Submit Claim,2025-01-19 16:28,2025-01-19 16:33,Customer Portal,complex,normal,22022,phone
+IC-7116,Check Documents,2025-01-19 16:54,2025-01-19 17:30,Claims Agent A,complex,normal,22022,phone
+IC-7116,Assess Claim,2025-01-20 12:26,2025-01-20 13:35,Assessor Kim,complex,normal,22022,phone
+IC-7116,Review Recommendation,2025-01-20 15:30,2025-01-20 15:45,Supervisor Diaz,complex,normal,22022,phone
+IC-7116,Notify Customer,2025-01-20 16:26,2025-01-20 16:33,Notification Service,complex,normal,22022,phone
+IC-7117,Submit Claim,2025-01-19 20:09,2025-01-19 20:15,Customer Portal,complex,high,46857,email
+IC-7117,Check Documents,2025-01-19 20:31,2025-01-19 20:51,Claims Agent C,complex,high,46857,email
+IC-7117,Assess Claim,2025-01-20 07:43,2025-01-20 09:03,Assessor Park,complex,high,46857,email
+IC-7117,Review Recommendation,2025-01-20 11:23,2025-01-20 11:55,Supervisor Diaz,complex,high,46857,email
+IC-7117,Notify Customer,2025-01-20 12:37,2025-01-20 12:46,Notification Service,complex,high,46857,email
+IC-7118,Submit Claim,2025-01-19 23:54,2025-01-20 00:00,Customer Portal,complex,high,48468,phone
+IC-7118,Check Documents,2025-01-20 00:30,2025-01-20 00:58,Claims Agent A,complex,high,48468,phone
+IC-7118,Assess Claim,2025-01-20 16:57,2025-01-20 18:07,Assessor Lee,complex,high,48468,phone
+IC-7118,Review Recommendation,2025-01-20 20:02,2025-01-20 20:34,Supervisor Chen,complex,high,48468,phone
+IC-7118,Notify Customer,2025-01-20 21:15,2025-01-20 21:25,Notification Service,complex,high,48468,phone
+IC-7119,Submit Claim,2025-01-20 02:31,2025-01-20 02:38,Customer Portal,complex,low,47225,phone
+IC-7119,Check Documents,2025-01-20 03:09,2025-01-20 03:40,Claims Agent A,complex,low,47225,phone
+IC-7119,Assess Claim,2025-01-20 20:05,2025-01-20 21:07,Assessor Park,complex,low,47225,phone
+IC-7119,Review Recommendation,2025-01-20 23:02,2025-01-20 23:32,Supervisor Chen,complex,low,47225,phone
+IC-7119,Notify Customer,2025-01-21 00:11,2025-01-21 00:19,Notification Service,complex,low,47225,phone
+IC-7120,Submit Claim,2025-01-20 06:27,2025-01-20 06:32,Customer Portal,complex,normal,20183,phone
+IC-7120,Check Documents,2025-01-20 07:04,2025-01-20 07:47,Claims Agent A,complex,normal,20183,phone
+IC-7120,Assess Claim,2025-01-20 17:47,2025-01-20 19:07,Assessor Lee,complex,normal,20183,phone
+IC-7120,Review Recommendation,2025-01-20 19:41,2025-01-20 20:08,Supervisor Chen,complex,normal,20183,phone
+IC-7120,Notify Customer,2025-01-20 20:40,2025-01-20 20:46,Notification Service,complex,normal,20183,phone
+IC-7121,Submit Claim,2025-01-20 08:55,2025-01-20 09:06,Customer Portal,property,low,11716,phone
+IC-7121,Check Documents,2025-01-20 09:50,2025-01-20 10:11,Claims Agent B,property,low,11716,phone
+IC-7121,Request Missing Documents,2025-01-20 10:25,2025-01-20 10:38,Claims Agent B,property,low,11716,phone
+IC-7121,Assess Claim,2025-01-21 15:40,2025-01-21 16:19,Assessor Kim,property,low,11716,phone
+IC-7121,Review Recommendation,2025-01-21 17:57,2025-01-21 18:19,Supervisor Chen,property,low,11716,phone
+IC-7121,Notify Customer,2025-01-21 19:15,2025-01-21 19:21,Notification Service,property,low,11716,phone
+IC-7122,Submit Claim,2025-01-20 10:56,2025-01-20 11:07,Customer Portal,property,high,40228,phone
+IC-7122,Check Documents,2025-01-20 11:40,2025-01-20 12:28,Claims Agent C,property,high,40228,phone
+IC-7122,Assess Claim,2025-01-21 11:22,2025-01-21 12:20,Assessor Kim,property,high,40228,phone
+IC-7122,Review Recommendation,2025-01-21 13:42,2025-01-21 14:01,Supervisor Chen,property,high,40228,phone
+IC-7122,Notify Customer,2025-01-21 14:45,2025-01-21 14:56,Notification Service,property,high,40228,phone
+IC-7123,Submit Claim,2025-01-20 14:00,2025-01-20 14:06,Customer Portal,property,normal,27483,phone
+IC-7123,Check Documents,2025-01-20 14:40,2025-01-20 15:05,Claims Agent A,property,normal,27483,phone
+IC-7123,Assess Claim,2025-01-22 00:37,2025-01-22 01:47,Assessor Kim,property,normal,27483,phone
+IC-7123,Review Recommendation,2025-01-22 03:43,2025-01-22 04:16,Supervisor Diaz,property,normal,27483,phone
+IC-7123,Notify Customer,2025-01-22 04:42,2025-01-22 04:52,Notification Service,property,normal,27483,phone
+IC-7124,Submit Claim,2025-01-20 16:27,2025-01-20 16:35,Customer Portal,property,high,25384,email
+IC-7124,Check Documents,2025-01-20 17:18,2025-01-20 17:51,Claims Agent B,property,high,25384,email
+IC-7124,Assess Claim,2025-01-21 14:22,2025-01-21 15:22,Assessor Kim,property,high,25384,email
+IC-7124,Review Recommendation,2025-01-21 16:43,2025-01-21 17:07,Supervisor Diaz,property,high,25384,email
+IC-7124,Notify Customer,2025-01-21 18:05,2025-01-21 18:10,Notification Service,property,high,25384,email
+IC-7125,Submit Claim,2025-01-20 18:25,2025-01-20 18:30,Customer Portal,property,high,32242,phone
+IC-7125,Check Documents,2025-01-20 18:59,2025-01-20 19:33,Claims Agent A,property,high,32242,phone
+IC-7125,Assess Claim,2025-01-21 21:36,2025-01-21 22:59,Assessor Kim,property,high,32242,phone
+IC-7125,Review Recommendation,2025-01-22 01:08,2025-01-22 01:37,Supervisor Chen,property,high,32242,phone
+IC-7125,Notify Customer,2025-01-22 02:22,2025-01-22 02:32,Notification Service,property,high,32242,phone
+IC-7126,Submit Claim,2025-01-20 21:24,2025-01-20 21:31,Customer Portal,property,normal,42955,email
+IC-7126,Check Documents,2025-01-20 21:59,2025-01-20 22:38,Claims Agent C,property,normal,42955,email
+IC-7126,Assess Claim,2025-01-21 22:17,2025-01-21 23:29,Assessor Kim,property,normal,42955,email
+IC-7126,Review Recommendation,2025-01-22 00:50,2025-01-22 01:12,Supervisor Diaz,property,normal,42955,email
+IC-7126,Notify Customer,2025-01-22 01:57,2025-01-22 02:07,Notification Service,property,normal,42955,email
+IC-7127,Submit Claim,2025-01-20 23:58,2025-01-21 00:05,Customer Portal,property,normal,23525,phone
+IC-7127,Check Documents,2025-01-21 00:23,2025-01-21 00:54,Claims Agent A,property,normal,23525,phone
+IC-7127,Assess Claim,2025-01-21 15:21,2025-01-21 16:02,Assessor Kim,property,normal,23525,phone
+IC-7127,Review Recommendation,2025-01-21 18:19,2025-01-21 18:48,Supervisor Chen,property,normal,23525,phone
+IC-7127,Notify Customer,2025-01-21 19:18,2025-01-21 19:26,Notification Service,property,normal,23525,phone
+IC-7128,Submit Claim,2025-01-21 02:44,2025-01-21 02:52,Customer Portal,property,high,10685,portal
+IC-7128,Check Documents,2025-01-21 03:12,2025-01-21 03:58,Claims Agent B,property,high,10685,portal
+IC-7128,Assess Claim,2025-01-22 12:38,2025-01-22 13:58,Assessor Lee,property,high,10685,portal
+IC-7128,Review Recommendation,2025-01-22 15:11,2025-01-22 15:29,Supervisor Diaz,property,high,10685,portal
+IC-7128,Notify Customer,2025-01-22 16:20,2025-01-22 16:28,Notification Service,property,high,10685,portal
+IC-7129,Submit Claim,2025-01-21 06:38,2025-01-21 06:48,Customer Portal,property,high,16108,phone
+IC-7129,Check Documents,2025-01-21 07:24,2025-01-21 07:48,Claims Agent A,property,high,16108,phone
+IC-7129,Assess Claim,2025-01-22 13:44,2025-01-22 14:18,Assessor Park,property,high,16108,phone
+IC-7129,Review Recommendation,2025-01-22 16:18,2025-01-22 16:35,Supervisor Chen,property,high,16108,phone
+IC-7129,Notify Customer,2025-01-22 17:27,2025-01-22 17:33,Notification Service,property,high,16108,phone
+IC-7130,Submit Claim,2025-01-21 08:30,2025-01-21 08:38,Customer Portal,property,high,18679,phone
+IC-7130,Check Documents,2025-01-21 09:03,2025-01-21 09:34,Claims Agent A,property,high,18679,phone
+IC-7130,Assess Claim,2025-01-22 13:18,2025-01-22 13:58,Assessor Lee,property,high,18679,phone
+IC-7130,Review Recommendation,2025-01-22 15:01,2025-01-22 15:22,Supervisor Diaz,property,high,18679,phone
+IC-7130,Notify Customer,2025-01-22 15:56,2025-01-22 16:01,Notification Service,property,high,18679,phone
+IC-7131,Submit Claim,2025-01-21 12:03,2025-01-21 12:08,Customer Portal,property,normal,19094,email
+IC-7131,Check Documents,2025-01-21 12:50,2025-01-21 13:20,Claims Agent A,property,normal,19094,email
+IC-7131,Assess Claim,2025-01-22 05:43,2025-01-22 06:42,Assessor Kim,property,normal,19094,email
+IC-7131,Review Recommendation,2025-01-22 09:12,2025-01-22 09:36,Supervisor Chen,property,normal,19094,email
+IC-7131,Notify Customer,2025-01-22 10:20,2025-01-22 10:28,Notification Service,property,normal,19094,email
+IC-7132,Submit Claim,2025-01-21 14:39,2025-01-21 14:44,Customer Portal,property,normal,23585,email
+IC-7132,Check Documents,2025-01-21 15:16,2025-01-21 15:50,Claims Agent C,property,normal,23585,email
+IC-7132,Assess Claim,2025-01-22 23:10,2025-01-23 00:07,Assessor Lee,property,normal,23585,email
+IC-7132,Review Recommendation,2025-01-23 01:43,2025-01-23 02:09,Supervisor Chen,property,normal,23585,email
+IC-7132,Notify Customer,2025-01-23 02:54,2025-01-23 03:04,Notification Service,property,normal,23585,email
+IC-7133,Submit Claim,2025-01-21 18:25,2025-01-21 18:34,Customer Portal,property,high,39857,portal
+IC-7133,Check Documents,2025-01-21 19:15,2025-01-21 19:38,Claims Agent C,property,high,39857,portal
+IC-7133,Assess Claim,2025-01-23 01:03,2025-01-23 02:26,Assessor Park,property,high,39857,portal
+IC-7133,Review Recommendation,2025-01-23 03:28,2025-01-23 03:59,Supervisor Chen,property,high,39857,portal
+IC-7133,Notify Customer,2025-01-23 04:43,2025-01-23 04:52,Notification Service,property,high,39857,portal
+IC-7134,Submit Claim,2025-01-21 20:11,2025-01-21 20:17,Customer Portal,property,normal,15518,email
+IC-7134,Check Documents,2025-01-21 20:54,2025-01-21 21:15,Claims Agent A,property,normal,15518,email
+IC-7134,Assess Claim,2025-01-22 23:04,2025-01-22 23:37,Assessor Lee,property,normal,15518,email
+IC-7134,Review Recommendation,2025-01-23 01:28,2025-01-23 01:59,Supervisor Diaz,property,normal,15518,email
+IC-7134,Notify Customer,2025-01-23 02:45,2025-01-23 02:51,Notification Service,property,normal,15518,email
+IC-7135,Submit Claim,2025-01-21 22:33,2025-01-21 22:40,Customer Portal,property,low,13970,email
+IC-7135,Check Documents,2025-01-21 23:15,2025-01-22 00:04,Claims Agent C,property,low,13970,email
+IC-7135,Assess Claim,2025-01-23 00:15,2025-01-23 01:33,Assessor Park,property,low,13970,email
+IC-7135,Review Recommendation,2025-01-23 03:59,2025-01-23 04:25,Supervisor Diaz,property,low,13970,email
+IC-7135,Notify Customer,2025-01-23 04:55,2025-01-23 05:00,Notification Service,property,low,13970,email
+IC-7136,Submit Claim,2025-01-22 00:29,2025-01-22 00:36,Customer Portal,property,high,39013,phone
+IC-7136,Check Documents,2025-01-22 01:13,2025-01-22 01:58,Claims Agent B,property,high,39013,phone
+IC-7136,Assess Claim,2025-01-23 06:09,2025-01-23 07:13,Assessor Park,property,high,39013,phone
+IC-7136,Review Recommendation,2025-01-23 09:42,2025-01-23 10:08,Supervisor Chen,property,high,39013,phone
+IC-7136,Notify Customer,2025-01-23 11:03,2025-01-23 11:08,Notification Service,property,high,39013,phone
+IC-7137,Submit Claim,2025-01-22 03:04,2025-01-22 03:11,Customer Portal,property,normal,40687,email
+IC-7137,Check Documents,2025-01-22 03:48,2025-01-22 04:12,Claims Agent A,property,normal,40687,email
+IC-7137,Assess Claim,2025-01-23 02:17,2025-01-23 03:09,Assessor Lee,property,normal,40687,email
+IC-7137,Review Recommendation,2025-01-23 04:29,2025-01-23 04:52,Supervisor Diaz,property,normal,40687,email
+IC-7137,Notify Customer,2025-01-23 05:31,2025-01-23 05:41,Notification Service,property,normal,40687,email
+IC-7138,Submit Claim,2025-01-22 05:05,2025-01-22 05:12,Customer Portal,property,normal,49166,email
+IC-7138,Check Documents,2025-01-22 05:34,2025-01-22 06:21,Claims Agent A,property,normal,49166,email
+IC-7138,Assess Claim,2025-01-23 03:57,2025-01-23 04:32,Assessor Kim,property,normal,49166,email
+IC-7138,Review Recommendation,2025-01-23 05:14,2025-01-23 05:44,Supervisor Chen,property,normal,49166,email
+IC-7138,Notify Customer,2025-01-23 06:20,2025-01-23 06:28,Notification Service,property,normal,49166,email
+IC-7139,Submit Claim,2025-01-22 08:12,2025-01-22 08:18,Customer Portal,property,high,23727,portal
+IC-7139,Check Documents,2025-01-22 09:00,2025-01-22 09:36,Claims Agent A,property,high,23727,portal
+IC-7139,Assess Claim,2025-01-23 12:05,2025-01-23 13:23,Assessor Lee,property,high,23727,portal
+IC-7139,Review Recommendation,2025-01-23 14:23,2025-01-23 14:43,Supervisor Chen,property,high,23727,portal
+IC-7139,Notify Customer,2025-01-23 15:08,2025-01-23 15:13,Notification Service,property,high,23727,portal
+IC-7140,Submit Claim,2025-01-22 10:12,2025-01-22 10:17,Customer Portal,property,high,42486,email
+IC-7140,Check Documents,2025-01-22 10:34,2025-01-22 10:58,Claims Agent B,property,high,42486,email
+IC-7140,Assess Claim,2025-01-23 19:32,2025-01-23 20:11,Assessor Kim,property,high,42486,email
+IC-7140,Review Recommendation,2025-01-23 22:31,2025-01-23 22:50,Supervisor Diaz,property,high,42486,email
+IC-7140,Notify Customer,2025-01-23 23:34,2025-01-23 23:44,Notification Service,property,high,42486,email
+IC-7141,Submit Claim,2025-01-22 12:42,2025-01-22 12:47,Customer Portal,property,high,3476,email
+IC-7141,Check Documents,2025-01-22 13:20,2025-01-22 13:56,Claims Agent C,property,high,3476,email
+IC-7141,Request Missing Documents,2025-01-22 14:21,2025-01-22 14:32,Claims Agent C,property,high,3476,email
+IC-7141,Assess Claim,2025-01-23 19:27,2025-01-23 20:43,Assessor Kim,property,high,3476,email
+IC-7141,Review Recommendation,2025-01-23 22:06,2025-01-23 22:22,Supervisor Diaz,property,high,3476,email
+IC-7141,Notify Customer,2025-01-23 23:17,2025-01-23 23:23,Notification Service,property,high,3476,email
+IC-7142,Submit Claim,2025-01-22 16:19,2025-01-22 16:24,Customer Portal,property,low,37718,phone
+IC-7142,Check Documents,2025-01-22 17:08,2025-01-22 17:35,Claims Agent B,property,low,37718,phone
+IC-7142,Assess Claim,2025-01-23 20:52,2025-01-23 21:52,Assessor Lee,property,low,37718,phone
+IC-7142,Review Recommendation,2025-01-23 23:10,2025-01-23 23:36,Supervisor Diaz,property,low,37718,phone
+IC-7142,Notify Customer,2025-01-24 00:29,2025-01-24 00:39,Notification Service,property,low,37718,phone
+IC-7143,Submit Claim,2025-01-22 19:41,2025-01-22 19:51,Customer Portal,property,high,37089,portal
+IC-7143,Check Documents,2025-01-22 20:11,2025-01-22 20:41,Claims Agent C,property,high,37089,portal
+IC-7143,Assess Claim,2025-01-24 05:12,2025-01-24 06:29,Assessor Lee,property,high,37089,portal
+IC-7143,Review Recommendation,2025-01-24 08:49,2025-01-24 09:07,Supervisor Chen,property,high,37089,portal
+IC-7143,Notify Customer,2025-01-24 10:06,2025-01-24 10:13,Notification Service,property,high,37089,portal
+IC-7144,Submit Claim,2025-01-22 23:28,2025-01-22 23:35,Customer Portal,property,normal,49344,phone
+IC-7144,Check Documents,2025-01-23 00:08,2025-01-23 00:54,Claims Agent A,property,normal,49344,phone
+IC-7144,Assess Claim,2025-01-24 00:42,2025-01-24 01:48,Assessor Lee,property,normal,49344,phone
+IC-7144,Review Recommendation,2025-01-24 04:16,2025-01-24 04:38,Supervisor Chen,property,normal,49344,phone
+IC-7144,Notify Customer,2025-01-24 05:17,2025-01-24 05:28,Notification Service,property,normal,49344,phone
+IC-7145,Submit Claim,2025-01-23 02:34,2025-01-23 02:45,Customer Portal,property,normal,17505,portal
+IC-7145,Check Documents,2025-01-23 03:24,2025-01-23 04:12,Claims Agent B,property,normal,17505,portal
+IC-7145,Assess Claim,2025-01-24 02:03,2025-01-24 02:34,Assessor Lee,property,normal,17505,portal
+IC-7145,Review Recommendation,2025-01-24 04:11,2025-01-24 04:38,Supervisor Chen,property,normal,17505,portal
+IC-7145,Notify Customer,2025-01-24 05:17,2025-01-24 05:25,Notification Service,property,normal,17505,portal
+IC-7146,Submit Claim,2025-01-23 04:49,2025-01-23 05:00,Customer Portal,property,low,2513,portal
+IC-7146,Check Documents,2025-01-23 05:41,2025-01-23 06:02,Claims Agent C,property,low,2513,portal
+IC-7146,Assess Claim,2025-01-24 09:06,2025-01-24 10:07,Assessor Kim,property,low,2513,portal
+IC-7146,Review Recommendation,2025-01-24 12:07,2025-01-24 12:39,Supervisor Diaz,property,low,2513,portal
+IC-7146,Notify Customer,2025-01-24 13:28,2025-01-24 13:39,Notification Service,property,low,2513,portal
+IC-7147,Submit Claim,2025-01-23 07:11,2025-01-23 07:18,Customer Portal,property,normal,39184,email
+IC-7147,Check Documents,2025-01-23 07:33,2025-01-23 08:03,Claims Agent A,property,normal,39184,email
+IC-7147,Assess Claim,2025-01-24 12:54,2025-01-24 14:21,Assessor Park,property,normal,39184,email
+IC-7147,Review Recommendation,2025-01-24 16:20,2025-01-24 16:53,Supervisor Diaz,property,normal,39184,email
+IC-7147,Notify Customer,2025-01-24 17:34,2025-01-24 17:39,Notification Service,property,normal,39184,email
+IC-7148,Submit Claim,2025-01-23 09:13,2025-01-23 09:23,Customer Portal,property,normal,10875,phone
+IC-7148,Check Documents,2025-01-23 09:39,2025-01-23 10:09,Claims Agent A,property,normal,10875,phone
+IC-7148,Assess Claim,2025-01-24 13:29,2025-01-24 14:14,Assessor Park,property,normal,10875,phone
+IC-7148,Review Recommendation,2025-01-24 16:32,2025-01-24 17:06,Supervisor Chen,property,normal,10875,phone
+IC-7148,Notify Customer,2025-01-24 17:53,2025-01-24 18:04,Notification Service,property,normal,10875,phone
+IC-7149,Submit Claim,2025-01-23 11:51,2025-01-23 11:58,Customer Portal,property,high,11376,portal
+IC-7149,Check Documents,2025-01-23 12:15,2025-01-23 12:36,Claims Agent A,property,high,11376,portal
+IC-7149,Request Missing Documents,2025-01-23 13:05,2025-01-23 13:15,Claims Agent A,property,high,11376,portal
+IC-7149,Assess Claim,2025-01-25 00:41,2025-01-25 01:18,Assessor Lee,property,high,11376,portal
+IC-7149,Review Recommendation,2025-01-25 03:21,2025-01-25 03:36,Supervisor Diaz,property,high,11376,portal
+IC-7149,Notify Customer,2025-01-25 04:21,2025-01-25 04:28,Notification Service,property,high,11376,portal
+IC-7150,Submit Claim,2025-01-23 14:11,2025-01-23 14:18,Customer Portal,property,normal,35924,email
+IC-7150,Check Documents,2025-01-23 14:38,2025-01-23 15:12,Claims Agent B,property,normal,35924,email
+IC-7150,Assess Claim,2025-01-24 14:17,2025-01-24 15:33,Assessor Kim,property,normal,35924,email
+IC-7150,Review Recommendation,2025-01-24 16:21,2025-01-24 16:41,Supervisor Chen,property,normal,35924,email
+IC-7150,Notify Customer,2025-01-24 17:31,2025-01-24 17:37,Notification Service,property,normal,35924,email
+IC-7151,Submit Claim,2025-01-23 17:17,2025-01-23 17:28,Customer Portal,property,normal,34616,phone
+IC-7151,Check Documents,2025-01-23 18:05,2025-01-23 18:31,Claims Agent C,property,normal,34616,phone
+IC-7151,Assess Claim,2025-01-24 17:52,2025-01-24 18:40,Assessor Park,property,normal,34616,phone
+IC-7151,Review Recommendation,2025-01-24 20:59,2025-01-24 21:16,Supervisor Diaz,property,normal,34616,phone
+IC-7151,Notify Customer,2025-01-24 21:47,2025-01-24 21:58,Notification Service,property,normal,34616,phone
+IC-7152,Submit Claim,2025-01-23 20:53,2025-01-23 21:02,Customer Portal,property,normal,31471,phone
+IC-7152,Check Documents,2025-01-23 21:44,2025-01-23 22:08,Claims Agent B,property,normal,31471,phone
+IC-7152,Assess Claim,2025-01-24 21:28,2025-01-24 22:31,Assessor Kim,property,normal,31471,phone
+IC-7152,Review Recommendation,2025-01-24 23:10,2025-01-24 23:38,Supervisor Diaz,property,normal,31471,phone
+IC-7152,Notify Customer,2025-01-25 00:28,2025-01-25 00:36,Notification Service,property,normal,31471,phone
+IC-7153,Submit Claim,2025-01-23 23:06,2025-01-23 23:16,Customer Portal,property,high,11896,portal
+IC-7153,Check Documents,2025-01-23 23:38,2025-01-24 00:23,Claims Agent B,property,high,11896,portal
+IC-7153,Assess Claim,2025-01-25 04:49,2025-01-25 06:08,Assessor Park,property,high,11896,portal
+IC-7153,Review Recommendation,2025-01-25 07:35,2025-01-25 08:00,Supervisor Chen,property,high,11896,portal
+IC-7153,Notify Customer,2025-01-25 08:39,2025-01-25 08:44,Notification Service,property,high,11896,portal
+IC-7154,Submit Claim,2025-01-24 01:38,2025-01-24 01:48,Customer Portal,property,normal,26904,phone
+IC-7154,Check Documents,2025-01-24 02:06,2025-01-24 02:28,Claims Agent B,property,normal,26904,phone
+IC-7154,Assess Claim,2025-01-24 15:51,2025-01-24 16:51,Assessor Kim,property,normal,26904,phone
+IC-7154,Review Recommendation,2025-01-24 18:20,2025-01-24 18:53,Supervisor Chen,property,normal,26904,phone
+IC-7154,Notify Customer,2025-01-24 19:35,2025-01-24 19:43,Notification Service,property,normal,26904,phone
+IC-7155,Submit Claim,2025-01-24 05:27,2025-01-24 05:36,Customer Portal,property,normal,9863,phone
+IC-7155,Check Documents,2025-01-24 05:51,2025-01-24 06:30,Claims Agent A,property,normal,9863,phone
+IC-7155,Assess Claim,2025-01-24 23:23,2025-01-25 00:18,Assessor Lee,property,normal,9863,phone
+IC-7155,Review Recommendation,2025-01-25 00:52,2025-01-25 01:11,Supervisor Diaz,property,normal,9863,phone
+IC-7155,Notify Customer,2025-01-25 01:53,2025-01-25 02:04,Notification Service,property,normal,9863,phone
+IC-7156,Submit Claim,2025-01-24 09:21,2025-01-24 09:30,Customer Portal,property,high,31705,portal
+IC-7156,Check Documents,2025-01-24 09:54,2025-01-24 10:26,Claims Agent A,property,high,31705,portal
+IC-7156,Assess Claim,2025-01-25 02:55,2025-01-25 03:39,Assessor Lee,property,high,31705,portal
+IC-7156,Review Recommendation,2025-01-25 05:09,2025-01-25 05:42,Supervisor Diaz,property,high,31705,portal
+IC-7156,Notify Customer,2025-01-25 06:08,2025-01-25 06:18,Notification Service,property,high,31705,portal
+IC-7157,Submit Claim,2025-01-24 13:12,2025-01-24 13:21,Customer Portal,property,low,11973,email
+IC-7157,Check Documents,2025-01-24 13:43,2025-01-24 14:22,Claims Agent A,property,low,11973,email
+IC-7157,Assess Claim,2025-01-25 23:58,2025-01-26 01:02,Assessor Kim,property,low,11973,email
+IC-7157,Review Recommendation,2025-01-26 02:35,2025-01-26 02:56,Supervisor Diaz,property,low,11973,email
+IC-7157,Notify Customer,2025-01-26 03:41,2025-01-26 03:51,Notification Service,property,low,11973,email
+IC-7158,Submit Claim,2025-01-24 16:50,2025-01-24 16:57,Customer Portal,property,high,26898,email
+IC-7158,Check Documents,2025-01-24 17:40,2025-01-24 18:13,Claims Agent C,property,high,26898,email
+IC-7158,Assess Claim,2025-01-25 16:57,2025-01-25 18:22,Assessor Park,property,high,26898,email
+IC-7158,Review Recommendation,2025-01-25 20:28,2025-01-25 21:01,Supervisor Diaz,property,high,26898,email
+IC-7158,Notify Customer,2025-01-25 21:59,2025-01-25 22:05,Notification Service,property,high,26898,email
+IC-7159,Submit Claim,2025-01-24 20:40,2025-01-24 20:47,Customer Portal,property,normal,28478,portal
+IC-7159,Check Documents,2025-01-24 21:14,2025-01-24 21:54,Claims Agent B,property,normal,28478,portal
+IC-7159,Assess Claim,2025-01-25 22:22,2025-01-25 23:36,Assessor Kim,property,normal,28478,portal
+IC-7159,Review Recommendation,2025-01-26 00:22,2025-01-26 00:45,Supervisor Chen,property,normal,28478,portal
+IC-7159,Notify Customer,2025-01-26 01:12,2025-01-26 01:20,Notification Service,property,normal,28478,portal
+IC-7160,Submit Claim,2025-01-24 22:58,2025-01-24 23:03,Customer Portal,property,high,38207,email
+IC-7160,Check Documents,2025-01-24 23:47,2025-01-25 00:16,Claims Agent C,property,high,38207,email
+IC-7160,Assess Claim,2025-01-26 05:39,2025-01-26 07:02,Assessor Kim,property,high,38207,email
+IC-7160,Review Recommendation,2025-01-26 07:40,2025-01-26 08:00,Supervisor Diaz,property,high,38207,email
+IC-7160,Notify Customer,2025-01-26 08:20,2025-01-26 08:25,Notification Service,property,high,38207,email
+IC-7161,Submit Claim,2025-01-25 01:35,2025-01-25 01:41,Customer Portal,property,high,42590,portal
+IC-7161,Check Documents,2025-01-25 02:09,2025-01-25 02:49,Claims Agent A,property,high,42590,portal
+IC-7161,Request Missing Documents,2025-01-25 03:07,2025-01-25 03:21,Claims Agent A,property,high,42590,portal
+IC-7161,Assess Claim,2025-01-26 19:26,2025-01-26 20:44,Assessor Kim,property,high,42590,portal
+IC-7161,Review Recommendation,2025-01-26 21:36,2025-01-26 22:02,Supervisor Chen,property,high,42590,portal
+IC-7161,Notify Customer,2025-01-26 22:58,2025-01-26 23:05,Notification Service,property,high,42590,portal
+IC-7162,Submit Claim,2025-01-25 04:32,2025-01-25 04:41,Customer Portal,property,high,33339,phone
+IC-7162,Check Documents,2025-01-25 05:24,2025-01-25 06:12,Claims Agent A,property,high,33339,phone
+IC-7162,Assess Claim,2025-01-26 14:35,2025-01-26 16:00,Assessor Park,property,high,33339,phone
+IC-7162,Review Recommendation,2025-01-26 17:13,2025-01-26 17:37,Supervisor Diaz,property,high,33339,phone
+IC-7162,Notify Customer,2025-01-26 18:26,2025-01-26 18:32,Notification Service,property,high,33339,phone
+IC-7163,Submit Claim,2025-01-25 06:25,2025-01-25 06:33,Customer Portal,property,normal,35859,phone
+IC-7163,Check Documents,2025-01-25 07:07,2025-01-25 07:34,Claims Agent A,property,normal,35859,phone
+IC-7163,Assess Claim,2025-01-26 02:12,2025-01-26 03:18,Assessor Lee,property,normal,35859,phone
+IC-7163,Review Recommendation,2025-01-26 05:13,2025-01-26 05:28,Supervisor Diaz,property,normal,35859,phone
+IC-7163,Notify Customer,2025-01-26 05:52,2025-01-26 06:03,Notification Service,property,normal,35859,phone
+IC-7164,Submit Claim,2025-01-25 08:01,2025-01-25 08:09,Customer Portal,property,high,3085,phone
+IC-7164,Check Documents,2025-01-25 08:28,2025-01-25 09:00,Claims Agent C,property,high,3085,phone
+IC-7164,Assess Claim,2025-01-26 06:33,2025-01-26 07:37,Assessor Lee,property,high,3085,phone
+IC-7164,Review Recommendation,2025-01-26 08:31,2025-01-26 09:04,Supervisor Chen,property,high,3085,phone
+IC-7164,Notify Customer,2025-01-26 09:48,2025-01-26 09:59,Notification Service,property,high,3085,phone
+IC-7165,Submit Claim,2025-01-25 11:02,2025-01-25 11:12,Customer Portal,property,low,47644,phone
+IC-7165,Check Documents,2025-01-25 11:56,2025-01-25 12:21,Claims Agent A,property,low,47644,phone
+IC-7165,Assess Claim,2025-01-26 19:25,2025-01-26 20:49,Assessor Park,property,low,47644,phone
+IC-7165,Review Recommendation,2025-01-26 21:28,2025-01-26 21:44,Supervisor Chen,property,low,47644,phone
+IC-7165,Notify Customer,2025-01-26 22:37,2025-01-26 22:42,Notification Service,property,low,47644,phone
+IC-7166,Submit Claim,2025-01-25 12:35,2025-01-25 12:45,Customer Portal,property,normal,29020,phone
+IC-7166,Check Documents,2025-01-25 13:21,2025-01-25 13:43,Claims Agent B,property,normal,29020,phone
+IC-7166,Assess Claim,2025-01-26 06:11,2025-01-26 07:12,Assessor Lee,property,normal,29020,phone
+IC-7166,Review Recommendation,2025-01-26 08:43,2025-01-26 09:07,Supervisor Chen,property,normal,29020,phone
+IC-7166,Notify Customer,2025-01-26 09:48,2025-01-26 09:55,Notification Service,property,normal,29020,phone
+IC-7167,Submit Claim,2025-01-25 15:37,2025-01-25 15:47,Customer Portal,property,normal,19080,email
+IC-7167,Check Documents,2025-01-25 16:15,2025-01-25 16:52,Claims Agent A,property,normal,19080,email
+IC-7167,Assess Claim,2025-01-26 12:46,2025-01-26 14:12,Assessor Kim,property,normal,19080,email
+IC-7167,Review Recommendation,2025-01-26 16:25,2025-01-26 16:53,Supervisor Diaz,property,normal,19080,email
+IC-7167,Notify Customer,2025-01-26 17:28,2025-01-26 17:34,Notification Service,property,normal,19080,email
+IC-7168,Submit Claim,2025-01-25 19:32,2025-01-25 19:41,Customer Portal,property,normal,46406,email
+IC-7168,Check Documents,2025-01-25 20:15,2025-01-25 21:04,Claims Agent A,property,normal,46406,email
+IC-7168,Assess Claim,2025-01-26 14:15,2025-01-26 15:25,Assessor Lee,property,normal,46406,email
+IC-7168,Review Recommendation,2025-01-26 16:36,2025-01-26 17:04,Supervisor Diaz,property,normal,46406,email
+IC-7168,Notify Customer,2025-01-26 17:36,2025-01-26 17:41,Notification Service,property,normal,46406,email
+IC-7169,Submit Claim,2025-01-25 21:39,2025-01-25 21:49,Customer Portal,property,normal,14970,phone
+IC-7169,Check Documents,2025-01-25 22:19,2025-01-25 22:48,Claims Agent B,property,normal,14970,phone
+IC-7169,Assess Claim,2025-01-26 19:35,2025-01-26 20:55,Assessor Lee,property,normal,14970,phone
+IC-7169,Review Recommendation,2025-01-26 22:43,2025-01-26 23:01,Supervisor Chen,property,normal,14970,phone
+IC-7169,Notify Customer,2025-01-26 23:25,2025-01-26 23:32,Notification Service,property,normal,14970,phone
+IC-7170,Submit Claim,2025-01-26 00:20,2025-01-26 00:25,Customer Portal,property,high,8481,email
+IC-7170,Check Documents,2025-01-26 00:56,2025-01-26 01:24,Claims Agent A,property,high,8481,email
+IC-7170,Request Missing Documents,2025-01-26 01:38,2025-01-26 01:52,Claims Agent A,property,high,8481,email
+IC-7170,Assess Claim,2025-01-27 11:46,2025-01-27 12:32,Assessor Park,property,high,8481,email
+IC-7170,Review Recommendation,2025-01-27 13:06,2025-01-27 13:26,Supervisor Diaz,property,high,8481,email
+IC-7170,Notify Customer,2025-01-27 14:13,2025-01-27 14:22,Notification Service,property,high,8481,email

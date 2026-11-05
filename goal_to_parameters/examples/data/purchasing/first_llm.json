@@ -1,0 +1,91 @@
+{
+  "simulation_goal_structured": "Primary objective: reduce end-to-end procurement cycle time from purchase requisition to invoice payment (target direction: minimize). Secondary objective: improve buyer and analyst utilization (target direction: maximize). Constraint: minimize delays in the quotation analysis and purchase order approval stages while maintaining throughput. Scope: end-to-end purchasing process.",
+  "kpis": [
+    {
+      "name": "Average Cycle Time",
+      "description": "End-to-end elapsed time from purchase requisition submission to invoice payment settlement.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures total elapsed time from the moment a buyer submits a purchase requisition until the invoice is settled.",
+        "measurable": "Difference between the end timestamp of the last activity and start timestamp of the first activity per case, in hours.",
+        "achievable": "Current baseline derived from SIMOD simulation; improvements expected through resource reallocation and parallelisation.",
+        "relevant": "Directly addresses the primary simulation goal of reducing procurement cycle time.",
+        "time_bound": "Measured per case, aggregated over the simulation run."
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "end_timestamp(last_activity) - start_timestamp(first_activity)",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "end_to_end"
+    },
+    {
+      "name": "Average Waiting Time",
+      "description": "Mean idle time between consecutive activities across all cases, reflecting delays in handoffs and approvals.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Captures the average time cases spend waiting between the completion of one activity and the start of the next.",
+        "measurable": "Sum of inter-activity gaps per case divided by number of gaps, averaged across all cases, in hours.",
+        "achievable": "Reducing waiting time is feasible by improving resource availability and reducing batching delays.",
+        "relevant": "Directly addresses minimizing delays in quotation analysis and PO approval stages.",
+        "time_bound": "Measured per case, aggregated over the simulation run."
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "mean(start_timestamp(next_activity) - end_timestamp(previous_activity))",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end"
+    },
+    {
+      "name": "Resource Utilization",
+      "description": "Average proportion of available working hours during which buyers and analysts are actively processing tasks.",
+      "category": "utilization",
+      "smart_breakdown": {
+        "specific": "Measures the fraction of scheduled calendar hours that procurement resources spend on active case work.",
+        "measurable": "Sum of active processing durations divided by total available calendar hours, as a ratio (0-1).",
+        "achievable": "Current utilisation from SIMOD baseline; target improvement through better workload distribution.",
+        "relevant": "Directly addresses the secondary goal of improving buyer and analyst utilization.",
+        "time_bound": "Aggregated over the full simulation run."
+      },
+      "target_direction": "maximize",
+      "suggested_formula": "sum(processing_time) / sum(available_hours)",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level"
+    },
+    {
+      "name": "Cost per Case",
+      "description": "Average total resource cost incurred per procurement case from requisition to payment.",
+      "category": "cost",
+      "smart_breakdown": {
+        "specific": "Measures the average monetary cost of processing one procurement case through all activities.",
+        "measurable": "Sum of (resource_cost_per_hour * processing_hours) per case, averaged across all cases, in EUR.",
+        "achievable": "Cost reduction achievable through efficiency improvements that reduce processing time per case.",
+        "relevant": "Complements cycle time reduction — ensures improvements don't come at disproportionate cost increase.",
+        "time_bound": "Measured per case, aggregated over the simulation run."
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "sum(resource_cost_per_hour * task_duration_hours) per case",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "end_to_end"
+    },
+    {
+      "name": "Throughput",
+      "description": "Number of procurement cases completed per day during the simulation period.",
+      "category": "throughput",
+      "smart_breakdown": {
+        "specific": "Measures how many procurement cases are completed per calendar day.",
+        "measurable": "Total completed cases divided by simulation time span in days.",
+        "achievable": "Maintaining or improving throughput while reducing cycle time ensures no capacity regression.",
+        "relevant": "Acts as a safeguard: cycle time improvements should not reduce overall throughput.",
+        "time_bound": "Aggregated over the full simulation run."
+      },
+      "target_direction": "maximize",
+      "suggested_formula": "count(completed_cases) / simulation_span_days",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end"
+    }
+  ],
+  "reasoning": "The five KPIs cover the three dimensions of the simulation goal: cycle time and waiting time for the primary minimisation objective, resource utilization for the secondary maximisation objective, cost per case as an efficiency measure, and throughput as a safeguard to ensure process capacity is maintained."
+}

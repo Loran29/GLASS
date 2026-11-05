@@ -1,0 +1,49 @@
+case_id,activity,timestamp,end_time,resource,customer_type,priority,loan_amount,region,status
+CL-4001,Submit Loan Request,2025-04-07 09:00,2025-04-07 09:05,Customer Portal,premium,high,8000,north,submitted
+CL-4001,Review Application,2025-04-07 09:30,2025-04-07 10:00,Loan Officer Garcia,premium,high,8000,north,completed
+CL-4001,Perform Credit Check,2025-04-07 11:00,2025-04-07 11:45,Credit Assessment Team,premium,high,8000,north,completed
+CL-4001,Evaluate Applicant Profile,2025-04-07 12:30,2025-04-07 13:15,Risk Department,premium,high,8000,north,completed
+CL-4001,Make Final Decision,2025-04-07 14:00,2025-04-07 14:20,Senior Manager,premium,high,8000,north,approved
+CL-4001,Disburse Funds,2025-04-07 15:00,2025-04-07 15:20,Disbursement Team,premium,high,8000,north,completed
+CL-4002,Submit Loan Request,2025-04-08 09:15,2025-04-08 09:20,Customer Portal,premium,high,12000,south,submitted
+CL-4002,Review Application,2025-04-08 09:45,2025-04-08 10:10,Loan Officer Patel,premium,high,12000,south,completed
+CL-4002,Perform Credit Check,2025-04-08 10:50,2025-04-08 11:30,Credit Assessment Team,premium,high,12000,south,completed
+CL-4002,Evaluate Applicant Profile,2025-04-08 11:40,2025-04-08 12:30,Risk Department,premium,high,12000,south,completed
+CL-4002,Make Final Decision,2025-04-08 13:10,2025-04-08 13:35,Senior Manager,premium,high,12000,south,approved
+CL-4002,Disburse Funds,2025-04-08 14:00,2025-04-08 14:20,Disbursement Team,premium,high,12000,south,completed
+CL-4003,Submit Loan Request,2025-04-09 08:50,2025-04-09 08:55,Customer Portal,premium,normal,15000,north,submitted
+CL-4003,Review Application,2025-04-09 09:20,2025-04-09 09:50,Loan Officer Garcia,premium,normal,15000,north,completed
+CL-4003,Perform Credit Check,2025-04-09 16:00,2025-04-09 16:50,Credit Assessment Team,premium,normal,15000,north,completed
+CL-4003,Evaluate Applicant Profile,2025-04-10 09:00,2025-04-10 10:00,Risk Department,premium,normal,15000,north,completed
+CL-4003,Make Final Decision,2025-04-10 10:45,2025-04-10 11:10,Senior Manager,premium,normal,15000,north,approved
+CL-4003,Disburse Funds,2025-04-10 12:00,2025-04-10 12:20,Disbursement Team,premium,normal,15000,north,completed
+CL-4004,Submit Loan Request,2025-04-10 09:10,2025-04-10 09:15,Customer Portal,premium,normal,18000,south,submitted
+CL-4004,Review Application,2025-04-10 09:40,2025-04-10 10:05,Loan Officer Patel,premium,normal,18000,south,completed
+CL-4004,Perform Credit Check,2025-04-10 15:30,2025-04-10 16:15,Credit Assessment Team,premium,normal,18000,south,completed
+CL-4004,Evaluate Applicant Profile,2025-04-11 08:40,2025-04-11 09:50,Risk Department,premium,normal,18000,south,completed
+CL-4004,Make Final Decision,2025-04-11 10:30,2025-04-11 10:55,Senior Manager,premium,normal,18000,south,approved
+CL-4004,Disburse Funds,2025-04-11 11:20,2025-04-11 11:45,Disbursement Team,premium,normal,18000,south,completed
+CL-4005,Submit Loan Request,2025-04-07 10:00,2025-04-07 10:05,Customer Portal,standard,high,45000,east,submitted
+CL-4005,Review Application,2025-04-07 12:00,2025-04-07 13:00,Loan Officer Nguyen,standard,high,45000,east,completed
+CL-4005,Perform Credit Check,2025-04-08 09:00,2025-04-08 10:00,Credit Assessment Team,standard,high,45000,east,completed
+CL-4005,Evaluate Applicant Profile,2025-04-08 12:00,2025-04-08 14:30,Risk Department,standard,high,45000,east,completed
+CL-4005,Make Final Decision,2025-04-09 09:00,2025-04-09 09:30,Senior Manager,standard,high,45000,east,approved
+CL-4005,Disburse Funds,2025-04-09 13:00,2025-04-09 13:20,Disbursement Team,standard,high,45000,east,completed
+CL-4006,Submit Loan Request,2025-04-08 09:40,2025-04-08 09:45,Customer Portal,standard,high,52000,west,submitted
+CL-4006,Review Application,2025-04-08 11:30,2025-04-08 12:20,Loan Officer Nguyen,standard,high,52000,west,completed
+CL-4006,Perform Credit Check,2025-04-09 08:30,2025-04-09 09:20,Credit Assessment Team,standard,high,52000,west,completed
+CL-4006,Evaluate Applicant Profile,2025-04-09 11:00,2025-04-09 14:00,Risk Department,standard,high,52000,west,completed
+CL-4006,Make Final Decision,2025-04-10 08:45,2025-04-10 09:20,Senior Manager,standard,high,52000,west,approved
+CL-4006,Disburse Funds,2025-04-10 12:10,2025-04-10 12:30,Disbursement Team,standard,high,52000,west,completed
+CL-4007,Submit Loan Request,2025-04-09 10:10,2025-04-09 10:15,Customer Portal,standard,normal,68000,east,submitted
+CL-4007,Review Application,2025-04-09 13:00,2025-04-09 14:00,Loan Officer Kim,standard,normal,68000,east,completed
+CL-4007,Perform Credit Check,2025-04-10 15:00,2025-04-10 16:10,Credit Assessment Team,standard,normal,68000,east,completed
+CL-4007,Evaluate Applicant Profile,2025-04-11 10:00,2025-04-11 13:45,Risk Department,standard,normal,68000,east,completed
+CL-4007,Make Final Decision,2025-04-12 09:30,2025-04-12 10:10,Senior Manager,standard,normal,68000,east,approved
+CL-4007,Disburse Funds,2025-04-12 15:00,2025-04-12 15:20,Disbursement Team,standard,normal,68000,east,completed
+CL-4008,Submit Loan Request,2025-04-10 09:30,2025-04-10 09:35,Customer Portal,standard,normal,75000,west,submitted
+CL-4008,Review Application,2025-04-10 12:20,2025-04-10 13:10,Loan Officer Kim,standard,normal,75000,west,completed
+CL-4008,Perform Credit Check,2025-04-11 14:30,2025-04-11 15:20,Credit Assessment Team,standard,normal,75000,west,completed
+CL-4008,Evaluate Applicant Profile,2025-04-12 09:00,2025-04-12 13:10,Risk Department,standard,normal,75000,west,completed
+CL-4008,Make Final Decision,2025-04-13 10:00,2025-04-13 10:40,Senior Manager,standard,normal,75000,west,approved
+CL-4008,Disburse Funds,2025-04-13 16:00,2025-04-13 16:25,Disbursement Team,standard,normal,75000,west,completed

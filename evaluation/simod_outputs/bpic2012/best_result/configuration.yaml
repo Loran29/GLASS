@@ -1,0 +1,54 @@
+version: 5
+common:
+  train_log_path: /simod_input/bpic2012_simod.csv
+  test_log_path: null
+  log_ids:
+    case: case_id
+    activity: activity
+    resource: resource
+    start_time: start_time
+    end_time: end_time
+    enabled_time: enabled_time
+    enabling_activity: enabling_activity
+    available_time: available_time
+    estimated_start_time: estimated_start_time
+    batch_id: batch_instance_id
+    batch_type: batch_instance_type
+  process_model_path: null
+  num_final_evaluations: 10
+  evaluation_metrics: []
+  use_observed_arrival_distribution: false
+  clean_intermediate_files: true
+  discover_data_attributes: false
+preprocessing:
+  multitasking: false
+  enable_time_concurrency_threshold: 0.5
+  concurrency_df: 0.75
+  concurrency_l2l: 0.9
+  concurrency_l1l: 0.9
+control_flow:
+  optimization_metric: three_gram_distance
+  num_iterations: 1
+  num_evaluations_per_iteration: 1
+  gateway_probabilities: discovery
+  mining_algorithm: sm1
+  epsilon: 0.3
+  eta: 0.5
+  replace_or_joins: false
+  prioritize_parallelism: false
+resource_model:
+  optimization_metric: circadian_event_distribution
+  num_iterations: 1
+  num_evaluations_per_iteration: 1
+  discovery_type: differentiated_by_resource
+  discover_prioritization_rules: false
+  discover_batching_rules: false
+  granularity: 30
+  confidence: 0.6
+  support: 0.2
+  participation: 0.4
+extraneous_activity_delays:
+  optimization_metric: RELATIVE_EMD
+  discovery_method: COMPLEX
+  num_iterations: 1
+  num_evaluations_per_iteration: 3

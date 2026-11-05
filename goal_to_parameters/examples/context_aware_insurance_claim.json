@@ -1,0 +1,7 @@
+{
+  "name": "Context-Aware Insurance Claim",
+  "recommended_provider": "ollama",
+  "recommended_model": "llama3.2:3b",
+  "process_description": "The insurance claim process begins when a customer submits a claim through the portal, email, or phone channel. A claims agent checks whether all required documents are included and requests missing documents when needed. After the documents are complete, a claim assessor evaluates the case. Complex or high-risk claims may go through an additional fraud review before a supervisor reviews the recommendation and makes the final decision. The process ends when the customer is notified of the decision.",
+  "simulation_goal": "Reduce claim decision cycle time while maintaining responsive service across claim types, channels, customer tiers, and priority levels"
+}

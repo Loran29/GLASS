@@ -1,0 +1,57 @@
+{
+  "simulation_goal_structured": "Primary objective: reduce end-to-end procurement cycle time (target direction: minimize). Secondary objective: reduce waiting time in approval stages (target direction: minimize). Constraint: maintain throughput at current levels. Scope: end-to-end purchasing process.",
+  "kpis": [
+    {
+      "name": "Average Cycle Time",
+      "description": "End-to-end elapsed time from purchase requisition submission to invoice payment settlement.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures total elapsed time from buyer's purchase requisition to invoice settlement.",
+        "measurable": "Difference between last and first activity timestamps per case, in hours.",
+        "achievable": "Improvements expected through parallelisation and resource reallocation.",
+        "relevant": "Directly addresses the primary simulation goal.",
+        "time_bound": "Measured per case over the simulation run."
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "end_timestamp(last_activity) - start_timestamp(first_activity)",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "end_to_end"
+    },
+    {
+      "name": "Average Waiting Time",
+      "description": "Mean idle time between consecutive activities, reflecting handoff and approval delays.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Average time cases spend waiting between activities.",
+        "measurable": "Sum of inter-activity gaps per case divided by number of gaps, in hours.",
+        "achievable": "Reducible by improving resource availability.",
+        "relevant": "Directly addresses minimizing delays in approval stages.",
+        "time_bound": "Measured per case over the simulation run."
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "mean(start_next - end_previous)",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end"
+    },
+    {
+      "name": "Throughput",
+      "description": "Number of procurement cases completed per day.",
+      "category": "throughput",
+      "smart_breakdown": {
+        "specific": "Measures daily case completion rate.",
+        "measurable": "Total completed cases divided by simulation span in days.",
+        "achievable": "Should be maintained at current level as a safeguard.",
+        "relevant": "Safeguard: cycle time improvements must not reduce capacity.",
+        "time_bound": "Aggregated over the full simulation run."
+      },
+      "target_direction": "maximize",
+      "suggested_formula": "count(completed_cases) / simulation_span_days",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end"
+    }
+  ],
+  "reasoning": "Three focused KPIs: cycle time and waiting time for the primary and secondary minimisation goals, and throughput as a safeguard to ensure process capacity is maintained while reducing times."
+}

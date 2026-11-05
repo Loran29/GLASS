@@ -1,0 +1,107 @@
+{
+  "simulation_goal_structured": "Reduce the time from patient arrival to completed diagnostics and the start of antibiotic treatment for suspected sepsis cases, increase the proportion of patients treated within the recommended clinical window, and ensure compliance with current emergency staffing and clinician rest requirements.",
+  "kpis": [
+    {
+      "name": "Average Time to Antibiotic Administration",
+      "description": "The average elapsed time from patient arrival to the start of intravenous antibiotics for suspected sepsis cases.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the time from Arrival to IV Antibiotics for all suspected sepsis cases.",
+        "measurable": "Computed as the average elapsed time between the Arrival and IV Antibiotics timestamps across completed cases. Unit: hours.",
+        "achievable": "Reducing this time is realistic through process improvements such as faster diagnostic workflows and better resource coordination.",
+        "relevant": "Directly targets the goal of reducing delays in starting antibiotic treatment for suspected sepsis patients.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(start_time('IV Antibiotics') - start_time('Arrival')) across completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Average Cycle Time"
+    },
+    {
+      "name": "ER Registration Waiting Time",
+      "description": "The average waiting time before the ER Registration activity, targeting the earliest bottleneck on the sepsis treatment path.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the queue time at the entry point of the sepsis pathway — before ER Registration.",
+        "measurable": "Computed as the average waiting time before ER Registration per completed case. Unit: hours.",
+        "achievable": "Reduction is feasible through nurse redeployment and triage prioritisation for suspected sepsis cases.",
+        "relevant": "Delays at ER Registration cascade through the entire pathway; cutting queue time here brings treatment within the clinical window.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(waiting_time('ER Registration')) across all completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level",
+      "context_segmentation": [],
+      "measurable_as": "ER Registration Waiting Time"
+    },
+    {
+      "name": "Lab Turnaround Time by Test Type",
+      "description": "The average time from ordering to result availability for key diagnostic tests (Leucocytes, CRP, Lactic Acid).",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the elapsed time between the ordering and result availability for each key diagnostic test.",
+        "measurable": "Computed as the average elapsed time between timestamps for test ordering and result availability for each test type. Unit: hours.",
+        "achievable": "Reducing lab turnaround times is realistic through better prioritization and coordination of diagnostic workflows.",
+        "relevant": "Addresses the bottleneck related to delays in diagnostic result availability, which affects timely treatment.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(result_time - order_time) grouped by test type (Leucocytes, CRP, Lactic Acid)",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level",
+      "context_segmentation": [],
+      "measurable_as": "Average Processing Time"
+    },
+    {
+      "name": "Wait Before Admission by Org Group",
+      "description": "Median waiting time between IV Antibiotics and Admission NC, segmented by org:group.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the waiting time for admission to a normal-care ward after IV Antibiotics, segmented by org:group.",
+        "measurable": "Computed as the median elapsed time between IV Antibiotics and Admission NC timestamps, grouped by org:group. Unit: hours.",
+        "achievable": "Reducing admission delays is feasible through better bed management and coordination between groups.",
+        "relevant": "Addresses the bottleneck related to bed availability, as identified in the process description and context evidence.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "median(start_time('Admission NC') - complete_time('IV Antibiotics')) grouped by org:group",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "activity_level",
+      "context_segmentation": [
+        {
+          "condition": "org:group = G",
+          "target": "below the observed median of 11.62h for group G",
+          "rationale": "Context evidence shows group G has a lower observed median wait time, making it a benchmark for improvement.",
+          "evidence_factor": "org:group",
+          "evidence_metric": "activity_wait_time_hours",
+          "adjusted_p_value": null,
+          "effect_size": null,
+          "sample_size": 141,
+          "observed_baseline": 11.6211,
+          "target_type": "direct"
+        },
+        {
+          "condition": "org:group = T",
+          "target": "below the observed median of 17.99h for group T",
+          "rationale": "Context evidence shows group T has a higher observed median wait time, so the target should reflect that segment-specific baseline.",
+          "evidence_factor": "org:group",
+          "evidence_metric": "activity_wait_time_hours",
+          "adjusted_p_value": null,
+          "effect_size": null,
+          "sample_size": 35,
+          "observed_baseline": 17.9972,
+          "target_type": "direct"
+        }
+      ],
+      "measurable_as": "Admission NC Waiting Time"
+    }
+  ],
+  "reasoning": "This KPI set aligns with the goal by targeting the end-to-end time to antibiotics (cycle time), the primary entry bottleneck (ER Registration waiting time), lab turnaround delays, and admission wait. Replacing the non-computable clinical-window compliance KPI with ER Registration Waiting Time ensures all four KPIs are directly computable from Prosimos output, giving the Stage-2 evaluation full coverage of the sepsis pathway bottlenecks."
+}

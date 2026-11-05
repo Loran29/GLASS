@@ -1,0 +1,35 @@
+{
+ "AcademicCredentials": {
+  "variant": "complex_hyperopt_holdout_after_enhanced",
+  "ctd_mean": 52.0671,
+  "ctd_std": 6.4853,
+  "files": [
+   "AcademicCredentials_test.csv.gz",
+   "AcademicCredentials_complex_hyperopt_holdout_after_enhanced.bpmn",
+   "AcademicCredentials_complex_hyperopt_holdout_after_enhanced.json",
+   "complex_hyperopt_holdout_after_enhancer_timers.txt"
+  ]
+ },
+ "BPIC_2012_W": {
+  "variant": "complex_hyperopt_holdout_after_enhanced",
+  "ctd_mean": 23.8813,
+  "ctd_std": 2.3044,
+  "files": [
+   "BPIC_2012_W_test.csv.gz",
+   "BPIC_2012_W_complex_hyperopt_holdout_after_enhanced.bpmn",
+   "BPIC_2012_W_complex_hyperopt_holdout_after_enhanced.json",
+   "complex_hyperopt_holdout_after_enhancer_timers.txt"
+  ]
+ },
+ "BPIC_2017_W": {
+  "variant": "complex_hyperopt_holdout_after_enhanced",
+  "ctd_mean": 21.6944,
+  "ctd_std": 2.3753,
+  "files": [
+   "BPIC_2017_W_test.csv.gz",
+   "BPIC_2017_W_complex_hyperopt_holdout_after_enhanced.bpmn",
+   "BPIC_2017_W_complex_hyperopt_holdout_after_enhanced.json",
+   "complex_hyperopt_holdout_after_enhancer_timers.txt"
+  ]
+ }
+}

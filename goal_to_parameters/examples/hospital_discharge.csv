@@ -1,0 +1,58 @@
+case_id,activity,timestamp,resource,outcome
+D-1001,Physician Discharge Decision,2025-01-02 08:15,Dr. Adams,completed
+D-1001,Prepare Discharge Checklist,2025-01-02 09:00,Nurse Martinez,completed
+D-1001,Prepare Medication Summary,2025-01-02 09:25,Nurse Martinez,completed
+D-1001,Validate Discharge Medication,2025-01-02 10:10,Pharmacist Lee,completed
+D-1001,Dispense Discharge Medication,2025-01-02 10:40,Pharmacist Lee,completed
+D-1001,Prepare Final Bill,2025-01-02 11:00,Billing Clerk,completed
+D-1001,Explain Aftercare Instructions,2025-01-02 12:30,Coordinator Davis,completed
+D-1001,Schedule Follow-up Appointment,2025-01-02 12:50,Coordinator Davis,completed
+D-1001,Patient Leaves Hospital,2025-01-02 13:15,,discharged
+D-1002,Physician Discharge Decision,2025-01-02 09:00,Dr. Chen,completed
+D-1002,Prepare Discharge Checklist,2025-01-02 10:30,Nurse Johnson,completed
+D-1002,Prepare Medication Summary,2025-01-02 10:55,Nurse Johnson,completed
+D-1002,Validate Discharge Medication,2025-01-02 13:00,Pharmacist Lee,completed
+D-1002,Dispense Discharge Medication,2025-01-02 13:20,Pharmacist Lee,completed
+D-1002,Prepare Final Bill,2025-01-02 13:45,Billing Clerk,completed
+D-1002,Explain Aftercare Instructions,2025-01-02 14:50,Coordinator Davis,completed
+D-1002,Schedule Follow-up Appointment,2025-01-02 15:10,Coordinator Davis,completed
+D-1002,Patient Leaves Hospital,2025-01-02 15:40,,discharged
+D-1003,Physician Discharge Decision,2025-01-03 07:45,Dr. Adams,completed
+D-1003,Prepare Discharge Checklist,2025-01-03 08:20,Nurse Martinez,completed
+D-1003,Prepare Medication Summary,2025-01-03 08:40,Nurse Martinez,completed
+D-1003,Validate Discharge Medication,2025-01-03 09:30,Pharmacist Nguyen,completed
+D-1003,Dispense Discharge Medication,2025-01-03 10:00,Pharmacist Nguyen,medication_error
+D-1003,Validate Discharge Medication,2025-01-03 10:45,Pharmacist Lee,completed
+D-1003,Dispense Discharge Medication,2025-01-03 11:10,Pharmacist Lee,completed
+D-1003,Prepare Final Bill,2025-01-03 11:30,Billing Clerk,completed
+D-1003,Explain Aftercare Instructions,2025-01-03 12:45,Coordinator Davis,completed
+D-1003,Schedule Follow-up Appointment,2025-01-03 13:05,Coordinator Davis,completed
+D-1003,Patient Leaves Hospital,2025-01-03 13:30,,discharged
+D-1004,Physician Discharge Decision,2025-01-03 08:00,Dr. Chen,completed
+D-1004,Prepare Discharge Checklist,2025-01-03 09:15,Nurse Johnson,completed
+D-1004,Prepare Medication Summary,2025-01-03 09:40,Nurse Johnson,completed
+D-1004,Validate Discharge Medication,2025-01-03 11:00,Pharmacist Nguyen,completed
+D-1004,Dispense Discharge Medication,2025-01-03 11:25,Pharmacist Nguyen,completed
+D-1004,Prepare Final Bill,2025-01-03 11:50,Billing Clerk,completed
+D-1004,Explain Aftercare Instructions,2025-01-03 13:30,Coordinator Davis,completed
+D-1004,Schedule Follow-up Appointment,2025-01-03 13:50,Coordinator Davis,completed
+D-1004,Patient Leaves Hospital,2025-01-03 14:10,,discharged
+D-1005,Physician Discharge Decision,2025-01-04 08:30,Dr. Adams,completed
+D-1005,Prepare Discharge Checklist,2025-01-04 09:00,Nurse Martinez,completed
+D-1005,Prepare Medication Summary,2025-01-04 09:20,Nurse Martinez,completed
+D-1005,Validate Discharge Medication,2025-01-04 10:15,Pharmacist Lee,completed
+D-1005,Dispense Discharge Medication,2025-01-04 10:35,Pharmacist Lee,completed
+D-1005,Prepare Final Bill,2025-01-04 11:00,Billing Clerk,completed
+D-1005,Explain Aftercare Instructions,2025-01-04 11:45,Coordinator Davis,completed
+D-1005,Schedule Follow-up Appointment,2025-01-04 12:00,Coordinator Davis,missed_slot
+D-1005,Schedule Follow-up Appointment,2025-01-04 12:30,Coordinator Davis,completed
+D-1005,Patient Leaves Hospital,2025-01-04 12:55,,discharged
+D-1006,Physician Discharge Decision,2025-01-04 09:00,Dr. Chen,completed
+D-1006,Prepare Discharge Checklist,2025-01-04 10:45,Nurse Johnson,completed
+D-1006,Prepare Medication Summary,2025-01-04 11:10,Nurse Johnson,completed
+D-1006,Validate Discharge Medication,2025-01-04 12:20,Pharmacist Nguyen,completed
+D-1006,Dispense Discharge Medication,2025-01-04 12:45,Pharmacist Nguyen,completed
+D-1006,Prepare Final Bill,2025-01-04 13:10,Billing Clerk,completed
+D-1006,Explain Aftercare Instructions,2025-01-04 14:30,Coordinator Davis,completed
+D-1006,Schedule Follow-up Appointment,2025-01-04 14:50,Coordinator Davis,completed
+D-1006,Patient Leaves Hospital,2025-01-04 15:15,,discharged

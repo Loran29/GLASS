@@ -1,0 +1,119 @@
+{
+  "simulation_goal_structured": "Reduce the overall cycle time and the number of customer call-back rounds required to reach a final decision on loan applications while maintaining consistent decision-making and keeping contact-centre staff workload within capacity constraints.",
+  "kpis": [
+    {
+      "name": "Average Loan Application Cycle Time",
+      "description": "The average elapsed time from initial submission to final decision (approved, declined, or cancelled) for loan applications.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the total time taken for a loan application to reach a final decision across all cases.",
+        "measurable": "Computed as the average elapsed time between the first 'A_SUBMITTED' activity and the final decision activity (e.g., 'A_ACCEPTED', 'A_DECLINED', or 'A_CANCELLED'). Unit: hours.",
+        "achievable": "Cycle time reduction is realistic through process improvements targeting delays in call-backs and file completion.",
+        "relevant": "Directly addresses the goal of reducing overall time to reach a final decision.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(final_decision_time - start_time('A_SUBMITTED')) across completed cases",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Average Cycle Time"
+    },
+    {
+      "name": "W_Nabellen Offertes Waiting Time",
+      "description": "The average waiting time before the W_Nabellen offertes (offer follow-up call-back) activity, reflecting how backed-up the most-repeated call-back step is.",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the queue time immediately before W_Nabellen offertes across all case instances.",
+        "measurable": "Computed as the average waiting time before W_Nabellen offertes per activity instance. Unit: hours.",
+        "achievable": "Reduction is feasible through better resource scheduling on the call-back pool or workload rebalancing.",
+        "relevant": "W_Nabellen offertes is the most frequently repeated activity; reducing its queue time directly limits total time consumed by call-back rounds.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "AVG(waiting_time('W_Nabellen offertes')) across all activity instances",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "activity_level",
+      "context_segmentation": [],
+      "measurable_as": "W_Nabellen offertes Waiting Time"
+    },
+    {
+      "name": "Wait Before Validation by Lifecycle Transition",
+      "description": "Median waiting time before 'W_Valideren aanvraag' activity, segmented by lifecycle transition (SCHEDULE, START, COMPLETE).",
+      "category": "time",
+      "smart_breakdown": {
+        "specific": "Measures the waiting time before the validation activity for each lifecycle transition group.",
+        "measurable": "Computed as the median elapsed time from the preceding activity to the start of 'W_Valideren aanvraag', grouped by lifecycle transition. Unit: hours.",
+        "achievable": "Reducing wait times is realistic through better scheduling and prioritization of validation tasks.",
+        "relevant": "Addresses a bottleneck identified in the context evidence, ensuring smoother progression through the process.",
+        "time_bound": "Evaluated across all simulated cases in the run"
+      },
+      "target_direction": "minimize",
+      "suggested_formula": "median(start_time('W_Valideren aanvraag') - preceding_activity_time) grouped by lifecycle:transition",
+      "supported_by_log": true,
+      "evidence_basis": "both",
+      "process_scope": "activity_level",
+      "context_segmentation": [
+        {
+          "condition": "lifecycle:transition = 'SCHEDULE'",
+          "target": "below the observed median of 0.0005h for SCHEDULE transitions",
+          "rationale": "Context evidence shows SCHEDULE transitions have the lowest baseline wait time, so maintaining or slightly improving this is realistic.",
+          "evidence_factor": "lifecycle:transition",
+          "evidence_metric": "activity_wait_time_hours",
+          "adjusted_p_value": null,
+          "effect_size": null,
+          "sample_size": 1043,
+          "observed_baseline": 0.0005,
+          "target_type": "direct"
+        },
+        {
+          "condition": "lifecycle:transition = 'START'",
+          "target": "below the observed median of 0.1979h for START transitions",
+          "rationale": "Context evidence shows START transitions have a moderate wait time, making this a key improvement target.",
+          "evidence_factor": "lifecycle:transition",
+          "evidence_metric": "activity_wait_time_hours",
+          "adjusted_p_value": null,
+          "effect_size": null,
+          "sample_size": 1507,
+          "observed_baseline": 0.1979,
+          "target_type": "direct"
+        },
+        {
+          "condition": "lifecycle:transition = 'COMPLETE'",
+          "target": "below the observed median of 0.6093h for COMPLETE transitions",
+          "rationale": "Context evidence shows COMPLETE transitions have the highest wait time, making this the primary bottleneck to address.",
+          "evidence_factor": "lifecycle:transition",
+          "evidence_metric": "activity_wait_time_hours",
+          "adjusted_p_value": null,
+          "effect_size": null,
+          "sample_size": 904,
+          "observed_baseline": 0.6093,
+          "target_type": "direct"
+        }
+      ],
+      "measurable_as": "W_Valideren aanvraag Waiting Time"
+    },
+    {
+      "name": "Process Throughput",
+      "description": "The number of loan applications reaching a final decision per day, used as a safeguard to confirm the scenario does not reduce the contact-centre's case-completion capacity.",
+      "category": "throughput",
+      "smart_breakdown": {
+        "specific": "Measures the daily case-completion rate across all final-decision outcomes.",
+        "measurable": "Computed as the total number of completed cases divided by the simulation duration in days. Unit: cases per day.",
+        "achievable": "Maintaining current throughput is realistic; the constraint is that capacity must not be reduced.",
+        "relevant": "Ensures contact-centre staff workload stays within current capacity while cycle time is reduced.",
+        "time_bound": "Evaluated across the full simulation run"
+      },
+      "target_direction": "maximize",
+      "suggested_formula": "COUNT(completed cases) / simulation_duration_days",
+      "supported_by_log": true,
+      "evidence_basis": "event_log_only",
+      "process_scope": "end_to_end",
+      "context_segmentation": [],
+      "measurable_as": "Throughput"
+    }
+  ],
+  "reasoning": "This KPI set addresses the simulation goal by targeting overall cycle time, active processing effort (as a proxy for call-back rounds), and bottleneck delays at the validation step, while safeguarding throughput to ensure contact-centre capacity is not degraded. All four KPIs are directly computable from Prosimos simulation output, ensuring the Stage-2 evaluation can measure directional improvement on every target."
+}

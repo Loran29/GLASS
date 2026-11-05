@@ -1,0 +1,13 @@
+{
+ "staffing": "Staffing is flexible within limits: for each internal role we could add up to three people, and working hours could be extended by up to two hours per day if needed. The applicant is an external party; we cannot add applicants, but we can send reminders and simplify what we ask from them.",
+ "budget": "We can accept up to 35% higher staff cost overall. Hourly costs: clerk 25 EUR, loan officer 50 EUR, appraiser 45 EUR, AML investigator 45 EUR, senior officer 70 EUR.",
+ "immutable": "The AML check is a regulatory step and the senior officer's approval of the offer is our four-eyes rule; both must stay in the process in their current order. Everything else – who does what, how long steps take, how long files wait between steps – can be improved.",
+ "cost_per_hour": {
+  "Clerk": 25,
+  "Loan Officer": 50,
+  "Appraiser": 45,
+  "AML Investigator": 45,
+  "Senior Officer": 70,
+  "Applicant": 0
+ }
+}

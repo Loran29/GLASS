@@ -1,0 +1,97 @@
+{
+ "_comment": "LoanApp_G3 of the LoanApp/P2P evaluation (evaluation/loanapp_p2p/setup/stage1_config.json and stage2_config.json), with paths relative to this folder.",
+ "stage1": {
+  "settings": {
+   "model": "gpt-4o-mini",
+   "temperature": 0.2,
+   "repetitions": 5,
+   "num_kpis": null,
+   "use_log_evidence": true
+  },
+  "configuration": {
+   "id": "LoanApp_G3",
+   "process": "LoanApp",
+   "goal_config": "G3",
+   "simulation_goal": "We want to make better use of our loan officers without overloading them.",
+   "event_log": "LoanApp_resource_target_bimp.csv",
+   "expected_kpis": [
+    "Loan Officer Utilization"
+   ],
+   "expected_measurable_as": [
+    "Resource Utilization"
+   ]
+  }
+ },
+ "stage2": {
+  "settings": {
+   "model": "gpt-4o-mini",
+   "temperature": 0.3,
+   "repetitions": 1,
+   "max_iterations": 4,
+   "seeds": 10,
+   "cases": 1000,
+   "start": "2023-02-09T10:00:00+02:00"
+  },
+  "expected_fix": {
+   "LoanApp": {
+    "G1": {
+     "parameter_type": "activity_duration",
+     "direction": "decrease",
+     "elements": [
+      "Check application form completeness",
+      "Return application back to applicant",
+      "Assess loan risk",
+      "Reject application",
+      "Cancel application",
+      "Approve application",
+      "Design loan offer",
+      "Approve loan offer",
+      "Applicant completes form"
+     ]
+    },
+    "G2": {
+     "parameter_type": "event_duration",
+     "direction": "decrease",
+     "elements": [
+      "Timer before Assess loan risk",
+      "Timer before Applicant completes form",
+      "Timer before Approve loan offer",
+      "Timer before Design loan offer"
+     ]
+    },
+    "G3": {
+     "parameter_type": "resource_count",
+     "direction": "increase",
+     "elements": [
+      "Loan Officer"
+     ],
+     "healthy_value": 4
+    }
+   }
+  },
+  "configuration": {
+   "config_id": "LoanApp_G3",
+   "process": "LoanApp",
+   "goal_config": "G3",
+   "event_log": "LoanApp_resource_target_bimp.csv",
+   "baseline_dir": "baseline",
+   "healthy_dir": "healthy",
+   "kpi_source_record": "stage1_record_LoanApp_G3_rep1.json",
+   "kpi_names_to_pass": [
+    "Loan Officer Workload Distribution"
+   ],
+   "kpi_inputs": {
+    "Loan Officer Workload Distribution": {
+     "target_threshold": 0.85,
+     "description_append": "Target: below 85 % of the available working time."
+    }
+   },
+   "expected_kpi_kinds": [
+    "UT"
+   ],
+   "injected_problems": [
+    "G3"
+   ]
+  }
+ }
+}

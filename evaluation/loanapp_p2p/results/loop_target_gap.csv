@@ -1,0 +1,481 @@
+batch,config_id,rep,kpi,measurable_as,loop_resolved,evaluation_resolved,same
+v1,LoanApp_G1,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,1,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,2,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,3,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,4,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2,5,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2G3,1,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G2G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2G3,2,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G2G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2G3,3,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G2G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2G3,4,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G2G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G2G3,5,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G1G2G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G1G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v1,LoanApp_G1G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G2,1,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G2,2,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G2,3,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G2,4,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G2,5,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v1,LoanApp_G2G3,1,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v1,LoanApp_G2G3,1,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G2G3,2,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v1,LoanApp_G2G3,2,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G2G3,3,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v1,LoanApp_G2G3,3,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G2G3,4,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v1,LoanApp_G2G3,4,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G2G3,5,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v1,LoanApp_G2G3,5,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G3,1,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G3,2,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G3,3,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G3,4,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,LoanApp_G3,5,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2,1,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v1,Procure2Pay_G1G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G1G2,2,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v1,Procure2Pay_G1G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G1G2,3,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v1,Procure2Pay_G1G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G1G2,4,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v1,Procure2Pay_G1G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G1G2,5,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v1,Procure2Pay_G1G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G1G2G3,1,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2G3,1,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v1,Procure2Pay_G1G2G3,1,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G2G3,2,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2G3,2,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v1,Procure2Pay_G1G2G3,2,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G2G3,3,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2G3,3,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v1,Procure2Pay_G1G2G3,3,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G2G3,4,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2G3,4,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v1,Procure2Pay_G1G2G3,4,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G2G3,5,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G2G3,5,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v1,Procure2Pay_G1G2G3,5,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G3,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G3,1,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G3,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G3,2,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G3,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G3,3,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G3,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G3,4,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G1G3,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v1,Procure2Pay_G1G3,5,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v1,Procure2Pay_G2G3,1,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v1,Procure2Pay_G2G3,1,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G2G3,2,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v1,Procure2Pay_G2G3,2,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G2G3,3,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v1,Procure2Pay_G2G3,3,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G2G3,4,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v1,Procure2Pay_G2G3,4,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G2G3,5,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v1,Procure2Pay_G2G3,5,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G3,1,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G3,2,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G3,3,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G3,4,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v1,Procure2Pay_G3,5,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,1,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,2,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,3,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,4,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2,5,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2G3,1,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G2G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2G3,2,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G2G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2G3,3,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G2G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2G3,4,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G2G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G2G3,5,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G1G2G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G1G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v2,LoanApp_G1G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G2,1,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G2,2,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G2,3,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G2,4,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G2,5,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v2,LoanApp_G2G3,1,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v2,LoanApp_G2G3,1,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G2G3,2,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v2,LoanApp_G2G3,2,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G2G3,3,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v2,LoanApp_G2G3,3,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G2G3,4,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v2,LoanApp_G2G3,4,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G2G3,5,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v2,LoanApp_G2G3,5,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G3,1,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G3,2,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G3,3,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G3,4,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,LoanApp_G3,5,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2,1,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v2,Procure2Pay_G1G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G1G2,2,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v2,Procure2Pay_G1G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G1G2,3,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v2,Procure2Pay_G1G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G1G2,4,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v2,Procure2Pay_G1G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G1G2,5,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v2,Procure2Pay_G1G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G1G2G3,1,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2G3,1,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v2,Procure2Pay_G1G2G3,1,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G2G3,2,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2G3,2,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v2,Procure2Pay_G1G2G3,2,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G2G3,3,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2G3,3,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v2,Procure2Pay_G1G2G3,3,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G2G3,4,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2G3,4,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v2,Procure2Pay_G1G2G3,4,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G2G3,5,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G2G3,5,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v2,Procure2Pay_G1G2G3,5,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G3,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G3,1,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G3,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G3,2,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G3,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G3,3,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G3,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G3,4,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G1G3,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v2,Procure2Pay_G1G3,5,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v2,Procure2Pay_G2G3,1,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v2,Procure2Pay_G2G3,1,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G2G3,2,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v2,Procure2Pay_G2G3,2,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G2G3,3,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v2,Procure2Pay_G2G3,3,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G2G3,4,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v2,Procure2Pay_G2G3,4,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G2G3,5,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v2,Procure2Pay_G2G3,5,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G3,1,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G3,2,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G3,3,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G3,4,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v2,Procure2Pay_G3,5,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,1,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,2,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,3,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,4,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2,5,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2G3,1,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G2G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2G3,2,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G2G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2G3,3,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G2G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2G3,4,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G2G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G2G3,5,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G1G2G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G1G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3,LoanApp_G1G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G2,1,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G2,2,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G2,3,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G2,4,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G2,5,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3,LoanApp_G2G3,1,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3,LoanApp_G2G3,1,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G2G3,2,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3,LoanApp_G2G3,2,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G2G3,3,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3,LoanApp_G2G3,3,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G2G3,4,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3,LoanApp_G2G3,4,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G2G3,5,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3,LoanApp_G2G3,5,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G3,1,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G3,2,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G3,3,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G3,4,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,LoanApp_G3,5,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2,1,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3,Procure2Pay_G1G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G1G2,2,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3,Procure2Pay_G1G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G1G2,3,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3,Procure2Pay_G1G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G1G2,4,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3,Procure2Pay_G1G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G1G2,5,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3,Procure2Pay_G1G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G1G2G3,1,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2G3,1,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3,Procure2Pay_G1G2G3,1,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G2G3,2,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2G3,2,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3,Procure2Pay_G1G2G3,2,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G2G3,3,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2G3,3,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3,Procure2Pay_G1G2G3,3,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G2G3,4,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2G3,4,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3,Procure2Pay_G1G2G3,4,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G2G3,5,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G2G3,5,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3,Procure2Pay_G1G2G3,5,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G3,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G3,1,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G3,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G3,2,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G3,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G3,3,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G3,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G3,4,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G1G3,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3,Procure2Pay_G1G3,5,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3,Procure2Pay_G2G3,1,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3,Procure2Pay_G2G3,1,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G2G3,2,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3,Procure2Pay_G2G3,2,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G2G3,3,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3,Procure2Pay_G2G3,3,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G2G3,4,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3,Procure2Pay_G2G3,4,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G2G3,5,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3,Procure2Pay_G2G3,5,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G3,1,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G3,2,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G3,3,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G3,4,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3,Procure2Pay_G3,5,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,1,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,2,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,3,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,4,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2,5,Average Wait Time After Background Checks,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2G3,1,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G2G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2G3,2,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G2G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2G3,3,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G2G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2G3,4,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G2G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G2G3,5,Average Wait Time Before Assessment Start,Assess loan risk Waiting Time,Average Cycle Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G1G2G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G3,1,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G3,1,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G3,2,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G3,2,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G3,3,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G3,3,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G3,4,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G3,4,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G1G3,5,Average Loan Assessment Cycle Time,Average Cycle Time,Average Cycle Time,Average Cycle Time,True
+v3.1,LoanApp_G1G3,5,Loan Officer Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G2,1,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G2,2,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G2,3,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G2,4,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G2,5,Average Wait Time Before Loan Assessment,Assess loan risk Waiting Time,Approve loan offer Waiting Time,Assess loan risk Waiting Time,False
+v3.1,LoanApp_G2G3,1,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3.1,LoanApp_G2G3,1,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G2G3,2,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3.1,LoanApp_G2G3,2,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G2G3,3,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3.1,LoanApp_G2G3,3,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G2G3,4,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3.1,LoanApp_G2G3,4,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G2G3,5,Average Wait Time Before Assessing Loan Risk,Assess loan risk Waiting Time,Assess loan risk Waiting Time,Assess loan risk Waiting Time,True
+v3.1,LoanApp_G2G3,5,Loan Officer Utilization Rate,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G3,1,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G3,2,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G3,3,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G3,4,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,LoanApp_G3,5,Loan Officer Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2,1,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3.1,Procure2Pay_G1G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G1G2,2,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3.1,Procure2Pay_G1G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G1G2,3,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3.1,Procure2Pay_G1G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G1G2,4,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3.1,Procure2Pay_G1G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G1G2,5,Total Cycle Time from Purchase Requisition to Invoice Payment,Average Cycle Time,Amend Purchase Requisition Waiting Time,Average Cycle Time,False
+v3.1,Procure2Pay_G1G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G1G2G3,1,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2G3,1,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3.1,Procure2Pay_G1G2G3,1,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G2G3,2,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2G3,2,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3.1,Procure2Pay_G1G2G3,2,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G2G3,3,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2G3,3,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3.1,Procure2Pay_G1G2G3,3,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G2G3,4,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2G3,4,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3.1,Procure2Pay_G1G2G3,4,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G2G3,5,Average Cycle Time from Requisition to Invoice Payment,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G2G3,5,Average Wait Time Before Invoice Release,case_wait_time_hours,Pay invoice Waiting Time,Pay invoice Waiting Time,True
+v3.1,Procure2Pay_G1G2G3,5,Purchasing Agent Workload Utilization,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G3,1,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G3,1,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G3,2,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G3,2,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G3,3,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G3,3,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G3,4,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G3,4,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G1G3,5,Average Cycle Time for Procure-to-Pay Process,case_cycle_time_hours,Average Cycle Time,Average Cycle Time,True
+v3.1,Procure2Pay_G1G3,5,Average Resource Utilization of Purchasing Agents,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G2,1,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G2,2,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G2,3,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G2,4,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G2,5,Invoice Release Waiting Time,Release Supplier's Invoice Waiting Time,Pay invoice Waiting Time,Release Supplier's Invoice Waiting Time,False
+v3.1,Procure2Pay_G2G3,1,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3.1,Procure2Pay_G2G3,1,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G2G3,2,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3.1,Procure2Pay_G2G3,2,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G2G3,3,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3.1,Procure2Pay_G2G3,3,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G2G3,4,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3.1,Procure2Pay_G2G3,4,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G2G3,5,Invoice Release Waiting Time from Prior Step,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,Release Supplier's Invoice Waiting Time,True
+v3.1,Procure2Pay_G2G3,5,Purchasing Agent Workload Distribution,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G3,1,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G3,2,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G3,3,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G3,4,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
+v3.1,Procure2Pay_G3,5,Purchasing Agent Workload by Time of Day,Resource Utilization,Resource Utilization,Resource Utilization,True
