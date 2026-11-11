@@ -1,0 +1,14 @@
+test,measure,with_description,no_description,n,with_greater,p
+"Fisher exact, pooled",strict_reps_all_expected_found,23/70,18/70,,,0.4578
+"Fisher exact, pooled",strict_expected_identified,54/120,57/120,,,0.7958
+"Fisher exact, pooled",lenient_reps_all_expected_found,26/70,20/70,,,0.3684
+"Fisher exact, pooled",lenient_expected_identified,65/120,57/120,,,0.3661
+sign test over configurations,strict_reps_all_expected_found,,,7,4,1.0
+sign test over configurations,lenient_reps_all_expected_found,,,10,6,0.7539
+sign test over configurations,strict_expected_identified,,,10,5,1.0
+sign test over configurations,lenient_expected_identified,,,11,7,0.5488
+sign test over configurations,strict_mean_n_extra,,,14,6,0.7905
+sign test over configurations,lenient_mean_n_extra,,,13,4,0.2668
+sign test over configurations,mean_n_returned,,,8,4,1.0
+sign test over configurations,kpi_set_jaccard,,,14,7,1.0
+sign test over configurations,category_stability,,,10,9,0.0215

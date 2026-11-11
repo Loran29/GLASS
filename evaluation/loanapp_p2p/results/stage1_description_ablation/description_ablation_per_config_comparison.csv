@@ -1,0 +1,15 @@
+config_id,strict_reps_all_expected_found_with,strict_reps_all_expected_found_without,strict_reps_all_expected_found_fisher_p,strict_expected_identified_with,strict_expected_identified_without,strict_expected_identified_fisher_p,lenient_reps_all_expected_found_with,lenient_reps_all_expected_found_without,lenient_reps_all_expected_found_fisher_p,lenient_expected_identified_with,lenient_expected_identified_without,lenient_expected_identified_fisher_p,strict_mean_n_extra_with,strict_mean_n_extra_without,lenient_mean_n_extra_with,lenient_mean_n_extra_without,mean_n_returned_with,mean_n_returned_without,kpi_set_jaccard_with,kpi_set_jaccard_without,category_stability_with,category_stability_without
+LoanApp_G1,5/5,5/5,1.0,5/5,5/5,1.0,5/5,5/5,1.0,5/5,5/5,1.0,1.6,1.4,1.6,2,3,3,0.6167,0.5017,1.0,1.0
+LoanApp_G2,5/5,0/5,0.0079,5/5,0/5,0.0079,3/5,1/5,0.5238,3/5,1/5,0.5238,2,2.6,2.4,2.8,3,3,0.32,0.45,1.0,1.0
+LoanApp_G3,5/5,3/5,0.4444,5/5,3/5,0.4444,5/5,3/5,0.4444,5/5,3/5,0.4444,2.2,3,2.4,3,3.4,3.6,0.81,0.49,0.85,0.85
+LoanApp_G1G2,1/5,0/5,1.0,6/10,5/10,1.0,1/5,0/5,1.0,6/10,5/10,1.0,1.4,1.6,1.6,2,3,3,0.625,0.35,1.0,1.0
+LoanApp_G1G3,4/5,3/5,1.0,9/10,8/10,1.0,4/5,3/5,1.0,9/10,8/10,1.0,1.4,1.6,1.4,1.8,3.2,3.4,0.4417,0.4133,0.75,0.64
+LoanApp_G2G3,0/5,0/5,1.0,1/10,3/10,0.582,0/5,1/5,1.0,3/10,5/10,0.6499,2.2,3.2,2.6,2.8,3.2,3.8,0.33,0.8,0.715,0.655
+LoanApp_G1G2G3,0/5,0/5,1.0,10/15,8/15,0.7104,2/5,0/5,0.4444,12/15,9/15,0.427,1.2,1.4,1.2,1.4,3.6,3.2,0.68,0.3733,0.85,0.75
+Procure2Pay_G1,3/5,3/5,1.0,3/5,3/5,1.0,5/5,1/5,0.0476,5/5,1/5,0.0476,1.6,1.8,2.8,2.8,3.8,3,0.3333,0.17,0.9,0.65
+Procure2Pay_G2,0/5,0/5,1.0,0/5,0/5,1.0,0/5,2/5,0.4444,0/5,2/5,0.4444,2.6,2.4,3,2.6,3,3,0.45,0.545,1.0,0.7
+Procure2Pay_G3,0/5,1/5,1.0,0/5,1/5,1.0,0/5,1/5,1.0,0/5,1/5,1.0,2.6,1.6,3,2.8,3,3,0.36,0.65,1.0,0.65
+Procure2Pay_G1G2,0/5,1/5,1.0,4/10,6/10,0.6563,0/5,0/5,1.0,0/10,0/10,1.0,1.6,1.4,3.2,3,3.2,3,0.2083,0.26,0.9,0.7
+Procure2Pay_G1G3,0/5,2/5,0.4444,1/10,4/10,0.3034,0/5,0/5,1.0,5/10,5/10,1.0,3,2.8,2.2,2.6,3.2,3.6,0.3833,0.4133,0.9,0.61
+Procure2Pay_G2G3,0/5,0/5,1.0,5/10,5/10,1.0,1/5,3/5,0.5238,6/10,8/10,0.6285,1.4,2,2.2,1.4,3.4,3,0.3683,0.47,0.85,1.0
+Procure2Pay_G1G2G3,0/5,0/5,1.0,0/15,6/15,0.0169,0/5,0/5,1.0,6/15,4/15,0.6999,3,1.4,1.8,2.2,3,3,0.625,0.2567,1.0,0.6
