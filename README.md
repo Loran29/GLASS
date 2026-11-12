@@ -50,13 +50,13 @@ overloaded loan officer role). They are copies of the evaluation's files:
 
 | File | Content | Copied from |
 |---|---|---|
-| `process_description.txt` | process description | `evaluation/loanapp_p2p/setup/stage1_config.json` |
+| `process_description.txt` | process description | `evaluation/experiments/shared/loanapp_p2p/setup/stage1_config.json` |
 | `goal.txt` | simulation goal | same |
-| `LoanApp_resource_target_bimp.csv` | event log | `evaluation/loanapp_p2p/input_logs/` |
-| `baseline/model.bpmn`, `baseline/sim_params.json` | baseline simulation model | `evaluation/loanapp_p2p/stage2/baselines/LoanApp_G3/` |
-| `healthy/model.bpmn`, `healthy/sim_params.json` | reference model for the log-distance measures | `evaluation/loanapp_p2p/stage2/healthy/LoanApp/` |
-| `business_context.json` | answers to the clarification chat (staffing, budget, immutable steps, hourly costs) | `evaluation/loanapp_p2p/setup/stage2_config.json` |
-| `stage1_record_LoanApp_G3_rep1.json` | the Stage 1 result the evaluation passed to Stage 2 | `evaluation/loanapp_p2p/results/stage1_results_normalised/raw/LoanApp_G3/rep_1.json` |
+| `LoanApp_resource_target_bimp.csv` | event log | `evaluation/experiments/shared/loanapp_p2p/input_logs/` |
+| `baseline/model.bpmn`, `baseline/sim_params.json` | baseline simulation model | `evaluation/experiments/shared/loanapp_p2p/stage2/baselines/LoanApp_G3/` |
+| `healthy/model.bpmn`, `healthy/sim_params.json` | reference model for the log-distance measures | `evaluation/experiments/shared/loanapp_p2p/stage2/healthy/LoanApp/` |
+| `business_context.json` | answers to the clarification chat (staffing, budget, immutable steps, hourly costs) | `evaluation/experiments/shared/loanapp_p2p/setup/stage2_config.json` |
+| `stage1_record_LoanApp_G3_rep1.json` | the Stage 1 result the evaluation passed to Stage 2 | `evaluation/experiments/experiment_1_expected_kpi_generation/results/stage1_results_normalised/raw/LoanApp_G3/rep_1.json` |
 | `example_config.json` | settings and the configuration entry, paths relative to the folder | both configuration files |
 
 ### Command line
@@ -205,11 +205,11 @@ literature-backed alternative interventions for KPIs that did not improve.
 - `use_knowledge_base: true` in `goal_to_parameters/config.yaml` (the default for every entry point);
 - the toggle **Use the knowledge base** in the Scenario Studio, for the session;
 - `--use-knowledge-base` on `examples/loanapp/run_example.py stage23` and
-  `evaluation/loanapp_p2p/scripts/run_stage2_batch.py`, for the run (`--no-knowledge-base` is the default).
+  `evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py`, for the run (`--no-knowledge-base` is the default).
 
 ```bash
 python examples/loanapp/run_example.py stage23 --seeds 2 --use-knowledge-base
-python evaluation/loanapp_p2p/scripts/run_stage2_batch.py --use-knowledge-base --workers 4 --out <folder>
+python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py --use-knowledge-base --workers 4 --out <folder>
 ```
 
 **What the option changes.** It decides only whether knowledge-base retrieval happens. With it off, there is
@@ -225,49 +225,44 @@ the knowledge base.
 
 | Results | Knowledge base |
 |---|---|
-| `evaluation/loanapp_p2p/results/stage2_results_v32_rag/V_no_kb/` (LoanApp/P2P, v3.2) | off (main results) |
-| `evaluation/real_life_ablation/results/stage2/`, variant V_no_kb | off (main results) |
-| `evaluation/loanapp_p2p/results/stage2_results_v32_rag/V_full/` (comparison with the knowledge base) | on |
-| `evaluation/real_life_ablation/results/stage2/`, variants V_full, V_no_log, V_no_context, V_no_refine, V_old_refine | on |
-| `evaluation/loanapp_p2p/results/stage2_results*/` v1 to v3.1 | on |
-| `evaluation/loanapp_p2p/results/stage2_loop_seeds/` (loop replications) | on |
+| `evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/V_no_kb/` (LoanApp/P2P, v3.2) | off (main results) |
+| `evaluation/experiments/experiment_4_real_life_ablation/results/stage2/`, variant V_no_kb | off (main results) |
+| `evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/V_full/` (comparison with the knowledge base) | on |
+| `evaluation/experiments/experiment_4_real_life_ablation/results/stage2/`, variants V_full, V_no_log, V_no_context, V_no_refine, V_old_refine | on |
+| Stage 2 v1 to v3.1 (not part of this package) | on |
+| `evaluation/experiments/experiment_6_loop_replications/results/` (loop replications) | on |
 
 **Consistency with the reported runs.** The runs without the knowledge base switched it off at the same three
-points as the option does (`evaluation/loanapp_p2p/versions/README.md`, v3.3). Replaying the recorded LLM
+points as the option does (`evaluation/experiments/shared/glass_versions/README.md`, v3.3). Replaying the recorded LLM
 answers of all 70 + 45 runs without it (option off) and of 10 runs with it (option on) reproduces every system
 prompt, temperature and first refinement feedback byte for byte. Every user prompt is reproduced up to the
 order of entries in a few JSON lists that GLASS builds from Python sets, which varies between processes
-(`evaluation/loanapp_p2p/results/kb_option_consistency.md`).
+(`evaluation/experiments/experiment_5_rag_vs_no_rag/results/kb_option_consistency.md`).
 
 ## Experiments and results
 
-All experiment files are in `evaluation/`; their READMEs describe each run, its settings and its scoring.
+The LoanApp/Procure2Pay evaluation and the real-life ablation are in `evaluation/experiments/`, one folder per experiment
+(`evaluation/experiments/README.md` describes each experiment, its settings and its results):
 
-- `evaluation/loanapp_p2p/`: LoanApp and Procure2Pay evaluation (14 configurations, 5 repetitions each).
-  - `setup/`: configurations.
-  - `input_logs/`: event logs.
-  - `stage2/`: baseline and reference models.
-  - `scripts/`: batch, reporting and verification scripts.
-  - `versions/`: patches between the GLASS code versions, with the original commit IDs.
-  - `results/`:
-    - `stage1_results/`, `stage1_results_normalised/`: Stage 1.
-    - `refinement_pilot/`: KPI refinement pilot.
-    - `stage2_results/`, `stage2_results_v2/`, `stage2_results_v3/`, `stage2_results_v3_1/`: Stage 2 batches
-      v1–v3.1.
-    - `stage2_results_v32_rag/`: v3.2 without the knowledge base (`V_no_kb/`, main results) and with it
-      (`V_full/`).
-    - `stage2_loop_seeds/`: the refinement loop with 1 and with 5 paired seeds per iteration (LoanApp).
-    - `seed_analysis.*`: how the results depend on the number of evaluation seeds.
-    - `kb_option_consistency.*`: replay of recorded runs with the knowledge-base option.
-    - Comparisons `stage2_*.md`/`.csv` and workbooks `GLASS_*.xlsx`.
-    - `runtimes.md`/`.csv`: run times.
-    - `VERSIONS.md`: what changed between the versions.
-- `evaluation/real_life_ablation/`: ablation on three real-life logs (AcademicCredentials, BPIC 2012 W,
-  BPIC 2017 W).
-  - `data/`, `baselines/`, `setup/`: inputs.
-  - `scripts/`: batch and reporting scripts.
-  - `results/stage1/`, `results/stage2/`: run records and summaries.
-  - `results/GLASS_ablation_results.xlsx`: workbook.
+- `experiment_0_synthetic_variants_vs_original/`: what the modified LoanApp and Procure2Pay models change.
+- `experiment_1_expected_kpi_generation/`: Stage 1 (`stage1_results/`, `stage1_results_normalised/`) and the KPI
+  refinement pilot (`refinement_pilot/`).
+- `experiment_2_valid_improving_kpis/`: Stage 2 on v3.2 without the knowledge base (`V_no_kb/`, main results) and
+  with it (`V_full/`).
+- `experiment_3_glass_vs_process_improvement_copilot/`: GLASS compared with Process Improvement Copilot.
+- `experiment_4_real_life_ablation/`: ablation on three real-life logs (AcademicCredentials, BPIC 2012 W,
+  BPIC 2017 W): `data/`, `baselines/`, `setup/`, `scripts/`, `results/`.
+- `experiment_5_rag_vs_no_rag/`: Stage 2 with and without the knowledge base, and the replay of recorded runs
+  with the knowledge-base option (`kb_option_consistency.*`).
+- `experiment_6_loop_replications/`: the refinement loop with 1 and with 5 paired seeds per iteration (LoanApp).
+- `shared/loanapp_p2p/`: configurations (`setup/`), event logs (`input_logs/`), process models (`bps_models/`),
+  baseline and reference models (`stage2/`) and the shared scripts.
+- `shared/analyses/`: run times (`runtimes.*`) and the dependence of the results on the number of evaluation
+  seeds (`seed_analysis.*`).
+- `shared/glass_versions/`: patches between the GLASS code versions, with the original commit IDs.
+
+The Stage 2 batches v1 to v3.1 that preceded v3.2 are not part of this package.
+
 - BPIC 2012, BPIC 2017 and Sepsis evaluation (`evaluation/README.md`):
   - `evaluation/*.py`: scripts.
   - `stage1_kpis/`, `stage2_results/`: results.
@@ -281,12 +276,14 @@ All experiment files are in `evaluation/`; their READMEs describe each run, its 
 
 **Records left unchanged:**
 - **Upstream absolute path.** The real-life ablation's baseline files from the upstream SIMOD package
-  (`evaluation/real_life_ablation/data/*/*_enhanced.json`), and the 270 Stage 2 run records that embed them,
+  (`evaluation/experiments/experiment_4_real_life_ablation/data/*/*_enhanced.json`), and the 270 Stage 2 run records that embed them,
   contain the absolute Windows path under which that package was built. They are kept byte-identical so that the
   SHA-256 values recorded for them still hold.
-- **Recorded hashes.** The run records name the GLASS code by its original commit ID; `evaluation/loanapp_p2p/versions/`
-  rebuilds each version. The stage tags and some comment wording in this tree differ from those bytes, so a few
-  recorded file hashes refer to the original files (`evaluation/loanapp_p2p/versions/README.md`).
+- **Recorded hashes.** The run records name the GLASS code by its original commit ID; `evaluation/experiments/shared/glass_versions/`
+  rebuilds each version's GLASS code. The stage tags and some comment wording in this tree differ from those bytes, so a few
+  recorded file hashes refer to the original files (`evaluation/experiments/shared/glass_versions/README.md`). The evaluation scripts were
+  moved into `evaluation/experiments/` and their paths adapted, so the script hashes in the records refer to the original
+  scripts.
 
 ## Known limitations
 
@@ -321,10 +318,7 @@ All experiment files are in `evaluation/`; their READMEs describe each run, its 
   the dense ranking depends on that query.
 - **LLM nondeterminism.** The LLM is not seeded. A rerun produces new samples; the stored run records are the
   results.
-- **Verification scripts that need the original history.** `reprocess_stage1_normalised.py`,
-  `verify_stage1_results.py` and `verify_refinement_pilot.py` (in `evaluation/loanapp_p2p/scripts/`) locate the
-  Stage 1 base commit in git by its original ID. The batch scripts record the git commit of their working copy, if
-  there is one.
+- **Git commit in new records.** The batch scripts record the git commit of their working copy, if there is one.
 
 ## Tests
 
@@ -340,7 +334,6 @@ In a fresh setup, `goal_to_parameters/tests` passes (37 tests). In `tests/`, 363
 - a live LLM test, which runs with `GLASS_LIVE_LLM_TESTS=1` and an API key;
 - a test that needs the stored Stage 2 simulated logs, which are not in the repository.
 
-Two tests fail, as they did before the evaluation's GLASS changes (`evaluation/loanapp_p2p/README.md`,
-"Regression check"):
+Two tests fail, as they did before the evaluation's GLASS changes:
 - `test_hybrid_retrieval.py::test_loan_query_finds_loan_paper` (a ranking expectation);
 - `test_second_llm_chatbot.py::test_is_ready_true_after_minimum_turns_and_signal` (chat readiness).

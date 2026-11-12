@@ -1,0 +1,329 @@
+diff --git a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+index 080663d..698a1c4 100644
+--- a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
++++ b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+@@ -20,8 +20,14 @@ Records go to <out>/raw/<id>/rep_<k>.json; reruns resume (final statuses are ski
+ Simulated logs are written next to the records but kept out of git (SHA-256 in the records, zipped per
+ configuration in <out>/log_archives/).
+ 
++Variant (--variant, default V_full = the batch as before): V_no_kb switches the knowledge base off in generation
++and feedback with the real-life ablation's switch (evaluation/real_life_ablation/scripts/run_ablation_batch.py,
++disable_kb); the record gets variant, switches and kb_switch (stub call counts). GLASS v3.2 can keep the
++baseline (no_improving_scenario): the record's loop gets no_improving_scenario and best_candidate_iteration.
++
+ Usage (repo root, Python environment with Prosimos, see stage2/README.md):
+   python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
++         [--variant V_full|V_no_kb] [--out DIR]
+ 
+ SCORING (analysis only; the recording is never changed by scoring)
+ Primary
+@@ -100,6 +106,7 @@ IMMUTABLE_STEPS = {"LoanApp": ["AML check", "Approve loan offer"],
+                    "Procure2Pay": ["Authorize Supplier's Invoice payment"]}
+ MAX_ADDED_PER_ROLE, MAX_COST_FACTOR, MAX_EXTRA_HOURS_PER_DAY = 3, 1.35, 2
+ MEASURES = ("CTD", "RED", "CWD", "NGD")
++VARIANTS = {"V_full": {"use_kb": True}, "V_no_kb": {"use_kb": False}}
+ WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+ 
+ 
+@@ -567,9 +574,12 @@ def run_rep(job: dict) -> dict:
+ 
+     inputs = load_inputs(cfg, config)
+     shared = job["shared"][cid]
++    variant = job.get("variant", "V_full")
+     tracker, events, patches = {"iteration": 0}, [], Patches()
++    kb_counter = {"kb_stub_calls": 0, "feedback_kb_suppressed": 0}
+     provider = Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
+     record = {"config_id": cid, "process": cfg["process"], "goal_config": cfg["goal_config"],
++              "variant": variant, "switches": VARIANTS[variant],
+               "rep": rep, "status": None, "error": None, "timestamp": t_start,
+               "provider": type(provider.inner).__name__, "model": provider.get_model_name(),
+               "glass_commit": job["glass_commit"], "config_sha256": job["config_sha"],
+@@ -592,6 +602,10 @@ def run_rep(job: dict) -> dict:
+         orch.accept_simod_raw_input(inputs["sim_params_text"], bpmn_xml=inputs["bpmn"])
+         for turn in inputs["chat"]:
+             orch.chat_session.append(ChatRole.USER, turn)
++        if not VARIANTS[variant]["use_kb"]:
++            sys.path.insert(0, str(BASE.parent / "real_life_ablation" / "scripts"))
++            from run_ablation_batch import disable_kb
++            disable_kb(patches, kb_counter)
+         log_profile = job["log_profile"][cid]
+         record["draft_payload"] = dump(orch.build_second_llm_request_draft(log_profile=log_profile))
+ 
+@@ -613,6 +627,7 @@ def run_rep(job: dict) -> dict:
+                                            start_time=settings["start"], seed=BASE_SEED, cost_per_hour=cost_map,
+                                            on_iteration=on_iteration, log_profile=log_profile)
+         patches.restore()
++        record["kb_switch"] = dict(kb_counter)
+         if provider.fatal:
+             return {"fatal": provider.fatal}
+ 
+@@ -651,6 +666,9 @@ def run_rep(job: dict) -> dict:
+             })
+         record["loop"] = {"iterations": iterations, "best_iteration": (loop.best_iteration_idx + 1)
+                           if loop.best_iteration_idx is not None else None,
++                          "no_improving_scenario": bool(getattr(loop, "no_improving_scenario", False)),
++                          "best_candidate_iteration": (loop.best_candidate_idx + 1)
++                          if getattr(loop, "best_candidate_idx", None) is not None else None,
+                           "final_status": dump(loop.final_status), "error": loop.error,
+                           "baseline_kpis_single_run": dump(loop.baseline_kpis),
+                           "total_time_seconds": round(loop.total_time_seconds, 1)}
+@@ -900,7 +918,7 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
+         "compliance calls: 0.1",
+         f"- Iterations: max {s['max_iterations']}; multi-seed: {s['seeds']} seeds ({BASE_SEED}..{BASE_SEED + s['seeds'] - 1}), "
+         f"{s['cases']} cases, start {s['start']}",
+-        f"- Repetitions: {args.reps}; workers: {args.workers} (processes)",
++        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}",
+         f"- This invocation: start {started}, end {ended}; earliest / latest rep timestamp: "
+         f"{min(stamps, default='')} / {max(stamps, default='')}",
+         f"- Python {sys.version.split()[0]}; prosimos {version('prosimos')}; log-distance-measures "
+@@ -1022,6 +1040,7 @@ def main() -> None:
+     ap.add_argument("--smoke", action="store_true", help="= --reps 1 --only LoanApp_G3")
+     ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
+     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
++    ap.add_argument("--variant", choices=sorted(VARIANTS), default="V_full", help="V_no_kb: knowledge base off")
+     args = ap.parse_args()
+     if args.smoke:
+         args.reps, args.only = 1, "LoanApp_G3"
+@@ -1057,10 +1076,12 @@ def main() -> None:
+                 s1.log(f"{cfg['config_id']} rep {rep} skipped (exists: {existing['status']})")
+                 continue
+             jobs.append({"config": config, "cfg": cfg, "rep": rep, "out": str(args.out), "glass_commit": commit,
++                         "variant": args.variant,
+                          "config_sha": config_sha, "script_sha": s1.sha256(Path(__file__).read_bytes()),
+                          "log_profile": log_profile, "shared": shared, "healthy_sha": healthy_sha,
+                          "healthy_scenario": healthy_scn})
+-    s1.log(f"{len(jobs)} run(s) to do; model {settings['model']}; workers {args.workers}; GLASS {commit[:7]}")
++    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; model {settings['model']}; workers {args.workers}; "
++           f"GLASS {commit[:7]}")
+     with ProcessPoolExecutor(max_workers=args.workers) as pool:
+         futures = [pool.submit(run_rep, job) for job in jobs]
+         for done, fut in enumerate(futures, 1):
+diff --git a/goal_to_parameters/second_llm/iterative_evaluator.py b/goal_to_parameters/second_llm/iterative_evaluator.py
+index 348e4fc..2936815 100644
+--- a/goal_to_parameters/second_llm/iterative_evaluator.py
++++ b/goal_to_parameters/second_llm/iterative_evaluator.py
+@@ -4,11 +4,17 @@
+ Runs a generate→simulate→evaluate→feedback cycle until the proposed scenario
+ meets every target — a KPI with a numeric threshold has *achieved* it, a KPI
+ without one has *improved* — or the max iteration count is reached.
+-The best result across all iterations is returned.
++The best result across all iterations is returned. When no iteration improves on the
++baseline (no positive score), the baseline is kept: the result says so
++(``no_improving_scenario``) and carries the best iteration for inspection only.
+ 
+ Iteration selection: most achieved targets first, then most improved KPIs, then a
+ goal-programming scoring function with prospect-theoretic loss aversion
+ (Kahneman & Tversky, 1979; λ=2.25).
++
++``legacy_refinement=True`` restores the earlier rules for comparison (ablation): stop at the
++first iteration whose overall status is ``improved``, and select the best iteration by score
++alone. Off by default.
+ """
+ 
+ from __future__ import annotations
+@@ -110,6 +116,23 @@ class IterativeEvaluationResult:
+     total_time_seconds: float = 0.0
+     baseline_kpis: KPIComputationResult | None = None
+     error: str | None = None
++    # No iteration improved on the baseline (no positive score): the baseline is kept,
++    # best_iteration_idx is None and the best iteration is attached for inspection only.
++    no_improving_scenario: bool = False
++    best_candidate_idx: int | None = None
++
++    @property
++    def outcome(self) -> str:
++        """"no_improving_scenario" when the baseline is kept, else "scenario" (or "error")."""
++        if self.error:
++            return "error"
++        return "no_improving_scenario" if self.no_improving_scenario else "scenario"
++
++    @property
++    def best_candidate(self) -> IterationResult | None:
++        if self.best_candidate_idx is not None and self.best_candidate_idx < len(self.iterations):
++            return self.iterations[self.best_candidate_idx]
++        return None
+ 
+     @property
+     def best(self) -> IterationResult | None:
+@@ -519,17 +542,19 @@ def _selection_key(it: IterationResult) -> tuple[int, int, float]:
+     return it.achieved_count, it.improved_count, it.score
+ 
+ 
+-def _select_best_iteration(iterations: list[IterationResult]) -> int | None:
+-    """Index of the best iteration: most achieved targets, then most improved KPIs, then score.
++def _select_best_iteration(iterations: list[IterationResult], by_score_only: bool = False) -> int | None:
++    """Index of the best iteration: most achieved targets, then most improved KPIs, then score
++    (``by_score_only``: score alone, the earlier rule).
+ 
+     Ties keep the earlier iteration. Failed iterations rank last.
+     """
+     if not iterations:
+         return None
++    key_of = (lambda it: (it.score,)) if by_score_only else _selection_key
+     best_idx = 0
+-    best_key = _selection_key(iterations[0])
++    best_key = key_of(iterations[0])
+     for i, it in enumerate(iterations[1:], 1):
+-        key = _selection_key(it)
++        key = key_of(it)
+         if key > best_key:
+             best_key = key
+             best_idx = i
+@@ -550,6 +575,7 @@ def run_iterative_evaluation(
+     on_iteration: Callable[[int, str], None] | None = None,
+     log_profile: dict[str, Any] | None = None,
+     context_profile: dict[str, Any] | None = None,
++    legacy_refinement: bool = False,
+ ) -> IterativeEvaluationResult:
+     """Run the iterative generate→simulate→evaluate→feedback loop.
+ 
+@@ -579,6 +605,11 @@ def run_iterative_evaluation(
+         Event-log profile dict passed to generate_scenario for RAG retrieval.
+     context_profile
+         Context profile dict passed to generate_scenario for evidence filtering.
++    legacy_refinement
++        Use the earlier refinement rules (for ablation): stop at the first iteration whose
++        overall status is ``improved``, and select the best iteration by score alone.
++        Default False: stop when the targets are met; select by achieved targets, then
++        improved KPIs, then score.
+     """
+     t0 = time.time()
+     result = IterativeEvaluationResult()
+@@ -652,7 +683,11 @@ def run_iterative_evaluation(
+ 
+         # Done when every KPI with a threshold has achieved it and every KPI without
+         # one has improved (without thresholds: every computed KPI improved).
+-        if iter_result.targets_met:
++        # Earlier rule (legacy_refinement): overall status improved.
++        if legacy_refinement and iter_result.status == OverallStatus.IMPROVED:
++            _notify(i, "All KPIs improved! Stopping.")
++            break
++        if not legacy_refinement and iter_result.targets_met:
+             _notify(i, "All targets met! Stopping.")
+             break
+ 
+@@ -665,7 +700,15 @@ def run_iterative_evaluation(
+             _notify(i, f"Result: {status_label} — refining...")
+ 
+     # --- Step 3: Select best ---
+-    result.best_iteration_idx = _select_best_iteration(result.iterations)
++    best_idx = _select_best_iteration(result.iterations, by_score_only=legacy_refinement)
++    if best_idx is not None and not any(it.score > 0 for it in result.iterations):
++        # No iteration improves on the baseline by the score: keep the baseline and attach
++        # the best iteration for inspection instead of returning it as the final scenario.
++        result.no_improving_scenario = True
++        result.best_candidate_idx = best_idx
++        _notify(len(result.iterations), "No iteration improved on the baseline; keeping the baseline.")
++    else:
++        result.best_iteration_idx = best_idx
+     if result.best is not None:
+         result.final_status = result.best.status
+ 
+diff --git a/goal_to_parameters/second_llm/patch_validator.py b/goal_to_parameters/second_llm/patch_validator.py
+index 151aaea..c90cafd 100644
+--- a/goal_to_parameters/second_llm/patch_validator.py
++++ b/goal_to_parameters/second_llm/patch_validator.py
+@@ -140,24 +140,24 @@ def _check_direction_consistency(
+             ),
+             modification_index=idx, element=mod.target_element,
+         )
+-    if mod.direction == ModificationDirection.INCREASE and prop < base:
+-        return PatchDiagnostic(
+-            severity="warning", category="direction_inconsistent",
+-            message=(
+-                f"Modification #{idx} on '{mod.target_element}' claims "
+-                f"direction='increase' but proposed ({prop}) < baseline ({base})."
+-            ),
+-            modification_index=idx, element=mod.target_element,
+-        )
+-    if mod.direction == ModificationDirection.DECREASE and prop > base:
+-        return PatchDiagnostic(
+-            severity="warning", category="direction_inconsistent",
+-            message=(
+-                f"Modification #{idx} on '{mod.target_element}' claims "
+-                f"direction='decrease' but proposed ({prop}) > baseline ({base})."
+-            ),
+-            modification_index=idx, element=mod.target_element,
+-        )
++    # A stated direction that contradicts the values is an error: the modification is rejected
++    # (e.g. a "decrease" whose proposed value is far above the baseline would otherwise be applied
++    # as a large increase).
++    for stated, wrong, relation, wanted in (
++        (ModificationDirection.INCREASE, prop < base, "smaller", "above"),
++        (ModificationDirection.DECREASE, prop > base, "larger", "below"),
++    ):
++        if mod.direction == stated and wrong:
++            return PatchDiagnostic(
++                severity="error", category="direction_inconsistent",
++                message=(
++                    f"Modification #{idx} on '{mod.target_element}' was rejected: it states "
++                    f"direction='{stated.value}', but the proposed value ({prop:g}) is {relation} than "
++                    f"the baseline value ({base:g}). Propose a value {wanted} {base:g} for a "
++                    f"{stated.value}, or state the direction that matches the change."
++                ),
++                modification_index=idx, element=mod.target_element,
++            )
+     return None
+ 
+ 
+diff --git a/goal_to_parameters/second_llm/scenario_generator.py b/goal_to_parameters/second_llm/scenario_generator.py
+index aaeb312..5f03218 100644
+--- a/goal_to_parameters/second_llm/scenario_generator.py
++++ b/goal_to_parameters/second_llm/scenario_generator.py
+@@ -674,9 +674,11 @@ def generate_scenario_patch(
+         # Pre-merge validation
+         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
+         if (pv.has_errors and attempt == max_retries
+-                and all(e.category in ("baseline_mismatch", "calendar_unparsed") for e in pv.errors)):
++                and all(e.category in ("baseline_mismatch", "calendar_unparsed", "direction_inconsistent")
++                        for e in pv.errors)):
+             # Last attempt: reject only the modifications whose quoted baseline value does
+-            # not match the model, or whose calendar text cannot be read, and keep the rest.
++            # not match the model, whose calendar text cannot be read, or whose stated
++            # direction contradicts their values, and keep the rest.
+             rejected = {e.modification_index for e in pv.errors}
+             for e in pv.errors:
+                 notes.append(f"[patch-reject] {e.message}")
+diff --git a/goal_to_parameters/ui/second_llm_panel.py b/goal_to_parameters/ui/second_llm_panel.py
+index 48cd8c1..4b884d3 100644
+--- a/goal_to_parameters/ui/second_llm_panel.py
++++ b/goal_to_parameters/ui/second_llm_panel.py
+@@ -765,6 +765,7 @@ def _get_evaluation_targets() -> list:
+             category=kpi.get("category", ""),
+             is_safeguard=(direction == TargetDirection.MAINTAIN),
+             unit=kpi.get("unit", ""),
++            measurable_as=kpi.get("measurable_as") or None,
+             description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
+         ))
+     return targets
+@@ -837,6 +838,12 @@ def _run_iterative_optimization(orch, ws, total_cases: int = 1000) -> None:
+ 
+     if iter_result.error:
+         status_container.update(label="Optimization failed", state="error")
++    elif iter_result.no_improving_scenario:
++        status_container.update(
++            label=f"No iteration improved on the baseline after {iter_result.total_iterations} iteration(s); "
++                  "the baseline is kept",
++            state="complete",
++        )
+     elif iter_result.improved:
+         status_container.update(
+             label=f"All KPIs improved after {iter_result.total_iterations} iteration(s)!",
+@@ -953,6 +960,17 @@ def _render_iterative_optimization_result() -> None:
+             st.session_state["_iter_optim_select_nonce"] = _select_nonce + 1
+             st.rerun()
+ 
++    if iter_result.no_improving_scenario:
++        cand = iter_result.best_candidate
++        st.warning(
++            "No iteration improved on the baseline, so no scenario is proposed and the baseline is kept."
++            + (f" The least worse iteration (#{cand.iteration}, score {cand.score:.1f}) is shown below for "
++               "inspection only." if cand is not None else "")
++        )
++        if cand is not None and cand.eval_result and cand.eval_result.ok:
++            with st.expander(f"Iteration #{cand.iteration} KPI comparison (not adopted)", expanded=False):
++                _render_kpi_comparison_lines(cand.eval_result.kpi_comparisons)
++
+     # Best result KPI details
+     best = iter_result.best
+     if best and best.eval_result and best.eval_result.ok:

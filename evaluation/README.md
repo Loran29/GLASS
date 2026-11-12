@@ -3,7 +3,7 @@
 Reproducibility harness for the evaluation on three public event logs: **BPIC 2017**, **BPIC 2012**, and **Sepsis Cases**.
 
 The separate Stage 1 evaluation on the simulated LoanApp and Procure2Pay processes (14 goal configurations, refinement pilot)
-lives in [`loanapp_p2p/`](loanapp_p2p/README.md), with its own setup, inputs, scripts, results and README.
+and the real-life ablation live in [`experiments/`](experiments/README.md), one folder per experiment.
 
 The pipeline is split into two evaluated stages, matching the two LLM stages of the main application:
 

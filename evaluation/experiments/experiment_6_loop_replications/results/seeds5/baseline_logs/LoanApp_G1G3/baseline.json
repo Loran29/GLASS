@@ -1,0 +1,57 @@
+{
+ "baseline_logs_sha256": {
+  "seed_42.csv.gz": "9a9571eed83af98b1e079ad353c35f98ffd0ec6e13d5633c371bfdc0451447e2",
+  "seed_43.csv.gz": "cbb1c1f9da97789948e945153db09b0d27869c6a6dfb7a59c1d26288bf72dd39",
+  "seed_44.csv.gz": "57c8c9a09bd676ba9453d4612ea90bc3e605f709f5d8d05e8636b0de8fa79d28",
+  "seed_45.csv.gz": "8670d9c19a06d27112f73e9a8ca6a7b546ca54139c604142a04bec675f3d11b8",
+  "seed_46.csv.gz": "66be83331cfb8c1d515d46d74ce953bf1f7adfd3e23d7de83afc604959960b92",
+  "seed_47.csv.gz": "1b6013625186a01e0956d7e457296dc64dac1af23834baa5a6e929b3b55b76f2",
+  "seed_48.csv.gz": "7c804776ab38bc13070dd14e7e4137fbd664f3e83912e6e0d4ea377f04755194",
+  "seed_49.csv.gz": "612f5b9f3b6e8bc35ef9cff856c4c7f67b57e67954e4b6290055a20aadc331f2",
+  "seed_50.csv.gz": "c3e7342be45d4d17403e45a225135cb37aa57ae4608b33beab34adb4615b9e8f",
+  "seed_51.csv.gz": "249c363500d328fdd3f72adef4f0e83596dfbd172777377b49174fef1aec12e9"
+ },
+ "baseline_pool_utilization": [
+  0.997369,
+  0.996954,
+  0.996745,
+  0.997326,
+  0.996486,
+  0.996554,
+  0.998245,
+  0.997551,
+  0.997117,
+  0.996905
+ ],
+ "baseline_distance": {
+  "CTD": 2249.0693,
+  "RED": 932.429322674336,
+  "CWD": 0.038690306228984055,
+  "NGD": 0.03922454876139498,
+  "CWD_raw": 0.038690306228984055
+ },
+ "baseline_midnight_ends_mapped_per_seed": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "healthy_midnight_ends_mapped_per_seed": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ]
+}

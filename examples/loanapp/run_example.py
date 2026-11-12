@@ -8,7 +8,7 @@
            multi-seed evaluation against the baseline on --seeds seeds.
 
 Both commands call the per-run functions of the evaluation batch scripts
-(evaluation/loanapp_p2p/scripts/run_stage1_batch.py and run_stage2_batch.py) with the inputs of this folder,
+(run_stage1_batch.py and run_stage2_batch.py in evaluation/experiments/) with the inputs of this folder,
 so a run is recorded exactly like a run of the LoanApp/P2P evaluation. No git checkout is needed.
 
   python examples/loanapp/run_example.py stage1 [--out DIR]
@@ -32,7 +32,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-sys.path.insert(0, str(REPO / "evaluation" / "loanapp_p2p" / "scripts"))
+sys.path.insert(0, str(REPO / "evaluation" / "experiments" / "shared" / "loanapp_p2p"))
+import lp_paths  # noqa: E402  (puts the experiments' scripts/ folders on sys.path)
 CONFIG_FILE = HERE / "example_config.json"
 CONFIG = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
@@ -96,6 +97,7 @@ def stage23(args) -> None:
     s1 = s2.s1
 
     s2.BASE = HERE                     # the configuration's relative paths point into this folder
+    lp_paths.lp = lambda rel: HERE / rel   # the batch script resolves configuration paths through lp()
     st = CONFIG["stage2"]
     cfg = dict(st["configuration"])
     if args.stage1_record:

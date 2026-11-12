@@ -113,14 +113,15 @@ The evaluation scripts are not tagged: their SHA-256 values are recorded in the 
 | Script | Stage |
 |---|---|
 | `examples/loanapp/run_example.py` | 1, and 2 + 3 (the example; calls the batch scripts' per-run functions) |
-| `evaluation/loanapp_p2p/scripts/run_stage1_batch.py`, `verify_stage1_results.py`, `reprocess_stage1_normalised.py`, `run_refinement_pilot.py`, `verify_refinement_pilot.py` | 1 |
-| `evaluation/real_life_ablation/scripts/run_stage1_ablation.py` | 1 |
-| `evaluation/loanapp_p2p/scripts/run_stage2_batch.py` (one run = Stage 2 and Stage 3), `complete_stage2_records.py`, `stage2_reporting.py`, `verify_stage2_results.py`, `compare_stage2_*.py`, `compare_stage2_versions.py`, `make_stage2_*workbook.py`, `find_unit_defect_runs.py`, `report_demand_changed.py`, `report_loop_target_gap.py` | 2 + 3 |
-| `evaluation/loanapp_p2p/scripts/compare_loop_seeds.py`, `make_loop_seeds_workbook.py`, `seed_analysis.py` | 2 + 3 (loop replications, number of evaluation seeds) |
-| `evaluation/loanapp_p2p/scripts/replay_kb_option.py` | 2 + 3 (consistency of the knowledge-base option with the recorded runs) |
-| `evaluation/real_life_ablation/scripts/run_ablation_batch.py`, `complete_ablation_records.py`, `ablation_reporting.py`, `verify_ablation.py`, `make_ablation_workbook.py`, `build_config.py` | 2 + 3 |
-| `evaluation/loanapp_p2p/scripts/build_stage2_baselines.py`, `qbp2prosimos.py`, `merge_ends.py`; `evaluation/real_life_ablation/scripts/select_baselines.py`, `validate_baselines.py`, `compute_waiting_times.py` | 3 (baseline models and inputs) |
-| `evaluation/loanapp_p2p/scripts/summarize_runtimes.py` | all (run times) |
+| `evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py`, `run_refinement_pilot.py` | 1 |
+| `evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py` | 1 |
+| `evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py` (one run = Stage 2 and Stage 3), `stage2_reporting.py`; `evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py` | 2 + 3 |
+| `evaluation/experiments/experiment_6_loop_replications/scripts/compare_loop_seeds.py`; `evaluation/experiments/shared/analyses/scripts/seed_analysis.py` | 2 + 3 (loop replications, number of evaluation seeds) |
+| `evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/replay_kb_option.py` | 2 + 3 (consistency of the knowledge-base option with the recorded runs) |
+| `evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py`, `ablation_reporting.py`, `build_config.py` | 2 + 3 |
+| `evaluation/experiments/experiment_3_glass_vs_process_improvement_copilot/scripts/*.py` | 3 (comparison with Process Improvement Copilot) |
+| `evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py`, `qbp2prosimos.py`, `merge_ends.py`; `evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py`, `compute_waiting_times.py`; `evaluation/experiments/experiment_0_synthetic_variants_vs_original/scripts/*.py` | 3 (baseline models and inputs) |
+| `evaluation/experiments/shared/analyses/scripts/summarize_runtimes.py` | all (run times) |
 | BPIC/Sepsis harness: `evaluation/run_stage1_evaluation.py` | 1 |
 | BPIC/Sepsis harness: `evaluation/run_stage2_ablation.py`, `run_baseline_comparison.py`, `run_baseline_simulation.py`, `run_simod_baselines.py`, `verify_stage2_prereqs.py`, `test_one_call.py` | 2 + 3 |
 | BPIC/Sepsis harness: `evaluation/download_logs.py`, `convert_xes_to_csv.py`, `results_dashboard.ipynb`, `baseline_comparison_dashboard.ipynb` | shared |

@@ -1,5 +1,5 @@
 {
- "_comment": "LoanApp_G3 of the LoanApp/P2P evaluation (evaluation/loanapp_p2p/setup/stage1_config.json and stage2_config.json), with paths relative to this folder.",
+ "_comment": "LoanApp_G3 of the LoanApp/P2P evaluation (evaluation/experiments/shared/loanapp_p2p/setup/stage1_config.json and stage2_config.json), with paths relative to this folder.",
  "stage1": {
   "settings": {
    "model": "gpt-4o-mini",

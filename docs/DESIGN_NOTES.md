@@ -1,7 +1,7 @@
 # Design notes
 
 Behaviour of GLASS in detail, including the changes made while the evaluation ran. The GLASS code of each
-evaluation version can be rebuilt with `evaluation/loanapp_p2p/versions/` (README there); the commit IDs below
+evaluation version can be rebuilt with `evaluation/experiments/shared/glass_versions/` (README there); the commit IDs below
 link to the patch that contains the change.
 
 ## Design choices worth flagging
@@ -18,11 +18,11 @@ link to the patch that contains the change.
 
 **Previous behaviour.** Stage 2 lost every timer delay discovered by SIMOD. `second_llm/simod_to_simubridge.py` ignored the baseline's `event_distribution`, and `second_llm/prosimos_runner.py::scenario_to_prosimos_json` exported every BPMN intermediate catch event with duration 0 (`expon`, mean 0). Baseline and proposed simulations therefore ran without extraneous waiting time, and the second LLM could neither see nor change it.
 
-**What changed** (introduced by the change right after [`bddc958`](../evaluation/loanapp_p2p/versions/base_to_v1.patch)):
+**What changed** (introduced by the change right after [`bddc958`](../evaluation/experiments/shared/glass_versions/base_to_v1.patch)):
 - **Import.** Each `event_distribution` entry becomes an `IntermediateEvent` on `modelParameter.intermediateEvents`. Its display name is `Timer before <successor activity>`, falling back to the event id; predecessor and successor are resolved from the BPMN; the distribution is parsed by the existing activity-duration code.
 - **Export.** Stored events are written back with their (possibly patched) distribution. BPMN intermediate events not held on the scenario keep the zero default.
 - **Patch type.** New `event_duration` patch parameter type, targeting an intermediate event by display name or id. It is applied by `scenario_merger._apply_event_duration`. The validator rejects unknown events and negative durations, and cost estimation treats it as cost-neutral.
-- **LLM visibility.** When the baseline has timers, the patch prompt lists them (name, id, predecessor → successor, current mean) and adds `event_duration` to the allowed types and to the constrained-decoding enum. For baselines without timers, the prompt, schemas and Prosimos export are byte-identical to before; `tests/test_event_duration.py` checks this against fingerprints taken at [`bddc958`](../evaluation/loanapp_p2p/versions/base_to_v1.patch).
+- **LLM visibility.** When the baseline has timers, the patch prompt lists them (name, id, predecessor → successor, current mean) and adds `event_duration` to the allowed types and to the constrained-decoding enum. For baselines without timers, the prompt, schemas and Prosimos export are byte-identical to before; `tests/test_event_duration.py` checks this against fingerprints taken at [`bddc958`](../evaluation/experiments/shared/glass_versions/base_to_v1.patch).
 
 **Example modification** (remove a timer's waiting time):
 
@@ -43,10 +43,10 @@ link to the patch that contains the change.
 
 Together these made simulated cycle and waiting times differ from the baseline by up to 40×.
 
-**What changed** (change "Fix arrival and resource calendars being replaced by 24/7 on export", right after [`cb9cb17`](../evaluation/loanapp_p2p/versions/base_to_v1.patch)):
+**What changed** (change "Fix arrival and resource calendars being replaced by 24/7 on export", right after [`cb9cb17`](../evaluation/experiments/shared/glass_versions/base_to_v1.patch)):
 - **Arrival calendar.** It is imported into `StartEvent.arrivalCalendar` and exported as `arrival_time_calendar`. A scenario without one (for example a baseline without `arrival_time_calendar`, or a legacy full-scenario proposal) still exports 24/7.
 - **Resource calendars.** They are exported as they are. Prosimos 2.x handles calendars without weekend days. Only a calendar with no periods at all falls back to Mon–Sun 09–17.
-- **Unchanged outputs.** The new field is hidden from the LLM schemas and left out of the serialised output when empty. Baselines whose calendars are already 24/7 export byte-identically to before; `tests/test_calendars.py` checks this against fingerprints taken at [`cb9cb17`](../evaluation/loanapp_p2p/versions/base_to_v1.patch).
+- **Unchanged outputs.** The new field is hidden from the LLM schemas and left out of the serialised output when empty. Baselines whose calendars are already 24/7 export byte-identically to before; `tests/test_calendars.py` checks this against fingerprints taken at [`cb9cb17`](../evaluation/experiments/shared/glass_versions/base_to_v1.patch).
 
 **Known limitation.** Calendar times are whole hours (`TimetableItem` stores integer hours), as before for resource calendars.
 

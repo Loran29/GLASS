@@ -1,0 +1,15 @@
+config,source_model,lever,output_model,roles,role_source,idea,inefficiency
+LoanApp_G1,LoanApp_durations,hours,extended_hours/LoanApp_G1__hours,Clerk; Loan Officer,named in the motivation / impact text,Extended working hours for critical roles,End-to-end performance
+LoanApp_G1G2,LoanApp_G1G2,hours,extended_hours/LoanApp_G1G2__hours,Clerk; Loan Officer,named in the motivation / impact text,Extended working hours for critical roles,End-to-end performance
+LoanApp_G1G2G3,LoanApp_G1G2G3,resources,extra_resources/LoanApp_G1G2G3__resources,Loan Officer,named in the idea title,Deploy extra resources for AML checks and loan officer assessments,Resource workload
+LoanApp_G1G3,LoanApp_G1G3,resources,extra_resources/LoanApp_G1G3__resources,Clerk; Loan Officer,named in the motivation / impact text,Deploy Extra Resources for Critical Steps in the Loan Assessment Process,Resource workload
+LoanApp_G2,LoanApp_extraneous,hours,extended_hours/LoanApp_G2__hours,Clerk; Loan Officer,named in the idea title,Empower resources by extending working hours for the clerk and loan officer during peak application periods.,Local process delay
+LoanApp_G2G3,LoanApp_G2G3,resources,extra_resources/LoanApp_G2G3__resources,Clerk; Loan Officer,named in the motivation / impact text,Deploy extra resources for high-demand periods,Resource workload
+LoanApp_G3,LoanApp_resource_target,resources,extra_resources/LoanApp_G3__resources,Loan Officer,named in the motivation / impact text,Deploy extra resources,Resource workload
+Procure2Pay_G1,Procure2Pay_durations,hours,extended_hours/Procure2Pay_G1__hours,Financial Manager; Purchasing Agent,named in the idea title,Extended working hours for purchasing agents and financial managers,End-to-end performance
+Procure2Pay_G1G2,Procure2Pay_G1G2,hours,extended_hours/Procure2Pay_G1G2__hours,Financial Manager,named in the idea title,Extended working hours for financial managers during peak periods,End-to-end performance
+Procure2Pay_G1G2G3,Procure2Pay_G1G2G3,hours,extended_hours/Procure2Pay_G1G2G3__hours,Purchasing Agent,named in the idea title,Extended working hours for purchasing agents,End-to-end performance
+Procure2Pay_G1G2G3,Procure2Pay_G1G2G3,resources,extra_resources/Procure2Pay_G1G2G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources in the procure-to-pay process,Resource workload
+Procure2Pay_G1G3,Procure2Pay_G1G3,resources,extra_resources/Procure2Pay_G1G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources in the procure-to-pay process,Resource workload
+Procure2Pay_G2G3,Procure2Pay_G2G3,resources,extra_resources/Procure2Pay_G2G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources for invoice processing,Resource workload
+Procure2Pay_G3,Procure2Pay_resource_target,resources,extra_resources/Procure2Pay_G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources during peak requisition periods,Resource workload
