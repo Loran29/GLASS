@@ -28,8 +28,8 @@ behaviour in detail.
 - **An LLM API key** in `goal_to_parameters/.env`: `OPENROUTER_API_KEY` or `OPENAI_API_KEY`. The results used
   `gpt-4o-mini` through OpenRouter. The UI also supports Anthropic, Hugging Face and a local Ollama server
   (`goal_to_parameters/config.yaml`).
-- **Java (optional)** only to discover a new baseline with SIMOD (the UI's "Run SIMOD"). The example and the
-  experiments ship their baselines.
+- **Java (optional)** only to discover a new baseline with SIMOD (the UI's "Run SIMOD"); Docker can be used
+  instead (see [Docker](#docker-optional)). The example and the experiments ship their baselines.
 
 ## Setup
 
@@ -42,6 +42,28 @@ python -m pip install -r requirements.txt
 python -c "import shutil; shutil.copy('.env.example', 'goal_to_parameters/.env')"
 python examples/loanapp/run_example.py stage1  # after putting your key into goal_to_parameters/.env
 ```
+
+## Docker (optional)
+
+GLASS does not need Docker: Prosimos runs from the Python package in `requirements.txt`, and the example and
+the experiments run in the Python environment above. Docker can be used in two ways.
+
+**The UI in a container.** With Docker Desktop (or Docker Engine) running, from the repository root:
+
+```bash
+python -c "import shutil; shutil.copy('.env.example', 'goal_to_parameters/.env')"   # then add your key
+docker compose up --build
+```
+
+Open http://localhost:8501. The image (`Dockerfile`, Python 3.11) contains `goal_to_parameters/` and the
+Scenario Studio's bundled examples (`evaluation/stage1_kpis/`, `evaluation/simod_outputs/*/simod_raw.json`);
+the API key is read from `goal_to_parameters/.env` (`docker-compose.yml`). The image has no Java and no Docker,
+so "Run SIMOD" is not available inside it; the bundled examples and given baselines are. The command-line
+example and the evaluation scripts are not part of the image; run them in the Python environment.
+
+**SIMOD in a container.** Outside the container, the Scenario Studio's "Run SIMOD" can run SIMOD either with the
+installed `simod` package (needs Java 1.8 on `PATH`) or in the `nokal/simod` Docker image (backend "Docker",
+the default when Docker is running; the image is pulled on first use).
 
 ## Running the example
 
