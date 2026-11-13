@@ -260,7 +260,7 @@ def change_profile(mods: list[dict], aliases: set[str]) -> dict:
 
 
 def dhr_nis(kpis: list[dict]) -> tuple[float | None, float | None]:
-    """Definitions from the paper (evaluation/run_stage2_ablation.py _compute_dhr_mki)."""
+    """Definitions from the paper: DHR = share of improved KPIs, NIS = mean |% change|, + if improved, - otherwise."""
     used = [k for k in kpis if k.get("glass_improved") is not None and k.get("pct_change") is not None]
     if not used:
         return None, None

@@ -41,9 +41,6 @@ desktop.ini
 # Embedding/retrieval caches (auto-generated on first run)
 goal_to_parameters/knowledge/cache/
 
-# Evaluation logs (large public datasets — re-download with download_logs.py)
-evaluation/logs/
-
 # Claude Code local config
 .claude/settings.local.json
 

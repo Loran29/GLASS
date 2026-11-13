@@ -122,8 +122,5 @@ The evaluation scripts are not tagged: their SHA-256 values are recorded in the 
 | `evaluation/experiments/experiment_3_glass_vs_process_improvement_copilot/scripts/*.py` | 3 (comparison with Process Improvement Copilot) |
 | `evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py`, `qbp2prosimos.py`, `merge_ends.py`; `evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py`, `compute_waiting_times.py`; `evaluation/experiments/experiment_0_synthetic_variants_vs_original/scripts/*.py` | 3 (baseline models and inputs) |
 | `evaluation/experiments/shared/analyses/scripts/summarize_runtimes.py` | all (run times) |
-| BPIC/Sepsis harness: `evaluation/run_stage1_evaluation.py` | 1 |
-| BPIC/Sepsis harness: `evaluation/run_stage2_ablation.py`, `run_baseline_comparison.py`, `run_baseline_simulation.py`, `run_simod_baselines.py`, `verify_stage2_prereqs.py`, `test_one_call.py` | 2 + 3 |
-| BPIC/Sepsis harness: `evaluation/download_logs.py`, `convert_xes_to_csv.py`, `results_dashboard.ipynb`, `baseline_comparison_dashboard.ipynb` | shared |
 | `scripts/eval_retrieval.py` | 2 (knowledge-base retrieval) |
 | `scripts/optimize_prompt.py` | 2 (scenario prompt) |

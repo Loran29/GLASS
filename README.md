@@ -263,11 +263,13 @@ The LoanApp/Procure2Pay evaluation and the real-life ablation are in `evaluation
 
 The Stage 2 batches v1 to v3.1 that preceded v3.2 are not part of this package.
 
-- BPIC 2012, BPIC 2017 and Sepsis evaluation (`evaluation/README.md`):
-  - `evaluation/*.py`: scripts.
-  - `stage1_kpis/`, `stage2_results/`: results.
-  - `simod_outputs/`: discovered baselines.
-  - `figures/`.
+The real-life datasets of the ablation (AcademicCredentials, BPIC 2012 W, BPIC 2017 W) are in
+`evaluation/experiments/experiment_4_real_life_ablation/data/`, taken from an existing reproducibility package
+(https://zenodo.org/records/10435849).
+
+- `evaluation/stage1_kpis/`, `evaluation/simod_outputs/*/simod_raw.json`: the Scenario Studio's bundled examples
+  "BPIC 2017", "BPIC 2012" and "Sepsis" (a KPI set and a SIMOD-discovered baseline each); not used by the
+  experiments.
 - `Papers/CaseStudy/README.md`: references of the case-study literature in the (optional) knowledge base.
 
 **Not in the repository:**

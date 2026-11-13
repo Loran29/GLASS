@@ -31,4 +31,3 @@ pytest==9.1.1
 #   pypdf                  full-text index of the case-study PDFs (Papers/CaseStudy/README.md)
 #   sentence-transformers  dense embeddings and cross-encoder re-ranking in the knowledge-base retrieval;
 #                          without it, retrieval uses an Ollama embedding server if one is running, else TF-IDF
-#   pm4py                  only for evaluation/convert_xes_to_csv.py (XES -> CSV)
