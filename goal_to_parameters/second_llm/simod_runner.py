@@ -31,9 +31,9 @@ from second_llm.models import RawSimodInput, SimodResult
 
 logger = logging.getLogger(__name__)
 
-DOCKER_IMAGE = "nokal/simod:5.2.1"  # same SIMOD version as requirements.txt
+DOCKER_IMAGE = "nokal/simod"
 # The simod CLI lives inside a virtualenv in the container image.
-_CONTAINER_SIMOD_BIN = "/opt/venv/bin/simod"
+_CONTAINER_SIMOD_BIN = "/usr/src/Simod/.venv/bin/simod"
 
 
 class SimodBackend(str, Enum):
@@ -179,8 +179,8 @@ def normalise_csv_columns(csv_path: Path) -> tuple[Path, list[str]]:
     original_columns = list(df.columns)
     lower_map = {col.strip().lower(): col for col in original_columns}
 
-    # Check if already correct (exact names; a case difference is renamed below)
-    if _SIMOD_COLUMNS.issubset(set(original_columns)):
+    # Check if already correct
+    if _SIMOD_COLUMNS.issubset(set(lower_map.keys())):
         return csv_path, []
 
     rename_map: dict[str, str] = {}

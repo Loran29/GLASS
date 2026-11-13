@@ -17,9 +17,7 @@ code in this tree.
 | loop_seeds | `5643d0495c6db2013cade1be29cb47dc0cafcd0c` | `480af8b8e869da1840a36dbe471c79733660de9c593a2cf78706ce908375e152` | loop replications (`experiment_6_loop_replications/`) | option `loop_seeds` of the refinement loop (default 1 = the v3.2 loop) |
 | v3.3 | `821cc000c5f7f9da3197401c15020b539a600045` | `f11cf907deaa012977df039f867c52315b0c189e6a389bb07153c53b33a9a4de` | – (this tree) | knowledge base optional, off by default (`use_knowledge_base`); no change to any other component |
 
-The code in this tree is v3.3 plus a fix of the UI's "Run SIMOD" (`second_llm/simod_runner.py`: SIMOD Docker
-image and path, case of the event-log column names), which no run used:
-[`v3.3_to_simod_fix.patch`](v3.3_to_simod_fix.patch).
+The code in this tree is v3.3.
 
 ## Patch files
 
@@ -32,7 +30,6 @@ image and path, case of the event-log column names), which no run used:
 | [`v3.1_to_v3.2.patch`](v3.1_to_v3.2.patch) | v3.1 → v3.2 | `goal_to_parameters/` (4 files) and the batch script |
 | [`v3.2_to_loop_seeds.patch`](v3.2_to_loop_seeds.patch) | v3.2 → loop_seeds | `goal_to_parameters/` (1 file) and the batch script |
 | [`loop_seeds_to_v3.3.patch`](loop_seeds_to_v3.3.patch) | loop_seeds → v3.3 | `goal_to_parameters/` (5 files) and the batch script |
-| [`v3.3_to_simod_fix.patch`](v3.3_to_simod_fix.patch) | v3.3 → this tree | `goal_to_parameters/second_llm/simod_runner.py` ("Run SIMOD" only) |
 
 [`run_ablation_batch_recorded_to_v3.3.patch`](run_ablation_batch_recorded_to_v3.3.patch) takes
 `run_ablation_batch.py` (originally at `evaluation/real_life_ablation/scripts/`) from the version the ablation's records name (SHA-256
@@ -45,7 +42,6 @@ tree, limited to `goal_to_parameters/`. Use a copy without end-of-line conversio
 `core.autocrlf=false`):
 
 ```bash
-git apply -R --include='goal_to_parameters/*' evaluation/experiments/shared/glass_versions/v3.3_to_simod_fix.patch    # now v3.3
 git apply -R --include='goal_to_parameters/*' evaluation/experiments/shared/glass_versions/loop_seeds_to_v3.3.patch   # now loop_seeds
 git apply -R --include='goal_to_parameters/*' evaluation/experiments/shared/glass_versions/v3.2_to_loop_seeds.patch   # now v3.2
 git apply -R --include='goal_to_parameters/*' evaluation/experiments/shared/glass_versions/v3.1_to_v3.2.patch   # now v3.1
