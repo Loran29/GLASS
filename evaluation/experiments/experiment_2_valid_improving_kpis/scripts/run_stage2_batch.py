@@ -12,10 +12,10 @@ Records: <out>/raw/<id>/rep_<k>.json (reruns resume). Simulated logs stay out of
 Knowledge base (--use-knowledge-base / --no-knowledge-base, default off): GLASS's option use_knowledge_base
 (knowledge.switch). The record gets use_knowledge_base, variant (V_full = on, V_no_kb = off), switches and
 kb_switch (skipped retrievals). The v3.2 RAG comparison's V_no_kb arm used an equivalent monkey-patch of the
-same three points (see experiment_5_rag_vs_no_rag/scripts/replay_kb_option.py).
+same three points.
 
 Loop seeds (--loop-seeds N, default 1): the refinement loop judges each iteration on the mean of N paired seeds
-(42, 43, ...); the final 10-seed evaluation is unchanged (experiment_6_loop_replications).
+(42, 43, ...); the final 10-seed evaluation is unchanged (experiment_5_loop_replications).
 
 Usage (repo root, Python environment with Prosimos):
   python evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]

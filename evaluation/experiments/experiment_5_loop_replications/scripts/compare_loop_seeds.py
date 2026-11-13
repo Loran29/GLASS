@@ -19,22 +19,32 @@ utilization target) and a two-sided sign test over the configurations; for the o
 Ratios: success (valid and all KPIs improved final) with 1 loop seed as a percentage of success with 5;
 run time: median over all runs of seeds5 / seeds1.
 
-Usage (repo root): python evaluation/experiments/experiment_6_loop_replications/scripts/compare_loop_seeds.py
+Usage (repo root): python evaluation/experiments/experiment_5_loop_replications/scripts/compare_loop_seeds.py
 """
 from __future__ import annotations
 
 import csv
 import json
 import sys
+from math import comb
 from pathlib import Path
 from statistics import mean, median
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared" / "loanapp_p2p"))
 import lp_paths as P  # noqa: E402
-from compare_stage2_rag import sign_test  # noqa: E402
 
 BASE = P.SHARED
-OUT = P.EXP6 / "results"
+
+
+def sign_test(diffs: list[float]) -> tuple[int, int, float]:
+    nonzero = [d for d in diffs if d]
+    n, k = len(nonzero), sum(d > 0 for d in nonzero)
+    if n == 0:
+        return 0, 0, 1.0
+    tail = sum(comb(n, i) for i in range(0, min(k, n - k) + 1)) / 2 ** n
+    return n, k, min(1.0, 2 * tail)
+
+OUT = P.EXP5 / "results"
 ARMS = {"seeds1": OUT / "seeds1", "seeds5": OUT / "seeds5"}
 COUNTS = ["final_valid", "final_all_kpis_improved", "final_valid_and_improved",
           "final_util_target_achieved_glass", "final_util_target_achieved_batch",

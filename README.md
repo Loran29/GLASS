@@ -247,14 +247,7 @@ the knowledge base.
 | `evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/V_full/` (comparison with the knowledge base) | on |
 | `evaluation/experiments/experiment_4_real_life_ablation/results/stage2/`, variants V_full, V_no_log, V_no_context, V_no_refine, V_old_refine | on |
 | Stage 2 v1 to v3.1 (not part of this package) | on |
-| `evaluation/experiments/experiment_6_loop_replications/results/` (loop replications) | on |
-
-**Consistency with the reported runs.** The runs without the knowledge base switched it off at the same three
-points as the option does (`evaluation/experiments/shared/glass_versions/README.md`, v3.3). Replaying the recorded LLM
-answers of all 70 + 45 runs without it (option off) and of 10 runs with it (option on) reproduces every system
-prompt, temperature and first refinement feedback byte for byte. Every user prompt is reproduced up to the
-order of entries in a few JSON lists that GLASS builds from Python sets, which varies between processes
-(`evaluation/experiments/experiment_5_rag_vs_no_rag/results/kb_option_consistency.md`).
+| `evaluation/experiments/experiment_5_loop_replications/results/` (loop replications) | on |
 
 ## Experiments and results
 
@@ -269,13 +262,10 @@ The LoanApp/Procure2Pay evaluation and the real-life ablation are in `evaluation
 - `experiment_3_glass_vs_process_improvement_copilot/`: GLASS compared with Process Improvement Copilot.
 - `experiment_4_real_life_ablation/`: ablation on three real-life logs (AcademicCredentials, BPIC 2012 W,
   BPIC 2017 W): `data/`, `baselines/`, `setup/`, `scripts/`, `results/`.
-- `experiment_5_rag_vs_no_rag/`: Stage 2 with and without the knowledge base, and the replay of recorded runs
-  with the knowledge-base option (`kb_option_consistency.*`).
-- `experiment_6_loop_replications/`: the refinement loop with 1 and with 5 paired seeds per iteration (LoanApp).
+- `experiment_5_loop_replications/`: the refinement loop with 1 and with 5 paired seeds per iteration (LoanApp).
 - `shared/loanapp_p2p/`: configurations (`setup/`), event logs (`input_logs/`), process models (`bps_models/`),
   baseline and reference models (`stage2/`) and the shared scripts.
-- `shared/analyses/`: run times (`runtimes.*`) and the dependence of the results on the number of evaluation
-  seeds (`seed_analysis.*`).
+- `shared/analyses/`: run times (`runtimes.*`).
 - `shared/glass_versions/`: patches between the GLASS code versions, with the original commit IDs.
 
 The Stage 2 batches v1 to v3.1 that preceded v3.2 are not part of this package.
@@ -300,7 +290,7 @@ The real-life datasets of the ablation (AcademicCredentials, BPIC 2012 W, BPIC 2
   SHA-256 values recorded for them still hold.
 - **Recorded hashes.** The run records name the GLASS code by its original commit ID; `evaluation/experiments/shared/glass_versions/`
   rebuilds each version's GLASS code. The stage tags and some comment wording in this tree differ from those bytes, so a few
-  recorded file hashes refer to the original files (`evaluation/experiments/shared/glass_versions/README.md`). The evaluation scripts were
+  recorded file hashes refer to the original files. The evaluation scripts were
   moved into `evaluation/experiments/` and their paths adapted, so the script hashes in the records refer to the original
   scripts.
 

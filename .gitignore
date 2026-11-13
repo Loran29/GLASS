@@ -62,10 +62,10 @@ evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_
 evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/baseline_logs/*/*.csv.gz
 evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/healthy_logs/
 evaluation/experiments/experiment_2_valid_improving_kpis/results/stage2_results_v32_rag/*/log_archives/
-evaluation/experiments/experiment_6_loop_replications/results/*/logs/
-evaluation/experiments/experiment_6_loop_replications/results/*/baseline_logs/*/*.csv.gz
-evaluation/experiments/experiment_6_loop_replications/results/*/healthy_logs/
-evaluation/experiments/experiment_6_loop_replications/results/*/log_archives/
+evaluation/experiments/experiment_5_loop_replications/results/*/logs/
+evaluation/experiments/experiment_5_loop_replications/results/*/baseline_logs/*/*.csv.gz
+evaluation/experiments/experiment_5_loop_replications/results/*/healthy_logs/
+evaluation/experiments/experiment_5_loop_replications/results/*/log_archives/
 
 # Real-life ablation: simulated logs (SHA-256 in the run records, not in git) and the aborted first batch attempt (kept locally)
 evaluation/experiments/experiment_4_real_life_ablation/results/stage2/logs/

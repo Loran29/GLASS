@@ -17,8 +17,7 @@ replications (seeds 42-51), paired with the *As-Is* baseline on the same seeds.
 | 3 | RQ4 | Ablation study | AcademicCredentials, BPIC 2017 W, BPIC 2012 W | 9 | 5/config. | `experiment_4_real_life_ablation/` |
 
 Supporting analyses: `experiment_0_synthetic_variants_vs_original/` (the model modifications behind the evaluation
-cases), `experiment_5_rag_vs_no_rag/` (Stage 2 with and without the knowledge base) and
-`experiment_6_loop_replications/` (the refinement loop with 1 vs 5 simulation replications per iteration). Shared
+cases) and `experiment_5_loop_replications/` (the refinement loop with 1 vs 5 simulation replications per iteration). Shared
 inputs are in `shared/loanapp_p2p/`, analyses across experiments in `shared/analyses/`, and the GLASS code versions the
 runs used in `shared/glass_versions/`. Each experiment keeps its results (Excel workbooks, summary CSVs and the raw run
 records) in its own `results/` folder.
@@ -116,21 +115,9 @@ reduce the waiting time of the activity with the longest mean wait (G2), and bot
 
 Results: `results/GLASS_ablation_results.xlsx`.
 
-## Experiment 5 (supporting): knowledge base on vs off
+## Experiment 5 (supporting): loop replications
 
-`experiment_5_rag_vs_no_rag/`
-
-Compares experiment 2's two arms (knowledge base on vs off) on the same configurations, runs and seeds, to see whether
-retrieved knowledge changes the Stage 2 results. Results: `results/GLASS_Stage2_RAG_comparison.xlsx`.
-
-Since GLASS v3.3 the knowledge base is an option of GLASS (`use_knowledge_base`, off by default; the batch scripts
-take `--use-knowledge-base`). The recorded V_no_kb runs switched it off with an equivalent patch of the same three
-points. `scripts/replay_kb_option.py` replays recorded runs through the option and compares the prompts with the
-stored ones: `results/kb_option_consistency.md`.
-
-## Experiment 6 (supporting): loop replications
-
-`experiment_6_loop_replications/`
+`experiment_5_loop_replications/`
 
 Repeats experiment 2's batch on the seven LoanApp configurations with the refinement loop judging each iteration on
 one simulation replication (`seeds1`, the default) or on the mean of five paired replications (`seeds5`, seeds 42-46).
@@ -141,9 +128,8 @@ Everything else is unchanged, including the final evaluation on 10 seeds. Run re
 
 `shared/analyses/`:
 - `results/runtimes.md`: run times of every batch (`scripts/summarize_runtimes.py`).
-- `results/seed_analysis.md`: how the verdicts depend on the number of evaluation seeds (`scripts/seed_analysis.py`).
 
-Both were computed including the Stage 2 batches v1-v3.1, which are not part of this package.
+It was computed including the Stage 2 batches v1-v3.1, which are not part of this package.
 
 ## Shared inputs
 
@@ -154,7 +140,7 @@ Both were computed including the Stage 2 batches v1-v3.1, which are not part of 
 - `scripts/`: building the baselines and converting BIMP models to Prosimos input.
 
 `shared/glass_versions/`: patches between the GLASS code versions the runs used (original commit IDs in the run
-records); `README.md` there describes how to rebuild each version.
+records).
 
 ## Running
 

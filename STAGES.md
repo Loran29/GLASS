@@ -115,9 +115,8 @@ The evaluation scripts are not tagged: their SHA-256 values are recorded in the 
 | `examples/loanapp/run_example.py` | 1, and 2 + 3 (the example; calls the batch scripts' per-run functions) |
 | `evaluation/experiments/experiment_1_expected_kpi_generation/scripts/run_stage1_batch.py`, `run_refinement_pilot.py` | 1 |
 | `evaluation/experiments/experiment_4_real_life_ablation/scripts/run_stage1_ablation.py` | 1 |
-| `evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py` (one run = Stage 2 and Stage 3), `stage2_reporting.py`; `evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/compare_stage2_rag.py` | 2 + 3 |
-| `evaluation/experiments/experiment_6_loop_replications/scripts/compare_loop_seeds.py`; `evaluation/experiments/shared/analyses/scripts/seed_analysis.py` | 2 + 3 (loop replications, number of evaluation seeds) |
-| `evaluation/experiments/experiment_5_rag_vs_no_rag/scripts/replay_kb_option.py` | 2 + 3 (consistency of the knowledge-base option with the recorded runs) |
+| `evaluation/experiments/experiment_2_valid_improving_kpis/scripts/run_stage2_batch.py` (one run = Stage 2 and Stage 3), `stage2_reporting.py` | 2 + 3 |
+| `evaluation/experiments/experiment_5_loop_replications/scripts/compare_loop_seeds.py` | 2 + 3 (loop replications) |
 | `evaluation/experiments/experiment_4_real_life_ablation/scripts/run_ablation_batch.py`, `ablation_reporting.py`, `build_config.py` | 2 + 3 |
 | `evaluation/experiments/experiment_3_glass_vs_process_improvement_copilot/scripts/*.py` | 3 (comparison with Process Improvement Copilot) |
 | `evaluation/experiments/shared/loanapp_p2p/scripts/build_stage2_baselines.py`, `qbp2prosimos.py`, `merge_ends.py`; `evaluation/experiments/experiment_4_real_life_ablation/scripts/select_baselines.py`, `compute_waiting_times.py`; `evaluation/experiments/experiment_0_synthetic_variants_vs_original/scripts/*.py` | 3 (baseline models and inputs) |

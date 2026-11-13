@@ -15,12 +15,10 @@ EXP1 = EXPERIMENTS / "experiment_1_expected_kpi_generation"
 EXP2 = EXPERIMENTS / "experiment_2_valid_improving_kpis"
 EXP3 = EXPERIMENTS / "experiment_3_glass_vs_process_improvement_copilot"
 EXP4 = EXPERIMENTS / "experiment_4_real_life_ablation"
-EXP5 = EXPERIMENTS / "experiment_5_rag_vs_no_rag"
-EXP6 = EXPERIMENTS / "experiment_6_loop_replications"
+EXP5 = EXPERIMENTS / "experiment_5_loop_replications"
 OLDER = REPO / "evaluation" / "_to_review" / "older_glass_versions"
 
-for _d in (SHARED / "scripts", EXP1 / "scripts", EXP2 / "scripts", EXP4 / "scripts", EXP5 / "scripts",
-           EXP6 / "scripts"):
+for _d in (SHARED / "scripts", EXP1 / "scripts", EXP2 / "scripts", EXP4 / "scripts", EXP5 / "scripts"):
     if str(_d) not in sys.path:
         sys.path.append(str(_d))
 
@@ -37,7 +35,7 @@ def lp(rel) -> Path:
         if parts[1] in _STAGE2:
             return EXP2.joinpath("results", *parts[1:])
         if parts[1] == "stage2_loop_seeds":
-            return EXP6.joinpath("results", *parts[2:])
+            return EXP5.joinpath("results", *parts[2:])
         return OLDER.joinpath(*parts[1:])
     return SHARED.joinpath(*parts)
 
