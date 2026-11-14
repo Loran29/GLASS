@@ -179,8 +179,8 @@ def normalise_csv_columns(csv_path: Path) -> tuple[Path, list[str]]:
     original_columns = list(df.columns)
     lower_map = {col.strip().lower(): col for col in original_columns}
 
-    # Check if already correct
-    if _SIMOD_COLUMNS.issubset(set(lower_map.keys())):
+    # Check if already correct (exact names; a case difference is renamed below)
+    if _SIMOD_COLUMNS.issubset(set(original_columns)):
         return csv_path, []
 
     rename_map: dict[str, str] = {}
