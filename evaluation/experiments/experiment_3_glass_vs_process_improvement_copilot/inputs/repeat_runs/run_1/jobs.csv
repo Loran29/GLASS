@@ -1,0 +1,17 @@
+config,source_model,lever,output_model,roles,role_source,idea,inefficiency
+LoanApp_G1,LoanApp_durations,hours,extended_hours/LoanApp_G1__hours,Clerk; Loan Officer,named in the motivation / impact text,Extended working hours for critical roles,End-to-end performance
+LoanApp_G1G2,LoanApp_G1G2,hours,extended_hours/LoanApp_G1G2__hours,Clerk; Loan Officer,named in the motivation / impact text,Extended working hours for critical roles,End-to-end performance
+LoanApp_G1G2G3,LoanApp_G1G2G3,hours,extended_hours/LoanApp_G1G2G3__hours,Clerk; Loan Officer,named in the motivation / impact text,Empower resources by extending working hours for critical roles,Local process delay
+LoanApp_G1G2G3,LoanApp_G1G2G3,resources,extra_resources/LoanApp_G1G2G3__resources,Loan Officer; AML Investigator; Appraiser,named in the motivation / impact text,Deploy Extra Resources for AML Checks and Appraisals,Resource workload
+LoanApp_G1G3,LoanApp_G1G3,resources,extra_resources/LoanApp_G1G3__resources,AML Investigator; Appraiser,named in the motivation / impact text,Deploy extra resources for the appraisal and AML check,Resource workload
+LoanApp_G2,LoanApp_extraneous,hours,extended_hours/LoanApp_G2__hours,Loan Officer,not named in the idea: analyst choice (as in run 1),Empower resources by extending working hours for loan assessment roles,Local process delay
+LoanApp_G2G3,LoanApp_G2G3,hours,extended_hours/LoanApp_G2G3__hours,Loan Officer,not named in the idea: analyst choice (as in run 1),Empower resources by extending working hours,Local process delay
+LoanApp_G2G3,LoanApp_G2G3,resources,extra_resources/LoanApp_G2G3__resources,Clerk; Loan Officer,named in the motivation / impact text,Deploy extra resources for high-demand periods,Resource workload
+LoanApp_G3,LoanApp_resource_target,resources,extra_resources/LoanApp_G3__resources,Loan Officer,named in the motivation / impact text,Deploy Extra Resources for High Workload Periods,Resource workload
+Procure2Pay_G1G2,Procure2Pay_G1G2,hours,extended_hours/Procure2Pay_G1G2__hours_1,Financial Manager,named in the idea title,Extended working hours for financial managers during peak times,End-to-end performance
+Procure2Pay_G1G2,Procure2Pay_G1G2,hours,extended_hours/Procure2Pay_G1G2__hours_2,Financial Manager; Purchasing Agent,named in the motivation / impact text,Empower resources by extending working hours for key roles,Local process delay
+Procure2Pay_G1G2G3,Procure2Pay_G1G2G3,resources,extra_resources/Procure2Pay_G1G2G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources in the procure-to-pay process,Resource workload
+Procure2Pay_G1G3,Procure2Pay_G1G3,resources,extra_resources/Procure2Pay_G1G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources in the procure-to-pay process,Resource workload
+Procure2Pay_G2,Procure2Pay_extraneous,hours,extended_hours/Procure2Pay_G2__hours,Supplier,not named in the idea: analyst choice (as in run 1),Empower Resources by Extending Working Hours,Local process delay
+Procure2Pay_G2G3,Procure2Pay_G2G3,resources,extra_resources/Procure2Pay_G2G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources for invoice processing,Resource workload
+Procure2Pay_G3,Procure2Pay_resource_target,resources,extra_resources/Procure2Pay_G3__resources,Purchasing Agent,named in the motivation / impact text,Deploy extra resources in the procure-to-pay process,Resource workload

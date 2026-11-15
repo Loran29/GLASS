@@ -1,0 +1,200 @@
+{
+  "experiment": "GLASS real-life ablation study (Zenodo 10.5281/zenodo.10435849)",
+  "settings": {
+    "model": "gpt-4o-mini",
+    "stage1_temperature": "GLASS app (0.2, read from app.py as in the Step 1 batch)",
+    "stage2_temperature": "GLASS loop schedule min(0.3 + 0.1 x (iteration - 1), 0.7); context summary and compliance calls 0.1",
+    "max_iterations": 4,
+    "seeds": 10,
+    "seed_values": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51
+    ],
+    "repetitions": 5,
+    "repetitions_first_pass": [
+      1,
+      2,
+      3
+    ],
+    "repetitions_second_pass": [
+      4,
+      5
+    ],
+    "cases": "per dataset: the test log's case count",
+    "start": "per dataset: the test log's first start"
+  },
+  "business_context": {
+    "staffing": "Each role may grow by one additional person with the same skills (for example, a role with one person may have two). Working hours may be extended by up to two hours per day.",
+    "budget": "Staff cost may increase by at most 35 %; hourly cost 20 EUR for everyone.",
+    "immutable": "The order of the steps must stay, and no activity may be removed or added. Activity durations, staffing, working hours and waiting times between steps may be changed.",
+    "cost_per_hour_all_resources": 20
+  },
+  "datasets": {
+    "AcademicCredentials": {
+      "test_log": "data/AcademicCredentials/AcademicCredentials_test.csv.gz",
+      "baseline_bpmn": "data/AcademicCredentials/AcademicCredentials_complex_hyperopt_holdout_after_enhanced.bpmn",
+      "baseline_json": "data/AcademicCredentials/AcademicCredentials_complex_hyperopt_holdout_after_enhanced.json",
+      "baseline_variant": "complex_hyperopt_holdout_after_enhanced",
+      "timers": "data/AcademicCredentials/complex_hyperopt_holdout_after_enhancer_timers.txt",
+      "cases": 398,
+      "start": "2016-04-15T23:47:55+00:00",
+      "domain_noun": "credential requests",
+      "x_activity": "Notificacion estudiante cancelacion soli",
+      "x_spoken": "the student is notified of the cancellation",
+      "x_mean_waiting_h": 111.11,
+      "process_description": "The academic credentials process handles students' requests to have courses they have already taken recognised. All steps are carried out by the staff. A request starts in one of two ways: the staff either validates the request (\"Validar solicitud\"), or retrieves the student's information from the student system (\"Traer informacion estudiante - banner\") and then files the recognition request (\"Radicar Solicitud Homologacion\"). After filing, the request goes to validation, to the recognition of a group of courses (\"Homologacion por grupo de cursos\"), to cancellation, or directly to the notification of the student about the cancellation. After validation, the staff reviews the courses (\"Revisar curso\"), receives documents (\"Recepcion de documentos\"), proceeds to the recognition of a group of courses, retrieves the student's information again, cancels the request, or closes the case. After reviewing the courses, the staff either evaluates a course (\"Evaluacion curso\") or proceeds to the recognition of a group of courses; after receiving documents, the request proceeds to the recognition of a group of courses. After the recognition of a group of courses, the staff evaluates a course, or cancels a course (\"Cancelar curso\"), possibly followed by advancing the document reception (\"Avanzar recepcion documentos\"), or the case ends. After a course evaluation, the staff performs the final validation (\"Validacion final\"), followed by the sign-off that closes the process (\"Visto Bueno Cierre Proceso\") and, where applicable, the transfer of credits (\"Transferir Creditos\") and of the recognisable credits (\"Transferir creditos homologables\"); or the staff validates the request at the pre-recognition stage (\"Validar solicitud / pre-homologacion\"); or the case ends. A cancelled request (\"Cancelar Solicitud\") is followed by a notification to the student about the cancellation (\"Notificacion estudiante cancelacion soli\"). Validation, retrieving the student's information and filing the request can be repeated. There are no parallel branches."
+    },
+    "BPIC_2012_W": {
+      "test_log": "data/BPIC_2012_W/BPIC_2012_W_test.csv.gz",
+      "baseline_bpmn": "data/BPIC_2012_W/BPIC_2012_W_complex_hyperopt_holdout_after_enhanced.bpmn",
+      "baseline_json": "data/BPIC_2012_W/BPIC_2012_W_complex_hyperopt_holdout_after_enhanced.json",
+      "baseline_variant": "complex_hyperopt_holdout_after_enhanced",
+      "timers": "data/BPIC_2012_W/complex_hyperopt_holdout_after_enhancer_timers.txt",
+      "cases": 2976,
+      "start": "2012-01-07T09:04:12.635000+00:00",
+      "domain_noun": "loan applications",
+      "x_activity": "W_Nabellen offertes",
+      "x_spoken": "the follow-up calls on offers",
+      "x_mean_waiting_h": 73.44,
+      "process_description": "This process covers the work on loan applications at a financial institution. All steps are carried out by the staff. When an application arrives, two branches run in parallel. In one branch, the staff assesses the application for fraud (\"W_Beoordelen fraude\"). In the other branch, the staff may first handle the lead (\"W_Afhandelen leads\"); after that, the case either ends or the staff completes the application (\"W_Completeren aanvraag\"). After the application has been completed, the staff may call the customer about the offer (\"W_Nabellen offertes\"); after that, the staff may validate the application (\"W_Valideren aanvraag\"), and after the validation the staff may call the customer about incomplete files (\"W_Nabellen incomplete dossiers\"). Each of these follow-up steps can be skipped. The case ends when both branches have finished."
+    },
+    "BPIC_2017_W": {
+      "test_log": "data/BPIC_2017_W/BPIC_2017_W_test.csv.gz",
+      "baseline_bpmn": "data/BPIC_2017_W/BPIC_2017_W_complex_hyperopt_holdout_after_enhanced.bpmn",
+      "baseline_json": "data/BPIC_2017_W/BPIC_2017_W_complex_hyperopt_holdout_after_enhanced.json",
+      "baseline_variant": "complex_hyperopt_holdout_after_enhanced",
+      "timers": "data/BPIC_2017_W/complex_hyperopt_holdout_after_enhancer_timers.txt",
+      "cases": 7376,
+      "start": "2016-09-17T06:07:22+00:00",
+      "domain_noun": "loan applications",
+      "x_activity": "W_Validate application",
+      "x_spoken": "the application validation",
+      "x_mean_waiting_h": 75.4,
+      "process_description": "This process covers the work on loan applications at a financial institution. All steps are carried out by the staff. A case may start with the staff handling the lead (\"W_Handle leads\"). The staff then completes the application (\"W_Complete application\"), sometimes followed by a shortened completion (\"W_Shortened completion\"). Next, the staff calls the customer after the offer has been sent (\"W_Call after offers\"). After that, the case either ends, or the staff validates the application (\"W_Validate application\"), after which the staff may assess potential fraud (\"W_Assess potential fraud\") or call the customer about incomplete files (\"W_Call incomplete files\") before the case ends. There are no parallel branches."
+    }
+  },
+  "configurations": [
+    {
+      "config_id": "AcademicCredentials_G1",
+      "dataset": "AcademicCredentials",
+      "goal": "G1",
+      "simulation_goal": "We want credential requests to be completed sooner.",
+      "expected_kpis": [
+        "Average Cycle Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "config_id": "AcademicCredentials_G2",
+      "dataset": "AcademicCredentials",
+      "goal": "G2",
+      "simulation_goal": "Credential requests should not sit waiting before the student is notified of the cancellation.",
+      "expected_kpis": [
+        "Notificacion estudiante cancelacion soli Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Notificacion estudiante cancelacion soli Waiting Time"
+      ]
+    },
+    {
+      "config_id": "AcademicCredentials_G1G2",
+      "dataset": "AcademicCredentials",
+      "goal": "G1G2",
+      "simulation_goal": "We want credential requests to be completed sooner. Credential requests should not sit waiting before the student is notified of the cancellation.",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "Notificacion estudiante cancelacion soli Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "Notificacion estudiante cancelacion soli Waiting Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2012_W_G1",
+      "dataset": "BPIC_2012_W",
+      "goal": "G1",
+      "simulation_goal": "We want loan applications to be completed sooner.",
+      "expected_kpis": [
+        "Average Cycle Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2012_W_G2",
+      "dataset": "BPIC_2012_W",
+      "goal": "G2",
+      "simulation_goal": "Loan applications should not sit waiting before the follow-up calls on offers.",
+      "expected_kpis": [
+        "W_Nabellen offertes Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "W_Nabellen offertes Waiting Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2012_W_G1G2",
+      "dataset": "BPIC_2012_W",
+      "goal": "G1G2",
+      "simulation_goal": "We want loan applications to be completed sooner. Loan applications should not sit waiting before the follow-up calls on offers.",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "W_Nabellen offertes Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "W_Nabellen offertes Waiting Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2017_W_G1",
+      "dataset": "BPIC_2017_W",
+      "goal": "G1",
+      "simulation_goal": "We want loan applications to be completed sooner.",
+      "expected_kpis": [
+        "Average Cycle Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2017_W_G2",
+      "dataset": "BPIC_2017_W",
+      "goal": "G2",
+      "simulation_goal": "Loan applications should not sit waiting before the application validation.",
+      "expected_kpis": [
+        "W_Validate application Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "W_Validate application Waiting Time"
+      ]
+    },
+    {
+      "config_id": "BPIC_2017_W_G1G2",
+      "dataset": "BPIC_2017_W",
+      "goal": "G1G2",
+      "simulation_goal": "We want loan applications to be completed sooner. Loan applications should not sit waiting before the application validation.",
+      "expected_kpis": [
+        "Average Cycle Time",
+        "W_Validate application Waiting Time"
+      ],
+      "expected_measurable_as": [
+        "Average Cycle Time",
+        "W_Validate application Waiting Time"
+      ]
+    }
+  ]
+}

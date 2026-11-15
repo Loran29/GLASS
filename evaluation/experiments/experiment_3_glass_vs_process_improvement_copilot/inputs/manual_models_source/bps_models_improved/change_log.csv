@@ -1,0 +1,25 @@
+config,source_model,output_model,idea,lever,role,attribute,before,after
+LoanApp_G1,LoanApp_durations.bpmn,extended_hours/LoanApp_G1__hours.bpmn,Extended working hours for critical roles,hours,Clerk,timetable/toTime,17:00,19:00
+LoanApp_G1,LoanApp_durations.bpmn,extended_hours/LoanApp_G1__hours.bpmn,Extended working hours for critical roles,hours,Loan Officer,timetable/toTime,17:00,19:00
+LoanApp_G1G2,LoanApp_G1G2.bpmn,extended_hours/LoanApp_G1G2__hours.bpmn,Extended working hours for critical roles,hours,Clerk,timetable/toTime,17:00,19:00
+LoanApp_G1G2,LoanApp_G1G2.bpmn,extended_hours/LoanApp_G1G2__hours.bpmn,Extended working hours for critical roles,hours,Loan Officer,timetable/toTime,17:00,19:00
+LoanApp_G1G2G3,LoanApp_G1G2G3.bpmn,extended_hours/LoanApp_G1G2G3__hours.bpmn,Empower resources by extending working hours for critical roles,hours,Clerk,timetable/toTime,17:00,19:00
+LoanApp_G1G2G3,LoanApp_G1G2G3.bpmn,extended_hours/LoanApp_G1G2G3__hours.bpmn,Empower resources by extending working hours for critical roles,hours,Loan Officer,timetable/toTime,17:00,19:00
+LoanApp_G1G2G3,LoanApp_G1G2G3.bpmn,extra_resources/LoanApp_G1G2G3__resources.bpmn,Deploy Extra Resources for AML Checks and Appraisals,resources,AML Investigator,totalAmount,2,4
+LoanApp_G1G2G3,LoanApp_G1G2G3.bpmn,extra_resources/LoanApp_G1G2G3__resources.bpmn,Deploy Extra Resources for AML Checks and Appraisals,resources,Appraiser,totalAmount,2,4
+LoanApp_G1G2G3,LoanApp_G1G2G3.bpmn,extra_resources/LoanApp_G1G2G3__resources.bpmn,Deploy Extra Resources for AML Checks and Appraisals,resources,Loan Officer,totalAmount,1,3
+LoanApp_G1G3,LoanApp_G1G3.bpmn,extra_resources/LoanApp_G1G3__resources.bpmn,Deploy extra resources for the appraisal and AML check,resources,AML Investigator,totalAmount,2,4
+LoanApp_G1G3,LoanApp_G1G3.bpmn,extra_resources/LoanApp_G1G3__resources.bpmn,Deploy extra resources for the appraisal and AML check,resources,Appraiser,totalAmount,2,4
+LoanApp_G2,LoanApp_extraneous.bpmn,extended_hours/LoanApp_G2__hours.bpmn,Empower resources by extending working hours for loan assessment roles,hours,Loan Officer,timetable/toTime,17:00,19:00
+LoanApp_G2G3,LoanApp_G2G3.bpmn,extended_hours/LoanApp_G2G3__hours.bpmn,Empower resources by extending working hours,hours,Loan Officer,timetable/toTime,17:00,19:00
+LoanApp_G2G3,LoanApp_G2G3.bpmn,extra_resources/LoanApp_G2G3__resources.bpmn,Deploy extra resources for high-demand periods,resources,Clerk,totalAmount,8,10
+LoanApp_G2G3,LoanApp_G2G3.bpmn,extra_resources/LoanApp_G2G3__resources.bpmn,Deploy extra resources for high-demand periods,resources,Loan Officer,totalAmount,1,3
+LoanApp_G3,LoanApp_resource_target.bpmn,extra_resources/LoanApp_G3__resources.bpmn,Deploy Extra Resources for High Workload Periods,resources,Loan Officer,totalAmount,1,3
+Procure2Pay_G1G2,Procure2Pay_G1G2.bpmn,extended_hours/Procure2Pay_G1G2__hours_1.bpmn,Extended working hours for financial managers during peak times,hours,Financial Manager,timetable/toTime,17:00,19:00
+Procure2Pay_G1G2,Procure2Pay_G1G2.bpmn,extended_hours/Procure2Pay_G1G2__hours_2.bpmn,Empower resources by extending working hours for key roles,hours,Financial Manager,timetable/toTime,17:00,19:00
+Procure2Pay_G1G2,Procure2Pay_G1G2.bpmn,extended_hours/Procure2Pay_G1G2__hours_2.bpmn,Empower resources by extending working hours for key roles,hours,Purchasing Agent,timetable/toTime,17:00,19:00
+Procure2Pay_G1G2G3,Procure2Pay_G1G2G3.bpmn,extra_resources/Procure2Pay_G1G2G3__resources.bpmn,Deploy extra resources in the procure-to-pay process,resources,Purchasing Agent,totalAmount,3,5
+Procure2Pay_G1G3,Procure2Pay_G1G3.bpmn,extra_resources/Procure2Pay_G1G3__resources.bpmn,Deploy extra resources in the procure-to-pay process,resources,Purchasing Agent,totalAmount,3,5
+Procure2Pay_G2,Procure2Pay_extraneous.bpmn,extended_hours/Procure2Pay_G2__hours.bpmn,Empower Resources by Extending Working Hours,hours,Supplier,timetable/toTime,17:00,19:00
+Procure2Pay_G2G3,Procure2Pay_G2G3.bpmn,extra_resources/Procure2Pay_G2G3__resources.bpmn,Deploy extra resources for invoice processing,resources,Purchasing Agent,totalAmount,3,5
+Procure2Pay_G3,Procure2Pay_resource_target.bpmn,extra_resources/Procure2Pay_G3__resources.bpmn,Deploy extra resources in the procure-to-pay process,resources,Purchasing Agent,totalAmount,3,5

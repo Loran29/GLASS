@@ -1,0 +1,144 @@
+{
+  "feedback_sentences": {
+    "LA_WAIT": "This is not the delay I am concerned about. I am interested in the delay after the background checks are completed and before the application starts being assessed.",
+    "LA_OFFICERS": "I don't need this one. I need to see how busy the loan officers are.",
+    "P2P_INVOICE": "This is not the delay I am concerned about. I am interested in how long an invoice lies around before someone starts releasing it, not in what happens after the release.",
+    "P2P_CYCLE": "This only covers the invoice part. I am interested in the whole time from the moment a purchase requisition is created until the invoice is paid.",
+    "P2P_AGENTS": "I don't need this one. I need to see how busy the purchasing agents are."
+  },
+  "rounds": 1,
+  "source_results": "evaluation/stage1_results/raw/<config_id>/rep_<rep>.json",
+  "cases": [
+    {
+      "config_id": "LoanApp_G1G2",
+      "rep": 1,
+      "expected": [
+        "Average Cycle Time",
+        "Assess loan risk Waiting Time"
+      ],
+      "accept": [
+        "Average Loan Assessment Cycle Time"
+      ],
+      "reject": [
+        "Average Wait Time Before Loan Offer Design",
+        "Loan Offer Design Wait Time by Time of Day"
+      ],
+      "feedback_text": "About \"Average Wait Time Before Loan Offer Design\": This is not the delay I am concerned about. I am interested in the delay after the background checks are completed and before the application starts being assessed.\nAbout \"Loan Offer Design Wait Time by Time of Day\": This is not the delay I am concerned about. I am interested in the delay after the background checks are completed and before the application starts being assessed."
+    },
+    {
+      "config_id": "LoanApp_G2G3",
+      "rep": 1,
+      "expected": [
+        "Assess loan risk Waiting Time",
+        "Loan Officer Utilization"
+      ],
+      "accept": [
+        "Average Wait Time Before Assessing Loan Risk"
+      ],
+      "reject": [
+        "Average Wait Time Before Loan Offer Design"
+      ],
+      "feedback_text": "About \"Average Wait Time Before Loan Offer Design\": I don't need this one. I need to see how busy the loan officers are."
+    },
+    {
+      "config_id": "LoanApp_G1G2G3",
+      "rep": 1,
+      "expected": [
+        "Average Cycle Time",
+        "Assess loan risk Waiting Time",
+        "Loan Officer Utilization"
+      ],
+      "accept": [
+        "Average Loan Assessment Cycle Time",
+        "Loan Officer Workload Utilization"
+      ],
+      "reject": [
+        "Average Wait Time Before Loan Offer Design"
+      ],
+      "feedback_text": "About \"Average Wait Time Before Loan Offer Design\": This is not the delay I am concerned about. I am interested in the delay after the background checks are completed and before the application starts being assessed."
+    },
+    {
+      "config_id": "Procure2Pay_G2",
+      "rep": 1,
+      "expected": [
+        "Release Supplier's Invoice Waiting Time"
+      ],
+      "accept": [],
+      "reject": [
+        "Invoice Processing Wait Time by Resource Cost"
+      ],
+      "feedback_text": "About \"Invoice Processing Wait Time by Resource Cost\": This is not the delay I am concerned about. I am interested in how long an invoice lies around before someone starts releasing it, not in what happens after the release."
+    },
+    {
+      "config_id": "Procure2Pay_G3",
+      "rep": 1,
+      "expected": [
+        "Purchasing Agent Utilization"
+      ],
+      "accept": [],
+      "reject": [
+        "Average Duration of Create Request for Quotation Requester by Time of Day"
+      ],
+      "feedback_text": "About \"Average Duration of Create Request for Quotation Requester by Time of Day\": I don't need this one. I need to see how busy the purchasing agents are."
+    },
+    {
+      "config_id": "Procure2Pay_G1G2",
+      "rep": 1,
+      "expected": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time"
+      ],
+      "accept": [],
+      "reject": [
+        "Average Invoice Processing Time",
+        "Average Wait Time Before Invoice Payment"
+      ],
+      "feedback_text": "About \"Average Invoice Processing Time\": This only covers the invoice part. I am interested in the whole time from the moment a purchase requisition is created until the invoice is paid.\nAbout \"Average Wait Time Before Invoice Payment\": This is not the delay I am concerned about. I am interested in how long an invoice lies around before someone starts releasing it, not in what happens after the release."
+    },
+    {
+      "config_id": "Procure2Pay_G1G3",
+      "rep": 1,
+      "expected": [
+        "Average Cycle Time",
+        "Purchasing Agent Utilization"
+      ],
+      "accept": [],
+      "reject": [
+        "Average Cycle Time for Invoice Payment",
+        "Average Duration of Invoice Authorization"
+      ],
+      "feedback_text": "About \"Average Cycle Time for Invoice Payment\": This only covers the invoice part. I am interested in the whole time from the moment a purchase requisition is created until the invoice is paid.\nAbout \"Average Duration of Invoice Authorization\": I don't need this one. I need to see how busy the purchasing agents are."
+    },
+    {
+      "config_id": "Procure2Pay_G2G3",
+      "rep": 1,
+      "expected": [
+        "Release Supplier's Invoice Waiting Time",
+        "Purchasing Agent Utilization"
+      ],
+      "accept": [
+        "Purchasing Agent Workload Distribution"
+      ],
+      "reject": [
+        "Average Wait Time Before Payment by Hour of Day"
+      ],
+      "feedback_text": "About \"Average Wait Time Before Payment by Hour of Day\": This is not the delay I am concerned about. I am interested in how long an invoice lies around before someone starts releasing it, not in what happens after the release."
+    },
+    {
+      "config_id": "Procure2Pay_G1G2G3",
+      "rep": 1,
+      "expected": [
+        "Average Cycle Time",
+        "Release Supplier's Invoice Waiting Time",
+        "Purchasing Agent Utilization"
+      ],
+      "accept": [],
+      "reject": [
+        "Average Cycle Time for Invoice Payment",
+        "Average Wait Time Before Payment Authorization",
+        "Average Duration of Analyzing Request for Quotation by Time of Day"
+      ],
+      "feedback_text": "About \"Average Cycle Time for Invoice Payment\": This only covers the invoice part. I am interested in the whole time from the moment a purchase requisition is created until the invoice is paid.\nAbout \"Average Wait Time Before Payment Authorization\": This is not the delay I am concerned about. I am interested in how long an invoice lies around before someone starts releasing it, not in what happens after the release.\nAbout \"Average Duration of Analyzing Request for Quotation by Time of Day\": I don't need this one. I need to see how busy the purchasing agents are."
+    }
+  ]
+}

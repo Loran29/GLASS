@@ -1,0 +1,74 @@
+case_id,activity,timestamp,end_time,resource,claim_type,priority,claim_amount,channel,customer_tier,region,fraud_risk,workbasket,status
+IC-6001,Submit Claim,2025-06-02 08:20,2025-06-02 08:25,Customer Portal,simple,high,3200,portal,gold,north,low,intake,submitted
+IC-6001,Check Documents,2025-06-02 08:45,2025-06-02 09:02,Claims Agent A,simple,high,3200,portal,gold,north,low,documentation,complete
+IC-6001,Assess Claim,2025-06-02 09:20,2025-06-02 10:00,Assessor Lee,simple,high,3200,portal,gold,north,low,assessment,completed
+IC-6001,Review Recommendation,2025-06-02 10:20,2025-06-02 10:38,Supervisor Diaz,simple,high,3200,portal,gold,north,low,supervision,approved
+IC-6001,Notify Customer,2025-06-02 10:55,2025-06-02 11:05,Notification Service,simple,high,3200,portal,gold,north,low,notification,completed
+IC-6002,Submit Claim,2025-06-03 10:10,2025-06-03 10:15,Customer Portal,simple,high,5400,phone,silver,west,low,intake,submitted
+IC-6002,Check Documents,2025-06-03 10:55,2025-06-03 11:18,Claims Agent B,simple,high,5400,phone,silver,west,low,documentation,complete
+IC-6002,Assess Claim,2025-06-03 12:00,2025-06-03 12:55,Assessor Kim,simple,high,5400,phone,silver,west,low,assessment,completed
+IC-6002,Review Recommendation,2025-06-03 13:25,2025-06-03 13:48,Supervisor Diaz,simple,high,5400,phone,silver,west,low,supervision,approved
+IC-6002,Notify Customer,2025-06-03 14:10,2025-06-03 14:24,Notification Service,simple,high,5400,phone,silver,west,low,notification,completed
+IC-6003,Submit Claim,2025-06-04 09:35,2025-06-04 09:40,Customer Portal,simple,high,4100,email,gold,south,low,intake,submitted
+IC-6003,Check Documents,2025-06-04 10:30,2025-06-04 10:55,Claims Agent A,simple,high,4100,email,gold,south,low,documentation,complete
+IC-6003,Assess Claim,2025-06-04 12:00,2025-06-04 12:48,Assessor Lee,simple,high,4100,email,gold,south,low,assessment,completed
+IC-6003,Review Recommendation,2025-06-04 13:20,2025-06-04 13:42,Supervisor Diaz,simple,high,4100,email,gold,south,low,supervision,approved
+IC-6003,Notify Customer,2025-06-04 14:20,2025-06-04 14:35,Notification Service,simple,high,4100,email,gold,south,low,notification,completed
+IC-6004,Submit Claim,2025-06-05 08:50,2025-06-05 08:55,Customer Portal,simple,normal,2800,email,silver,east,low,intake,submitted
+IC-6004,Check Documents,2025-06-05 10:00,2025-06-05 10:30,Claims Agent B,simple,normal,2800,email,silver,east,low,documentation,complete
+IC-6004,Assess Claim,2025-06-05 14:20,2025-06-05 15:20,Assessor Kim,simple,normal,2800,email,silver,east,low,assessment,completed
+IC-6004,Review Recommendation,2025-06-06 09:15,2025-06-06 09:45,Supervisor Diaz,simple,normal,2800,email,silver,east,low,supervision,approved
+IC-6004,Notify Customer,2025-06-06 10:30,2025-06-06 10:45,Notification Service,simple,normal,2800,email,silver,east,low,notification,completed
+IC-6005,Submit Claim,2025-06-06 11:10,2025-06-06 11:15,Customer Portal,simple,normal,7300,email,bronze,north,medium,intake,submitted
+IC-6005,Check Documents,2025-06-06 13:00,2025-06-06 13:40,Claims Agent C,simple,normal,7300,email,bronze,north,medium,documentation,incomplete
+IC-6005,Request Missing Documents,2025-06-06 14:00,2025-06-06 14:18,Claims Agent C,simple,normal,7300,email,bronze,north,medium,documentation,requested
+IC-6005,Resubmit Documents,2025-06-07 09:10,2025-06-07 09:22,Customer Email,simple,normal,7300,email,bronze,north,medium,intake,resubmitted
+IC-6005,Check Documents,2025-06-07 10:05,2025-06-07 10:32,Claims Agent C,simple,normal,7300,email,bronze,north,medium,documentation,complete
+IC-6005,Assess Claim,2025-06-07 11:25,2025-06-07 12:32,Assessor Kim,simple,normal,7300,email,bronze,north,medium,assessment,completed
+IC-6005,Review Recommendation,2025-06-07 13:30,2025-06-07 14:00,Supervisor Diaz,simple,normal,7300,email,bronze,north,medium,supervision,approved
+IC-6005,Notify Customer,2025-06-07 14:50,2025-06-07 15:08,Notification Service,simple,normal,7300,email,bronze,north,medium,notification,completed
+IC-6006,Submit Claim,2025-06-07 09:05,2025-06-07 09:10,Customer Portal,simple,normal,3600,phone,bronze,west,low,intake,submitted
+IC-6006,Check Documents,2025-06-07 10:35,2025-06-07 11:10,Claims Agent D,simple,normal,3600,phone,bronze,west,low,documentation,complete
+IC-6006,Assess Claim,2025-06-07 15:10,2025-06-07 16:20,Assessor Kim,simple,normal,3600,phone,bronze,west,low,assessment,completed
+IC-6006,Review Recommendation,2025-06-08 10:20,2025-06-08 10:52,Supervisor Diaz,simple,normal,3600,phone,bronze,west,low,supervision,approved
+IC-6006,Notify Customer,2025-06-08 11:40,2025-06-08 11:58,Notification Service,simple,normal,3600,phone,bronze,west,low,notification,completed
+IC-6007,Submit Claim,2025-06-02 09:45,2025-06-02 09:50,Customer Portal,complex,high,4500,portal,gold,north,medium,intake,submitted
+IC-6007,Check Documents,2025-06-02 10:35,2025-06-02 11:05,Claims Agent A,complex,high,4500,portal,gold,north,medium,documentation,complete
+IC-6007,Assess Claim,2025-06-03 08:40,2025-06-03 10:55,Assessor Novak,complex,high,4500,portal,gold,north,medium,assessment,completed
+IC-6007,Review Recommendation,2025-06-03 12:05,2025-06-03 12:42,Supervisor Meyer,complex,high,4500,portal,gold,north,medium,supervision,approved
+IC-6007,Notify Customer,2025-06-03 13:30,2025-06-03 13:48,Notification Service,complex,high,4500,portal,gold,north,medium,notification,completed
+IC-6008,Submit Claim,2025-06-03 08:35,2025-06-03 08:40,Customer Portal,complex,high,9800,portal,silver,east,medium,intake,submitted
+IC-6008,Check Documents,2025-06-03 09:35,2025-06-03 10:05,Claims Agent B,complex,high,9800,portal,silver,east,medium,documentation,complete
+IC-6008,Assess Claim,2025-06-04 08:50,2025-06-04 11:35,Assessor Novak,complex,high,9800,portal,silver,east,medium,assessment,completed
+IC-6008,Fraud Review,2025-06-04 12:45,2025-06-04 14:05,Fraud Analyst 1,complex,high,9800,portal,silver,east,medium,fraud,cleared
+IC-6008,Review Recommendation,2025-06-04 15:00,2025-06-04 15:42,Supervisor Meyer,complex,high,9800,portal,silver,east,medium,supervision,approved
+IC-6008,Notify Customer,2025-06-04 16:25,2025-06-04 16:45,Notification Service,complex,high,9800,portal,silver,east,medium,notification,completed
+IC-6009,Submit Claim,2025-06-04 11:00,2025-06-04 11:05,Customer Portal,complex,high,6200,phone,silver,south,high,intake,submitted
+IC-6009,Check Documents,2025-06-04 12:40,2025-06-04 13:20,Claims Agent C,complex,high,6200,phone,silver,south,high,documentation,complete
+IC-6009,Assess Claim,2025-06-05 09:50,2025-06-05 12:40,Assessor Novak,complex,high,6200,phone,silver,south,high,assessment,completed
+IC-6009,Fraud Review,2025-06-05 14:00,2025-06-05 15:35,Fraud Analyst 2,complex,high,6200,phone,silver,south,high,fraud,cleared
+IC-6009,Review Recommendation,2025-06-05 16:15,2025-06-05 17:00,Supervisor Meyer,complex,high,6200,phone,silver,south,high,supervision,approved
+IC-6009,Notify Customer,2025-06-05 17:45,2025-06-05 18:05,Notification Service,complex,high,6200,phone,silver,south,high,notification,completed
+IC-6010,Submit Claim,2025-06-05 09:25,2025-06-05 09:30,Customer Portal,complex,normal,5600,email,bronze,west,medium,intake,submitted
+IC-6010,Check Documents,2025-06-05 11:35,2025-06-05 12:20,Claims Agent D,complex,normal,5600,email,bronze,west,medium,documentation,incomplete
+IC-6010,Request Missing Documents,2025-06-05 12:45,2025-06-05 13:05,Claims Agent D,complex,normal,5600,email,bronze,west,medium,documentation,requested
+IC-6010,Resubmit Documents,2025-06-06 09:45,2025-06-06 10:00,Customer Email,complex,normal,5600,email,bronze,west,medium,intake,resubmitted
+IC-6010,Check Documents,2025-06-06 10:55,2025-06-06 11:28,Claims Agent D,complex,normal,5600,email,bronze,west,medium,documentation,complete
+IC-6010,Assess Claim,2025-06-06 15:20,2025-06-06 18:15,Assessor Novak,complex,normal,5600,email,bronze,west,medium,assessment,completed
+IC-6010,Review Recommendation,2025-06-07 10:30,2025-06-07 11:18,Supervisor Meyer,complex,normal,5600,email,bronze,west,medium,supervision,approved
+IC-6010,Notify Customer,2025-06-07 12:30,2025-06-07 12:52,Notification Service,complex,normal,5600,email,bronze,west,medium,notification,completed
+IC-6011,Submit Claim,2025-06-06 10:40,2025-06-06 10:45,Customer Portal,complex,normal,8700,email,bronze,east,high,intake,submitted
+IC-6011,Check Documents,2025-06-06 13:10,2025-06-06 13:55,Claims Agent C,complex,normal,8700,email,bronze,east,high,documentation,complete
+IC-6011,Assess Claim,2025-06-07 13:40,2025-06-07 17:20,Assessor Novak,complex,normal,8700,email,bronze,east,high,assessment,completed
+IC-6011,Fraud Review,2025-06-08 09:10,2025-06-08 10:55,Fraud Analyst 2,complex,normal,8700,email,bronze,east,high,fraud,cleared
+IC-6011,Review Recommendation,2025-06-08 12:40,2025-06-08 13:32,Supervisor Meyer,complex,normal,8700,email,bronze,east,high,supervision,approved
+IC-6011,Notify Customer,2025-06-08 15:35,2025-06-08 16:00,Notification Service,complex,normal,8700,email,bronze,east,high,notification,completed
+IC-6012,Submit Claim,2025-06-07 11:55,2025-06-07 12:00,Customer Portal,complex,normal,7600,phone,bronze,south,high,intake,submitted
+IC-6012,Check Documents,2025-06-07 14:35,2025-06-07 15:20,Claims Agent D,complex,normal,7600,phone,bronze,south,high,documentation,incomplete
+IC-6012,Request Missing Documents,2025-06-07 15:45,2025-06-07 16:05,Claims Agent D,complex,normal,7600,phone,bronze,south,high,documentation,requested
+IC-6012,Resubmit Documents,2025-06-08 10:25,2025-06-08 10:42,Customer Phone,complex,normal,7600,phone,bronze,south,high,intake,resubmitted
+IC-6012,Check Documents,2025-06-08 11:50,2025-06-08 12:25,Claims Agent D,complex,normal,7600,phone,bronze,south,high,documentation,complete
+IC-6012,Assess Claim,2025-06-09 14:10,2025-06-09 18:05,Assessor Novak,complex,normal,7600,phone,bronze,south,high,assessment,completed
+IC-6012,Fraud Review,2025-06-10 09:20,2025-06-10 11:10,Fraud Analyst 2,complex,normal,7600,phone,bronze,south,high,fraud,cleared
+IC-6012,Review Recommendation,2025-06-10 14:05,2025-06-10 15:00,Supervisor Meyer,complex,normal,7600,phone,bronze,south,high,supervision,approved
+IC-6012,Notify Customer,2025-06-10 16:50,2025-06-10 17:18,Notification Service,complex,normal,7600,phone,bronze,south,high,notification,completed

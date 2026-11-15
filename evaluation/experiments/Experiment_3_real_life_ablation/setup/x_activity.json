@@ -1,0 +1,35 @@
+{
+ "AcademicCredentials": {
+  "activity": "Notificacion estudiante cancelacion soli",
+  "mean_waiting_h": 111.11,
+  "events": 208,
+  "cases_with_activity": 208,
+  "test_log_cases": 398,
+  "min_case_share": 0.1,
+  "largest_without_minimum": "Validacion final",
+  "same_under_clipped_rule": true,
+  "same_under_latest_ended_rule": true
+ },
+ "BPIC_2012_W": {
+  "activity": "W_Nabellen offertes",
+  "mean_waiting_h": 73.44,
+  "events": 4899,
+  "cases_with_activity": 1397,
+  "test_log_cases": 2976,
+  "min_case_share": 0.1,
+  "largest_without_minimum": "W_Nabellen offertes",
+  "same_under_clipped_rule": true,
+  "same_under_latest_ended_rule": true
+ },
+ "BPIC_2017_W": {
+  "activity": "W_Validate application",
+  "mean_waiting_h": 75.4,
+  "events": 12453,
+  "cases_with_activity": 4847,
+  "test_log_cases": 7376,
+  "min_case_share": 0.1,
+  "largest_without_minimum": "W_Validate application",
+  "same_under_clipped_rule": true,
+  "same_under_latest_ended_rule": true
+ }
+}

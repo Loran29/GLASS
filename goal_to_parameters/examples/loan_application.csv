@@ -1,0 +1,64 @@
+case_id,activity,timestamp,resource,status
+L-2001,Submit Loan Request,2025-02-01 09:00,Customer Portal,received
+L-2001,Review Application,2025-02-01 10:30,Loan Officer Garcia,completed
+L-2001,Request Missing Documents,2025-02-01 10:45,Loan Officer Garcia,completed
+L-2001,Submit Loan Request,2025-02-02 14:00,Customer Portal,resubmitted
+L-2001,Review Application,2025-02-02 16:20,Loan Officer Garcia,completed
+L-2001,Perform Credit Check,2025-02-03 09:00,Credit Assessment Team,completed
+L-2001,Evaluate Applicant Profile,2025-02-03 11:00,Risk Department,completed
+L-2001,Approve Application,2025-02-03 14:30,Senior Manager Patel,approved
+L-2001,Release Funds,2025-02-04 09:15,Disbursement Team,completed
+L-2001,Notify Customer,2025-02-04 09:30,Disbursement Team,completed
+L-2002,Submit Loan Request,2025-02-01 11:00,Customer Portal,received
+L-2002,Review Application,2025-02-01 14:00,Loan Officer Kim,completed
+L-2002,Perform Credit Check,2025-02-02 09:30,Credit Assessment Team,completed
+L-2002,Evaluate Applicant Profile,2025-02-02 13:00,Risk Department,completed
+L-2002,Reject Application,2025-02-02 16:00,Senior Manager Patel,rejected
+L-2002,Notify Customer,2025-02-02 16:15,Disbursement Team,completed
+L-2003,Submit Loan Request,2025-02-02 08:30,Customer Portal,received
+L-2003,Review Application,2025-02-02 15:45,Loan Officer Garcia,completed
+L-2003,Perform Credit Check,2025-02-03 10:00,Credit Assessment Team,completed
+L-2003,Evaluate Applicant Profile,2025-02-03 14:30,Risk Department,completed
+L-2003,Approve Application,2025-02-04 09:00,Senior Manager Patel,approved
+L-2003,Release Funds,2025-02-04 11:00,Disbursement Team,completed
+L-2003,Notify Customer,2025-02-04 11:20,Disbursement Team,completed
+L-2004,Submit Loan Request,2025-02-03 09:15,Customer Portal,received
+L-2004,Review Application,2025-02-04 10:00,Loan Officer Kim,completed
+L-2004,Request Missing Documents,2025-02-04 10:20,Loan Officer Kim,completed
+L-2004,Submit Loan Request,2025-02-05 11:00,Customer Portal,resubmitted
+L-2004,Review Application,2025-02-05 14:30,Loan Officer Kim,completed
+L-2004,Perform Credit Check,2025-02-06 08:45,Credit Assessment Team,completed
+L-2004,Evaluate Applicant Profile,2025-02-06 11:30,Risk Department,completed
+L-2004,Approve Application,2025-02-06 15:00,Senior Manager Patel,approved
+L-2004,Release Funds,2025-02-07 09:00,Disbursement Team,completed
+L-2004,Notify Customer,2025-02-07 09:20,Disbursement Team,completed
+L-2005,Submit Loan Request,2025-02-03 10:00,Customer Portal,received
+L-2005,Review Application,2025-02-03 16:00,Loan Officer Garcia,completed
+L-2005,Perform Credit Check,2025-02-04 09:30,Credit Assessment Team,completed
+L-2005,Evaluate Applicant Profile,2025-02-04 13:15,Risk Department,completed
+L-2005,Approve Application,2025-02-04 16:45,Senior Manager Patel,approved
+L-2005,Release Funds,2025-02-05 09:00,Disbursement Team,completed
+L-2005,Notify Customer,2025-02-05 09:10,Disbursement Team,completed
+L-2006,Submit Loan Request,2025-02-04 08:00,Customer Portal,received
+L-2006,Review Application,2025-02-05 09:30,Loan Officer Garcia,completed
+L-2006,Perform Credit Check,2025-02-05 14:00,Credit Assessment Team,completed
+L-2006,Evaluate Applicant Profile,2025-02-06 09:00,Risk Department,completed
+L-2006,Reject Application,2025-02-06 14:00,Senior Manager Patel,rejected
+L-2006,Notify Customer,2025-02-06 14:30,Disbursement Team,completed
+L-2007,Submit Loan Request,2025-02-05 09:00,Customer Portal,received
+L-2007,Review Application,2025-02-05 11:00,Loan Officer Kim,completed
+L-2007,Request Missing Documents,2025-02-05 11:15,Loan Officer Kim,completed
+L-2007,Submit Loan Request,2025-02-06 10:00,Customer Portal,resubmitted
+L-2007,Review Application,2025-02-06 13:00,Loan Officer Garcia,completed
+L-2007,Perform Credit Check,2025-02-07 09:00,Credit Assessment Team,completed
+L-2007,Evaluate Applicant Profile,2025-02-07 11:45,Risk Department,completed
+L-2007,Approve Application,2025-02-07 15:30,Senior Manager Patel,approved
+L-2007,Release Funds,2025-02-10 09:00,Disbursement Team,completed
+L-2007,Notify Customer,2025-02-10 09:15,Disbursement Team,completed
+L-2008,Submit Loan Request,2025-02-05 14:00,Customer Portal,received
+L-2008,Review Application,2025-02-06 16:00,Loan Officer Kim,completed
+L-2008,Perform Credit Check,2025-02-07 10:30,Credit Assessment Team,completed
+L-2008,Evaluate Applicant Profile,2025-02-07 14:00,Risk Department,completed
+L-2008,Approve Application,2025-02-10 09:30,Senior Manager Patel,approved
+L-2008,Release Funds,2025-02-10 11:00,Disbursement Team,completed
+L-2008,Notify Customer,2025-02-10 11:15,Disbursement Team,completed

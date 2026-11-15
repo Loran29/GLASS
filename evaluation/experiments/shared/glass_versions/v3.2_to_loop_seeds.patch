@@ -1,0 +1,277 @@
+diff --git a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+index 698a1c4..7da567b 100644
+--- a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
++++ b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+@@ -25,9 +25,14 @@ and feedback with the real-life ablation's switch (evaluation/real_life_ablation
+ disable_kb); the record gets variant, switches and kb_switch (stub call counts). GLASS v3.2 can keep the
+ baseline (no_improving_scenario): the record's loop gets no_improving_scenario and best_candidate_iteration.
+ 
++Loop seeds (--loop-seeds N, default 1 = the batch as before): GLASS's refinement loop simulates the baseline
++and each proposal on N paired seeds (42, 43, ...) per iteration and judges the mean KPIs
++(run_iterative_evaluation(..., loop_seeds=N)); the final multi-seed evaluation is unchanged. The record gets
++loop_seeds; with N > 1 the loop's baseline_kpis_single_run and single_run_evaluation hold the means.
++
+ Usage (repo root, Python environment with Prosimos, see stage2/README.md):
+   python evaluation/loanapp_p2p/scripts/run_stage2_batch.py [--smoke | --only ID[,ID]] [--reps N] [--workers N]
+-         [--variant V_full|V_no_kb] [--out DIR]
++         [--variant V_full|V_no_kb] [--loop-seeds N] [--out DIR]
+ 
+ SCORING (analysis only; the recording is never changed by scoring)
+ Primary
+@@ -579,7 +584,7 @@ def run_rep(job: dict) -> dict:
+     kb_counter = {"kb_stub_calls": 0, "feedback_kb_suppressed": 0}
+     provider = Stage2RecordingProvider(s1.make_provider(settings["model"]), tracker)
+     record = {"config_id": cid, "process": cfg["process"], "goal_config": cfg["goal_config"],
+-              "variant": variant, "switches": VARIANTS[variant],
++              "variant": variant, "switches": VARIANTS[variant], "loop_seeds": job.get("loop_seeds", 1),
+               "rep": rep, "status": None, "error": None, "timestamp": t_start,
+               "provider": type(provider.inner).__name__, "model": provider.get_model_name(),
+               "glass_commit": job["glass_commit"], "config_sha256": job["config_sha"],
+@@ -625,7 +630,8 @@ def run_rep(job: dict) -> dict:
+         loop = ie.run_iterative_evaluation(orch, baseline, inputs["bpmn"], loop_targets,
+                                            max_iterations=settings["max_iterations"], total_cases=settings["cases"],
+                                            start_time=settings["start"], seed=BASE_SEED, cost_per_hour=cost_map,
+-                                           on_iteration=on_iteration, log_profile=log_profile)
++                                           on_iteration=on_iteration, log_profile=log_profile,
++                                           loop_seeds=job.get("loop_seeds", 1))
+         patches.restore()
+         record["kb_switch"] = dict(kb_counter)
+         if provider.fatal:
+@@ -918,7 +924,7 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
+         "compliance calls: 0.1",
+         f"- Iterations: max {s['max_iterations']}; multi-seed: {s['seeds']} seeds ({BASE_SEED}..{BASE_SEED + s['seeds'] - 1}), "
+         f"{s['cases']} cases, start {s['start']}",
+-        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}",
++        f"- Repetitions: {args.reps}; workers: {args.workers} (processes); variant: {args.variant}; loop seeds: {args.loop_seeds}",
+         f"- This invocation: start {started}, end {ended}; earliest / latest rep timestamp: "
+         f"{min(stamps, default='')} / {max(stamps, default='')}",
+         f"- Python {sys.version.split()[0]}; prosimos {version('prosimos')}; log-distance-measures "
+@@ -1041,6 +1047,7 @@ def main() -> None:
+     ap.add_argument("--out", type=Path, default=BASE / "results" / "stage2_results")
+     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes")
+     ap.add_argument("--variant", choices=sorted(VARIANTS), default="V_full", help="V_no_kb: knowledge base off")
++    ap.add_argument("--loop-seeds", type=int, default=1, help="paired simulation runs per refinement iteration")
+     args = ap.parse_args()
+     if args.smoke:
+         args.reps, args.only = 1, "LoanApp_G3"
+@@ -1076,11 +1083,11 @@ def main() -> None:
+                 s1.log(f"{cfg['config_id']} rep {rep} skipped (exists: {existing['status']})")
+                 continue
+             jobs.append({"config": config, "cfg": cfg, "rep": rep, "out": str(args.out), "glass_commit": commit,
+-                         "variant": args.variant,
++                         "variant": args.variant, "loop_seeds": args.loop_seeds,
+                          "config_sha": config_sha, "script_sha": s1.sha256(Path(__file__).read_bytes()),
+                          "log_profile": log_profile, "shared": shared, "healthy_sha": healthy_sha,
+                          "healthy_scenario": healthy_scn})
+-    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; model {settings['model']}; workers {args.workers}; "
++    s1.log(f"{len(jobs)} run(s) to do; variant {args.variant}; loop seeds {args.loop_seeds}; model {settings['model']}; workers {args.workers}; "
+            f"GLASS {commit[:7]}")
+     with ProcessPoolExecutor(max_workers=args.workers) as pool:
+         futures = [pool.submit(run_rep, job) for job in jobs]
+diff --git a/goal_to_parameters/second_llm/iterative_evaluator.py b/goal_to_parameters/second_llm/iterative_evaluator.py
+index 2936815..21be831 100644
+--- a/goal_to_parameters/second_llm/iterative_evaluator.py
++++ b/goal_to_parameters/second_llm/iterative_evaluator.py
+@@ -15,6 +15,11 @@ goal-programming scoring function with prospect-theoretic loss aversion
+ ``legacy_refinement=True`` restores the earlier rules for comparison (ablation): stop at the
+ first iteration whose overall status is ``improved``, and select the best iteration by score
+ alone. Off by default.
++
++``loop_seeds`` (default 1) is the number of paired simulation runs per iteration: the baseline and
++each proposal are simulated on seeds ``seed``, ``seed + 1``, … and their KPIs averaged
++(:func:`average_kpi_results`). Improved / worsened / unchanged, the score, the stop rule and the
++feedback then use the means, with the same thresholds. With 1 the loop is the single-run loop.
+ """
+ 
+ from __future__ import annotations
+@@ -25,7 +30,7 @@ import time
+ from dataclasses import dataclass, field
+ from typing import Any, Callable
+ 
+-from second_llm.kpi_computation import KPIComputationResult, compute_kpis
++from second_llm.kpi_computation import ComputedKPI, KPIComputationResult, compute_kpis
+ from second_llm.output_schema import SimuBridgeScenario
+ from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation, scenario_to_prosimos_json
+ from second_llm.scenario_evaluation import (
+@@ -120,6 +125,8 @@ class IterativeEvaluationResult:
+     # best_iteration_idx is None and the best iteration is attached for inspection only.
+     no_improving_scenario: bool = False
+     best_candidate_idx: int | None = None
++    # Paired simulation runs per iteration (KPIs averaged over them when > 1).
++    loop_seeds: int = 1
+ 
+     @property
+     def outcome(self) -> str:
+@@ -255,11 +262,52 @@ def _gap_lines(e: KPIComparisonEntry, gen_result: ScenarioGenerationResult | Non
+     return lines
+ 
+ 
++def _mean_details(items: list[Any]) -> Any:
++    """Average the numeric entries of KPI details over seeds, recursively through dicts.
++
++    Other entries (text, lists, booleans) are taken from the first seed that has them.
++    """
++    first = items[0]
++    if isinstance(first, dict):
++        keys = list(dict.fromkeys(k for d in items if isinstance(d, dict) for k in d))
++        return {k: _mean_details([d[k] for d in items if isinstance(d, dict) and k in d]) for k in keys}
++    nums = [v for v in items if isinstance(v, (int, float)) and not isinstance(v, bool)]
++    if isinstance(first, bool) or not nums or len(nums) != len(items):
++        return first
++    return sum(nums) / len(nums)
++
++
++def average_kpi_results(results: list[KPIComputationResult]) -> KPIComputationResult:
++    """Mean over seeds of each KPI: its value and the numeric entries of its details.
++
++    A KPI is averaged over the seeds where it has a value (as in the multi-seed evaluation);
++    ``details["n_seeds"]`` records how many. Averaging ``per_role`` before resolving a
++    role's utilization equals averaging the resolved values, since both are means.
++    """
++    kpis: list[ComputedKPI] = []
++    for name in dict.fromkeys(k.name for r in results for k in r.kpis):
++        per_seed = [k for r in results for k in r.kpis if k.name == name]
++        valued = [k for k in per_seed if k.value is not None]
++        if not valued:
++            kpis.append(per_seed[0])
++            continue
++        details = _mean_details([k.details or {} for k in valued])
++        kpis.append(ComputedKPI(name=name, value=sum(k.value for k in valued) / len(valued),
++                                unit=valued[0].unit, category=valued[0].category,
++                                details={**details, "n_seeds": len(valued)}))
++    return KPIComputationResult(
++        kpis=kpis,
++        notes=list(dict.fromkeys(n for r in results for n in r.notes)),
++        error=next((r.error for r in results if r.error), None),
++    )
++
++
+ def _build_evaluation_feedback(
+     eval_result: ScenarioEvaluationResult,
+     gen_result: ScenarioGenerationResult,
+     iteration: int,
+     max_iterations: int,
++    seeds: list[int] | None = None,
+ ) -> str:
+     """Build a structured feedback message enriched with causal attribution and KB evidence.
+ 
+@@ -274,6 +322,9 @@ def _build_evaluation_feedback(
+     lines.append(f"=== SIMULATION FEEDBACK (Attempt {iteration}/{max_iterations}) ===")
+     lines.append("")
+     lines.append("Your proposed scenario was simulated using Prosimos (discrete-event simulation).")
++    if seeds and len(seeds) > 1:
++        lines.append(f"All KPI values below are means over {len(seeds)} paired simulation runs "
++                     f"(seeds {seeds[0]}-{seeds[-1]}) of the baseline and of your proposal.")
+     lines.append(f"Overall Result: {eval_result.summary.overall_status.value.upper()}")
+     with_threshold = [e for e in eval_result.kpi_comparisons
+                       if getattr(e, "threshold", None) is not None and not e.is_safeguard]
+@@ -576,6 +627,7 @@ def run_iterative_evaluation(
+     log_profile: dict[str, Any] | None = None,
+     context_profile: dict[str, Any] | None = None,
+     legacy_refinement: bool = False,
++    loop_seeds: int = 1,
+ ) -> IterativeEvaluationResult:
+     """Run the iterative generate→simulate→evaluate→feedback loop.
+ 
+@@ -610,29 +662,50 @@ def run_iterative_evaluation(
+         overall status is ``improved``, and select the best iteration by score alone.
+         Default False: stop when the targets are met; select by achieved targets, then
+         improved KPIs, then score.
++    loop_seeds
++        Paired simulation runs per iteration (default 1, a single run on ``seed``). With
++        more, the baseline and each proposal run on seeds ``seed``, ``seed + 1``, … and the
++        comparison, score, stop rule and feedback use the mean KPIs over those runs.
+     """
++    if loop_seeds < 1:
++        raise ValueError(f"loop_seeds must be at least 1, got {loop_seeds}")
+     t0 = time.time()
+-    result = IterativeEvaluationResult()
++    result = IterativeEvaluationResult(loop_seeds=loop_seeds)
++    seeds = [seed + j for j in range(loop_seeds)]
++    on_seed = (lambda s: "") if loop_seeds == 1 else (lambda s: f" (seed {s})")
+ 
+     def _notify(iteration: int, msg: str) -> None:
+         if on_iteration:
+             on_iteration(iteration, msg)
+ 
+-    # --- Step 1: Simulate baseline (once) ---
++    def _simulate(scenario: SimuBridgeScenario) -> tuple[KPIComputationResult | None, ProsimosResult | None, int]:
++        """KPIs of ``scenario`` over ``seeds`` (one seed: that run's KPIs; several: their mean).
++
++        On a failed run returns (None, that run's result, its seed).
++        """
++        per_seed: list[KPIComputationResult] = []
++        for s in seeds:
++            sim = run_prosimos_simulation(
++                scenario, bpmn_xml,
++                total_cases=total_cases, start_time=start_time, seed=s,
++            )
++            if sim is None or not sim.ok:
++                return None, sim, s
++            per_seed.append(compute_kpis(sim.simulated_log, cost_per_hour=cost_per_hour,
++                                         prosimos_params=scenario_to_prosimos_json(scenario, bpmn_xml),
++                                         sim_start=start_time))
++        return (per_seed[0] if loop_seeds == 1 else average_kpi_results(per_seed)), None, seeds[-1]
++
++    # --- Step 1: Simulate baseline (once; on every loop seed) ---
+     _notify(0, "Simulating baseline...")
+-    baseline_sim: ProsimosResult | None = run_prosimos_simulation(
+-        baseline_scenario, bpmn_xml,
+-        total_cases=total_cases, start_time=start_time, seed=seed,
+-    )
++    baseline_kpis, baseline_sim, failed_seed = _simulate(baseline_scenario)
+ 
+-    if baseline_sim is None or not baseline_sim.ok:
+-        result.error = f"Baseline simulation failed: {baseline_sim.error if baseline_sim else 'No simulator available'}"
++    if baseline_kpis is None:
++        result.error = (f"Baseline simulation failed{on_seed(failed_seed)}: "
++                        f"{baseline_sim.error if baseline_sim else 'No simulator available'}")
+         result.total_time_seconds = time.time() - t0
+         return result
+ 
+-    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour,
+-                                 prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
+-                                 sim_start=start_time)
+     result.baseline_kpis = baseline_kpis
+ 
+     # --- Step 2: Iterative loop ---
+@@ -657,24 +730,19 @@ def run_iterative_evaluation(
+ 
+         proposed_scenario = gen_result.proposal.scenario
+ 
+-        # Simulate proposed
++        # Simulate proposed (and compute its KPIs: one run, or the mean over the loop seeds)
+         _notify(i, "Simulating proposed scenario...")
+-        proposed_sim = run_prosimos_simulation(
+-            proposed_scenario, bpmn_xml,
+-            total_cases=total_cases, start_time=start_time, seed=seed,
+-        )
++        proposed_kpis, proposed_sim, failed_seed = _simulate(proposed_scenario)
+ 
+-        if proposed_sim is None or not proposed_sim.ok:
+-            iter_result.error = f"Simulation failed: {proposed_sim.error if proposed_sim else 'unknown'}"
++        if proposed_kpis is None:
++            iter_result.error = (f"Simulation failed{on_seed(failed_seed)}: "
++                                 f"{proposed_sim.error if proposed_sim else 'unknown'}")
+             _notify(i, f"Simulation failed")
+             result.iterations.append(iter_result)
+             continue
+ 
+-        # Compute KPIs and compare
++        # Compare
+         _notify(i, "Evaluating KPIs...")
+-        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour,
+-                                     prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
+-                                     sim_start=start_time)
+         eval_result = compare_kpis(baseline_kpis, proposed_kpis, targets)
+         iter_result.eval_result = eval_result
+         iter_result.status = eval_result.summary.overall_status if eval_result.summary else None
+@@ -693,7 +761,7 @@ def run_iterative_evaluation(
+ 
+         # Build feedback and inject for next iteration
+         if i < max_iterations:
+-            feedback = _build_evaluation_feedback(eval_result, gen_result, i, max_iterations)
++            feedback = _build_evaluation_feedback(eval_result, gen_result, i, max_iterations, seeds)
+             iter_result.feedback_message = feedback
+             orchestrator.inject_feedback_message(feedback)
+             status_label = iter_result.status.value if iter_result.status else "unknown"

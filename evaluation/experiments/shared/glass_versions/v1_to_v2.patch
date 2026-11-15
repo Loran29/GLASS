@@ -1,0 +1,474 @@
+diff --git a/goal_to_parameters/prompts/smart_kpi_prompt.py b/goal_to_parameters/prompts/smart_kpi_prompt.py
+index a51e4fb..3a5b4f8 100644
+--- a/goal_to_parameters/prompts/smart_kpi_prompt.py
++++ b/goal_to_parameters/prompts/smart_kpi_prompt.py
+@@ -64,8 +64,8 @@ Fixed KPIs (always computed when data is available):
+ - "Average Cycle Time"        — end-to-end or overall cycle/lead/turnaround time KPI. process_scope must be "end_to_end".  (category: time)
+ - "Average Waiting Time"      — ONLY for a KPI that measures overall case waiting time (the total time a case spends waiting across ALL activities). process_scope must be "end_to_end". Do NOT use this for a KPI that targets waiting time before a specific activity — use the activity-specific pattern below instead.  (category: time)
+ - "Average Processing Time"   — overall processing/service/activity-duration time KPI       (category: time)
+-- "Throughput"                — any completion rate, cases-per-day, or volume KPI               (category: throughput)
+-- "Resource Utilization"      — the GLOBAL average utilization across ALL resources in the simulation. This is a single number. If the goal names multiple roles separately (e.g. buyer utilization AND analyst utilization), assign "Resource Utilization" to at most ONE KPI (the primary or combined one) and set measurable_as to null for the others. Do NOT assign "Resource Utilization" to more than one KPI.  (category: utilization)
++- "Throughput"                — completed cases per day over the simulated period; any completion rate, cases-per-day, or volume KPI               (category: throughput)
++- "Resource Utilization"      — utilization of the resource or role the KPI refers to, over its available working time; all resources if none is named. This is a single computed KPI. If the goal names multiple roles separately (e.g. buyer utilization AND analyst utilization), assign "Resource Utilization" to at most ONE KPI (the primary or combined one) and set measurable_as to null for the others. Do NOT assign "Resource Utilization" to more than one KPI.  (category: utilization)
+ - "Cost per Case"             — any per-case cost or labor-cost KPI                             (category: cost)
+ 
+ Activity-specific waiting time KPIs (computed for each activity in the log):
+@@ -1030,8 +1030,8 @@ Time-bound: The KPI must define a measurement period, review period, or simulati
+ 27. In "suggested_formula", express computation using case-level aggregation only: AVG(...) across completed cases, COUNT(...) across the simulation run, SUM(...) / SUM(...) over the run. Do NOT append "per month", "per week", or any time-window suffix — Prosimos outputs a case-level event log, not a calendar-based report.
+ 28. In "time_bound", reference the simulation run, not real calendar periods. Use "Evaluated across all simulated cases in the run" or "Computed at simulation end". Do not write "over a 6-month period", "measured weekly", or similar calendar language — the simulation is case-based, not time-windowed.
+ 29. Never use any calendar-period factor in context_segmentation. This includes any factor whose name contains the words month, quarter, year, or season — regardless of prefix (e.g. event_month, case_start_month, arrival_quarter, submission_year, event_quarter, event_year all violate this rule). These reflect historical seasonality in the log but cannot be set as case attributes in a Prosimos DES simulation. Simulatable temporal factors (hour_of_day, day_of_week) are permitted when evidence supports them.
+-30. "Resource Utilization" is a single global number (mean across ALL resources). Do NOT assign it to more than one KPI. If the goal names multiple roles separately (e.g. buyer utilization and analyst utilization), assign "Resource Utilization" to the first or most important role and set measurable_as to null for the others. Never invent per-role measurable_as names that are not in the computable KPI list.
+-31. Utilization KPIs always use process_scope "end_to_end". Resource utilization is measured across the whole simulation run, not at a single activity or subprocess. Never set process_scope to "activity_level" or "subprocess" for a KPI with category "utilization".
++30. "Resource Utilization" is a single computed KPI: the utilization of the resource or role the KPI refers to, over its available working time (all resources if none is named). Do NOT assign it to more than one KPI. If the goal names multiple roles separately (e.g. buyer utilization and analyst utilization), assign "Resource Utilization" to the first or most important role and set measurable_as to null for the others. Never invent per-role measurable_as names that are not in the computable KPI list.
++31. Utilization KPIs always use process_scope "end_to_end". Resource utilization is measured over the available working time of the whole simulation run, not at a single activity or subprocess. Never set process_scope to "activity_level" or "subprocess" for a KPI with category "utilization".
+ 
+ ## Internal procedure
+ Before producing the final JSON, silently do the following:
+diff --git a/goal_to_parameters/second_llm/iterative_evaluator.py b/goal_to_parameters/second_llm/iterative_evaluator.py
+index 8ead472..c0d95fe 100644
+--- a/goal_to_parameters/second_llm/iterative_evaluator.py
++++ b/goal_to_parameters/second_llm/iterative_evaluator.py
+@@ -18,7 +18,7 @@ from typing import Any, Callable
+ 
+ from second_llm.kpi_computation import KPIComputationResult, compute_kpis
+ from second_llm.output_schema import SimuBridgeScenario
+-from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation
++from second_llm.prosimos_runner import ProsimosResult, run_prosimos_simulation, scenario_to_prosimos_json
+ from second_llm.scenario_evaluation import (
+     KPIComparisonEntry,
+     KPITarget,
+@@ -391,7 +391,9 @@ def run_iterative_evaluation(
+         result.total_time_seconds = time.time() - t0
+         return result
+ 
+-    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour)
++    baseline_kpis = compute_kpis(baseline_sim.simulated_log, cost_per_hour=cost_per_hour,
++                                 prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
++                                 sim_start=start_time)
+     result.baseline_kpis = baseline_kpis
+ 
+     # --- Step 2: Iterative loop ---
+@@ -431,7 +433,9 @@ def run_iterative_evaluation(
+ 
+         # Compute KPIs and compare
+         _notify(i, "Evaluating KPIs...")
+-        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour)
++        proposed_kpis = compute_kpis(proposed_sim.simulated_log, cost_per_hour=cost_per_hour,
++                                     prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
++                                     sim_start=start_time)
+         eval_result = compare_kpis(baseline_kpis, proposed_kpis, targets)
+         iter_result.eval_result = eval_result
+         iter_result.status = eval_result.summary.overall_status if eval_result.summary else None
+diff --git a/goal_to_parameters/second_llm/kpi_computation.py b/goal_to_parameters/second_llm/kpi_computation.py
+index a513ebe..c83f242 100644
+--- a/goal_to_parameters/second_llm/kpi_computation.py
++++ b/goal_to_parameters/second_llm/kpi_computation.py
+@@ -7,6 +7,8 @@ All computations are deterministic and code-based — no LLM involvement.
+ 
+ from __future__ import annotations
+ 
++import bisect
++import re
+ from dataclasses import dataclass, field
+ from typing import Any
+ 
+@@ -182,8 +184,77 @@ def _compute_throughput(df: pd.DataFrame) -> ComputedKPI | None:
+     )
+ 
+ 
+-def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
+-    """Average resource utilization (busy time / available time)."""
++_WEEKDAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
++
++
++def _wall_time(values: Any, tz: Any = None) -> Any:
++    """Timestamps as wall-clock time (the frame calendars are written in)."""
++    if isinstance(values, pd.Series):
++        return values.dt.tz_localize(None) if values.dt.tz is not None else values
++    ts = pd.Timestamp(values)
++    if ts.tzinfo is not None:
++        ts = (ts.tz_convert(tz) if tz is not None else ts).tz_localize(None)
++    return ts
++
++
++def _seconds_of_day(text: Any) -> float:
++    """'HH:MM:SS[.fff]' -> seconds; an end of 23:59:59 or later counts as the full day."""
++    h, m, s = (str(text).split(":") + ["0", "0"])[:3]
++    sec = int(h) * 3600 + int(m) * 60 + float(s)
++    return 86400.0 if sec >= 86399 else sec
++
++
++def _working_windows(periods: list[dict[str, Any]], t0: pd.Timestamp, t1: pd.Timestamp) -> tuple[list, list]:
++    """Sorted working intervals of a Prosimos calendar (list of time periods) within [t0, t1]."""
++    starts, ends = [], []
++    day = t0.normalize()
++    while day <= t1:
++        wd = day.weekday()
++        for p in periods:
++            a = _WEEKDAYS.index(str(p.get("from", "")).upper())
++            b = _WEEKDAYS.index(str(p.get("to") or p.get("from", "")).upper())
++            if (a <= wd <= b) if a <= b else (wd >= a or wd <= b):
++                s = max(day + pd.Timedelta(seconds=_seconds_of_day(p.get("beginTime", "00:00:00"))), t0)
++                e = min(day + pd.Timedelta(seconds=_seconds_of_day(p.get("endTime", "23:59:59"))), t1)
++                if e > s:
++                    starts.append(s)
++                    ends.append(e)
++        day += pd.Timedelta(days=1)
++    order = sorted(range(len(starts)), key=starts.__getitem__)
++    return [starts[i] for i in order], [ends[i] for i in order]
++
++
++def _resource_index(prosimos_params: dict[str, Any] | None) -> list[tuple[set[str], str, list | None]]:
++    """(log names of a resource, its role, its calendar periods) from Prosimos parameters.
++
++    Resources are indexed by both id and name, as simod_to_simubridge and patch_validator do,
++    so a log that names resources by either matches.
++    """
++    if not prosimos_params:
++        return []
++    periods = {c.get("id"): c.get("time_periods") or [] for c in prosimos_params.get("resource_calendars") or []}
++    out = []
++    for prof in prosimos_params.get("resource_profiles") or []:
++        role = str(prof.get("name") or prof.get("id"))
++        for res in prof.get("resource_list") or []:
++            keys = {str(k) for k in (res.get("id"), res.get("name")) if k}
++            out.append((keys, role, periods.get(res.get("calendar"))))
++    return out
++
++
++def _compute_resource_utilization(
++    df: pd.DataFrame,
++    prosimos_params: dict[str, Any] | None = None,
++    sim_start: Any = None,
++) -> ComputedKPI | None:
++    """Resource utilization: busy time / available working time, per resource.
++
++    Evaluated period: from the simulation start (``sim_start``, else the first start in the log)
++    to the last end in the log. Available time = the resource's calendar periods within the period;
++    busy time = its activities clipped to those periods. A resource without a calendar falls back to
++    busy time / log span and is listed in details["fallback_span_based"]. The value is the mean over
++    all resources; per-resource and per-role values are kept in details (see resolve_role_utilization).
++    """
+     if "resource" not in df.columns or "case_id" not in df.columns:
+         return None
+ 
+@@ -191,23 +262,56 @@ def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
+         (df["end_time"] - df["start_time"]).dt.total_seconds() / 3600.0
+     )
+ 
+-    sim_start = df["start_time"].min()
+-    sim_end = df["end_time"].max()
+-    if pd.isna(sim_start) or pd.isna(sim_end):
++    starts, ends = _wall_time(df["start_time"]), _wall_time(df["end_time"])
++    log_start, log_end = starts.min(), ends.max()
++    if pd.isna(log_start) or pd.isna(log_end):
+         return None
+-
+-    total_hours = (sim_end - sim_start).total_seconds() / 3600.0
+-    if total_hours <= 0:
++    span_hours = (log_end - log_start).total_seconds() / 3600.0
++    if span_hours <= 0:
+         return None
+-
+-    resource_busy = df.groupby("resource")["_duration_h"].sum()
+-    resource_utils = resource_busy / total_hours
+-    valid = resource_utils.dropna()
+-
++    period_start = log_start
++    if sim_start is not None:
++        period_start = min(_wall_time(sim_start, df["start_time"].dt.tz), log_start)
++
++    names = df["resource"].astype(str)
++    index = _resource_index(prosimos_params)
++    known = set().union(*(keys for keys, _, _ in index)) if index else set()
++    per_resource: dict[str, float] = {}
++    resource_role: dict[str, str] = {}
++    fallback: list[str] = []
++    for keys, role, periods in index:
++        mask = names.isin(keys)
++        label = next((k for k in sorted(keys) if k in set(names[mask])), sorted(keys)[0])
++        if periods:
++            w_start, w_end = _working_windows(periods, period_start, log_end)
++            available = sum((e - s).total_seconds() for s, e in zip(w_start, w_end))
++        else:
++            available = 0.0
++        if available > 0:
++            busy = 0.0
++            for s, e in zip(starts[mask], ends[mask]):
++                i = bisect.bisect_right(w_end, s)
++                while i < len(w_start) and w_start[i] < e:
++                    busy += max(0.0, (min(e, w_end[i]) - max(s, w_start[i])).total_seconds())
++                    i += 1
++            per_resource[label] = busy / available
++        else:
++            per_resource[label] = float(df.loc[mask, "_duration_h"].sum()) / span_hours
++            fallback.append(label)
++        resource_role[label] = role
++    for name in sorted(set(names) - known):          # resources without parameters
++        per_resource[name] = float(df.loc[names == name, "_duration_h"].sum()) / span_hours
++        fallback.append(name)
++
++    valid = pd.Series(per_resource, dtype=float).dropna()
+     if valid.empty:
+         return None
+ 
+-    per_resource = {str(k): round(float(v), 3) for k, v in valid.items()}
++    per_role: dict[str, float] = {}
++    for role in dict.fromkeys(resource_role.values()):
++        vals = [valid[r] for r, ro in resource_role.items() if ro == role and r in valid]
++        if vals:
++            per_role[role] = round(float(np.mean(vals)), 3)
+ 
+     return ComputedKPI(
+         name="Resource Utilization",
+@@ -218,11 +322,63 @@ def _compute_resource_utilization(df: pd.DataFrame) -> ComputedKPI | None:
+             "max_utilization": round(float(valid.max()), 3),
+             "min_utilization": round(float(valid.min()), 3),
+             "n_resources": len(valid),
+-            "per_resource": per_resource,
++            "per_resource": {k: round(float(v), 3) for k, v in valid.items()},
++            "per_role": per_role,
++            "resource_role": resource_role,
++            "fallback_span_based": fallback,
++            "busy_clipped_to_calendar": True,
++            "period_start": str(period_start),
++            "period_end": str(log_end),
+         },
+     )
+ 
+ 
++def _role_tokens(text: str) -> list[str]:
++    """Lower-case words with a plural 's' dropped ("Field agents" -> field, agent)."""
++    return [w[:-1] if len(w) > 3 and w.endswith("s") else w for w in re.findall(r"[a-z0-9]+", text.lower())]
++
++
++def _roles_named(text: str, roles: list[str]) -> list[str]:
++    """Roles whose name occurs in ``text`` (case-insensitive, singular/plural tolerant); a role
++    whose occurrence lies inside a longer matched role ("Manager" in "Account Manager") is dropped."""
++    tokens = _role_tokens(text or "")
++    hits = []
++    for role in roles:
++        rt = _role_tokens(role)
++        spans = [(i, i + len(rt)) for i in range(len(tokens) - len(rt) + 1) if rt and tokens[i:i + len(rt)] == rt]
++        if spans:
++            hits.append((role, spans))
++    hits.sort(key=lambda h: -(h[1][0][1] - h[1][0][0]))
++    used: set[int] = set()
++    matched = []
++    for role, spans in hits:
++        free = [sp for sp in spans if not used & set(range(*sp))]
++        if free:
++            matched.append(role)
++            for sp in free:
++                used |= set(range(*sp))
++    return matched
++
++
++def resolve_role_utilization(kpi: ComputedKPI, kpi_name: str, kpi_text: str = "") -> ComputedKPI:
++    """Resource Utilization for the role(s) a KPI refers to.
++
++    Roles (from the resource profiles) are looked up in the KPI name, then in its description /
++    formula text. The value becomes the mean utilization of those roles' resources; the
++    all-resource mean is kept in details. Without a match (or without role data) the all-resource
++    mean is kept and details["role_resolved"] is False.
++    """
++    roles = list((kpi.details or {}).get("per_role") or {})
++    matched = _roles_named(kpi_name, roles) or _roles_named(kpi_text, roles)
++    if not matched:
++        return ComputedKPI(kpi.name, kpi.value, kpi.unit, kpi.category,
++                           {**kpi.details, "role_resolved": False})
++    resource_role = kpi.details.get("resource_role") or {}
++    values = [v for r, v in (kpi.details.get("per_resource") or {}).items() if resource_role.get(r) in matched]
++    return ComputedKPI(kpi.name, round(float(np.mean(values)), 3), kpi.unit, kpi.category,
++                       {**kpi.details, "role_resolved": True, "roles": matched, "all_resource_mean": kpi.value})
++
++
+ def _compute_cost_per_case(
+     df: pd.DataFrame,
+     cost_per_hour: dict[str, float] | None = None,
+@@ -305,6 +461,8 @@ def compute_kpis(
+     *,
+     cost_per_hour: dict[str, float] | None = None,
+     include_activity_kpis: bool = True,
++    prosimos_params: dict[str, Any] | None = None,
++    sim_start: Any = None,
+ ) -> KPIComputationResult:
+     """Compute all standard KPIs from a simulated event log.
+ 
+@@ -316,6 +474,11 @@ def compute_kpis(
+         Mapping of resource name → hourly cost rate for cost KPI computation.
+     include_activity_kpis : bool
+         Whether to include per-activity waiting time KPIs.
++    prosimos_params : dict, optional
++        The Prosimos parameters the log was simulated with (resource_profiles,
++        resource_calendars): utilization then uses each resource's working time.
++    sim_start : optional
++        Simulation start (start of the evaluated period for utilization).
+ 
+     Returns
+     -------
+@@ -345,7 +508,7 @@ def compute_kpis(
+     if throughput:
+         result.kpis.append(throughput)
+ 
+-    utilization = _compute_resource_utilization(df)
++    utilization = _compute_resource_utilization(df, prosimos_params, sim_start)
+     if utilization:
+         result.kpis.append(utilization)
+ 
+diff --git a/goal_to_parameters/second_llm/multi_seed_evaluation.py b/goal_to_parameters/second_llm/multi_seed_evaluation.py
+index b6bf6d8..d858ced 100644
+--- a/goal_to_parameters/second_llm/multi_seed_evaluation.py
++++ b/goal_to_parameters/second_llm/multi_seed_evaluation.py
+@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
+ from typing import Any, Callable
+ 
+ from second_llm.output_schema import SimuBridgeScenario
+-from second_llm.prosimos_runner import run_prosimos_simulation
++from second_llm.prosimos_runner import run_prosimos_simulation, scenario_to_prosimos_json
+ from second_llm.kpi_computation import compute_kpis
+ from second_llm.scenario_evaluation import (
+     EvaluationSummary,
+@@ -273,6 +273,10 @@ def evaluate_multi_seed(
+         "seeds": seeds,
+     }
+ 
++    # Prosimos parameters of both scenarios: resource calendars and roles for utilization.
++    baseline_params = scenario_to_prosimos_json(baseline_scenario, bpmn_xml)
++    proposed_params = scenario_to_prosimos_json(proposed_scenario, bpmn_xml)
++
+     for seed_idx, seed in enumerate(seeds):
+         msg = f"Running seed {seed} ({seed_idx + 1}/{num_seeds})…"
+         if on_progress:
+@@ -294,8 +298,10 @@ def evaluate_multi_seed(
+             result.error = f"Proposed simulation failed on seed {seed}: {proposed_run.error if proposed_run else 'unknown'}"
+             return result
+ 
+-        baseline_kpis = compute_kpis(baseline_run.simulated_log, cost_per_hour=cost_per_hour)
+-        proposed_kpis = compute_kpis(proposed_run.simulated_log, cost_per_hour=cost_per_hour)
++        baseline_kpis = compute_kpis(baseline_run.simulated_log, cost_per_hour=cost_per_hour,
++                                     prosimos_params=baseline_params, sim_start=start_time)
++        proposed_kpis = compute_kpis(proposed_run.simulated_log, cost_per_hour=cost_per_hour,
++                                     prosimos_params=proposed_params, sim_start=start_time)
+ 
+         # Collect ALL KPI values across seeds for averaging
+         for kpi in baseline_kpis.kpis:
+@@ -309,8 +315,10 @@ def evaluate_multi_seed(
+ 
+         for target in targets:
+             key = _strip_temporal_suffix(target.name)
+-            b_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as)
+-            p_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as)
++            b_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as,
++                                     target.description)
++            p_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as,
++                                     target.description)
+ 
+             if b_kpi is not None and b_kpi.value is not None:
+                 baseline_collections.setdefault(key, []).append(b_kpi.value)
+diff --git a/goal_to_parameters/second_llm/scenario_evaluation.py b/goal_to_parameters/second_llm/scenario_evaluation.py
+index bf70f8c..22fdcf4 100644
+--- a/goal_to_parameters/second_llm/scenario_evaluation.py
++++ b/goal_to_parameters/second_llm/scenario_evaluation.py
+@@ -21,6 +21,7 @@ from second_llm.kpi_computation import (
+     ComputedKPI,
+     KPIComputationResult,
+     compute_kpis,
++    resolve_role_utilization,
+ )
+ from second_llm.output_schema import SimuBridgeScenario
+ from second_llm.prosimos_runner import (
+@@ -29,6 +30,7 @@ from second_llm.prosimos_runner import (
+     is_prosimos_available,
+     load_simulation_log,
+     run_prosimos_simulation,
++    scenario_to_prosimos_json,
+ )
+ 
+ 
+@@ -62,6 +64,7 @@ class KPITarget:
+     threshold: float | None = None  # Absolute threshold (e.g., max utilization 0.85)
+     unit: str = ""
+     measurable_as: str | None = None  # Exact computed KPI name from kpi_computation.py
++    description: str = ""  # KPI description and suggested formula (role resolution for utilization)
+ 
+ 
+ @dataclass
+@@ -271,6 +274,25 @@ def _match_kpi_value(
+     computed: KPIComputationResult,
+     target_category: str = "",
+     measurable_as: str | None = None,
++    target_text: str = "",
++) -> ComputedKPI | None:
++    """Find the best matching computed KPI for a target KPI name.
++
++    A matched "Resource Utilization" is resolved to the role(s) the target names
++    (in its name, else in ``target_text``: description and formula); see
++    :func:`second_llm.kpi_computation.resolve_role_utilization`.
++    """
++    kpi = _find_kpi(target_name, computed, target_category, measurable_as)
++    if kpi is not None and kpi.name == "Resource Utilization":
++        return resolve_role_utilization(kpi, target_name, target_text)
++    return kpi
++
++
++def _find_kpi(
++    target_name: str,
++    computed: KPIComputationResult,
++    target_category: str = "",
++    measurable_as: str | None = None,
+ ) -> ComputedKPI | None:
+     """Find the best matching computed KPI for a target KPI name.
+ 
+@@ -384,8 +406,10 @@ def compare_kpis(
+     safeguard_total = 0
+ 
+     for target in targets:
+-        baseline_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as)
+-        proposed_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as)
++        baseline_kpi = _match_kpi_value(target.name, baseline_kpis, target.category, target.measurable_as,
++                                        target.description)
++        proposed_kpi = _match_kpi_value(target.name, proposed_kpis, target.category, target.measurable_as,
++                                        target.description)
+ 
+         baseline_val = baseline_kpi.value if baseline_kpi else None
+         proposed_val = proposed_kpi.value if proposed_kpi else None
+@@ -607,10 +631,14 @@ def evaluate_scenarios(
+     baseline_kpis = compute_kpis(
+         baseline_result.simulated_log,
+         cost_per_hour=cost_per_hour,
++        prosimos_params=scenario_to_prosimos_json(baseline_scenario, bpmn_xml),
++        sim_start=start_time,
+     )
+     proposed_kpis = compute_kpis(
+         proposed_result.simulated_log,
+         cost_per_hour=cost_per_hour,
++        prosimos_params=scenario_to_prosimos_json(proposed_scenario, bpmn_xml),
++        sim_start=start_time,
+     )
+ 
+     # --- Compare ---
+diff --git a/goal_to_parameters/ui/evaluation_panel.py b/goal_to_parameters/ui/evaluation_panel.py
+index bc608aa..ee47a75 100644
+--- a/goal_to_parameters/ui/evaluation_panel.py
++++ b/goal_to_parameters/ui/evaluation_panel.py
+@@ -123,6 +123,7 @@ def _get_kpi_targets_from_workspace() -> list[KPITarget]:
+                 is_safeguard=is_safeguard,
+                 unit=kpi.get("unit", ""),
+                 measurable_as=kpi.get("measurable_as") or None,
++                description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
+             ))
+     except Exception:
+         pass
+diff --git a/goal_to_parameters/ui/second_llm_panel.py b/goal_to_parameters/ui/second_llm_panel.py
+index b8faf36..48cd8c1 100644
+--- a/goal_to_parameters/ui/second_llm_panel.py
++++ b/goal_to_parameters/ui/second_llm_panel.py
+@@ -765,6 +765,7 @@ def _get_evaluation_targets() -> list:
+             category=kpi.get("category", ""),
+             is_safeguard=(direction == TargetDirection.MAINTAIN),
+             unit=kpi.get("unit", ""),
++            description=" ".join(str(kpi.get(k) or "") for k in ("description", "suggested_formula")).strip(),
+         ))
+     return targets
+ 

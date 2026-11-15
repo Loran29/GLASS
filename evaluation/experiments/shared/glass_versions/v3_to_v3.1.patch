@@ -1,0 +1,530 @@
+diff --git a/goal_to_parameters/knowledge/direction.py b/goal_to_parameters/knowledge/direction.py
+index bd195e4..3ae97a8 100644
+--- a/goal_to_parameters/knowledge/direction.py
++++ b/goal_to_parameters/knowledge/direction.py
+@@ -19,6 +19,11 @@ A word for the inverse of the metric flips the vote (for utilization: "idle", so
+ as increasing utilization). The entry's direction is "increase" or "decrease" when all votes agree, "mixed"
+ when they disagree, and ``None`` when the text states no effect on the metric.
+ 
++Which metric a KPI measures comes from :func:`kpi_metric`: the KPI's category decides (utilization,
++cost, throughput; for time, ``measurable_as`` or the name only tells waiting from processing time); a
++KPI without a category is classified by ``measurable_as``; the name is the last fallback, used only
++when both are missing.
++
+ ``direction_rank`` turns this into a ranking for a KPI: 0 = the stated effect is the one the KPI's
+ direction asks for, 1 = no derivable direction (kept, ranked last), ``None`` = the opposite or a mixed
+ effect (dropped).
+@@ -48,6 +53,44 @@ _CLAUSE = re.compile(r"(?<!\d)[.;!?](?!\d)|\s[—–-]\s|[()]|,|\bwhile\b|\bbut\
+ _TOKEN = re.compile(r"[A-Za-z][A-Za-z\-]*")
+ 
+ 
++_CATEGORY_METRIC = {
++    "utilization": "resource_utilisation", "utilisation": "resource_utilisation",
++    "resource_utilisation": "resource_utilisation", "resource_utilization": "resource_utilisation",
++    "cost": "cost", "throughput": "throughput",
++    "waiting_time": "waiting_time", "processing_time": "processing_time",
++}
++_TEXT_METRIC = [  # (pattern on measurable_as or name, metric), first match wins
++    (r"utili[sz]|workload|occupancy", "resource_utilisation"),
++    (r"wait|queu", "waiting_time"),
++    (r"cost", "cost"),
++    (r"throughput|cases per|completed", "throughput"),
++    (r"cycle|lead|processing|duration|turnaround|time", "processing_time"),
++]
++
++
++def _metric_from_text(text: str | None) -> str | None:
++    t = (text or "").lower()
++    return next((m for pat, m in _TEXT_METRIC if re.search(pat, t)), None) if t else None
++
++
++def kpi_metric(category: str | None = None, measurable_as: str | None = None, name: str | None = None) -> str | None:
++    """The metric a KPI measures (a key of ``METRICS``), or None.
++
++    The category decides; for the category ``time`` the waiting/processing distinction comes from
++    ``measurable_as`` (else the name). Without a category, ``measurable_as`` decides; the name is used
++    only when both are missing. A known category without a metric here (e.g. quality) gives None.
++    """
++    cat = (category or "").strip().lower()
++    if cat in _CATEGORY_METRIC:
++        return _CATEGORY_METRIC[cat]
++    if cat == "time":
++        sub = _metric_from_text(measurable_as) or _metric_from_text(name)
++        return sub if sub in ("waiting_time", "processing_time") else "processing_time"
++    if cat:
++        return None
++    return _metric_from_text(measurable_as) or _metric_from_text(name)
++
++
+ def _matches(pattern: str, token: str) -> bool:
+     return re.fullmatch(pattern, token, re.I) is not None
+ 
+diff --git a/goal_to_parameters/second_llm/iterative_evaluator.py b/goal_to_parameters/second_llm/iterative_evaluator.py
+index 205cabc..348e4fc 100644
+--- a/goal_to_parameters/second_llm/iterative_evaluator.py
++++ b/goal_to_parameters/second_llm/iterative_evaluator.py
+@@ -340,6 +340,8 @@ def _build_evaluation_feedback(
+     # --- Section 3: KB-Retrieved Alternative Interventions ---
+     alternatives_text = _retrieve_alternative_interventions(
+         worsened_kpis + [(e.kpi_name, "", e.target_direction) for e in not_reached], violated_kpis,
++        kpi_info={e.kpi_name: (getattr(e, "category", ""), getattr(e, "measurable_as", None))
++                  for e in eval_result.kpi_comparisons},
+     )
+     if alternatives_text:
+         lines.append("")
+@@ -363,6 +365,14 @@ def _build_evaluation_feedback(
+             lines.append(f"  • {name} degraded by {pct} — target was to {direction}.")
+         lines.append("")
+ 
++    not_applied = [n.split("] ", 1)[1] for n in (getattr(gen_result, "generation_notes", None) or [])
++                   if n.startswith(("[patch-reject]", "[merge-skip]"))]
++    if not_applied:
++        lines.append("MODIFICATIONS NOT APPLIED (the simulated scenario does not contain them):")
++        for n in dict.fromkeys(not_applied):
++            lines.append(f"  • {n}")
++        lines.append("")
++
+     if not_reached:
+         lines.append("TARGETS NOT YET REACHED (improved, but more change is needed):")
+         for e in not_reached:
+@@ -390,6 +400,7 @@ def _build_evaluation_feedback(
+ def _retrieve_alternative_interventions(
+     worsened_kpis: list[tuple[str, str, str]],
+     violated_kpis: list[tuple[str, str, str]],
++    kpi_info: dict[str, tuple[str, str | None]] | None = None,
+ ) -> str:
+     """Query the knowledge base for alternative interventions for problem KPIs.
+ 
+@@ -398,19 +409,29 @@ def _retrieve_alternative_interventions(
+     gets entries that state a decrease, and vice versa); entries that state no effect on the metric
+     are kept and ranked after those that state the wanted one. More entries are retrieved than
+     shown so that enough remain after filtering.
++
++    The metric of each problem KPI comes from its category and ``measurable_as`` (``kpi_info``:
++    name -> (category, measurable_as)) via :func:`knowledge.direction.kpi_metric`; the name is used
++    only when neither is known.
+     """
+     problem_kpis = worsened_kpis + violated_kpis
+     if not problem_kpis:
+         return ""
+ 
+     try:
+-        from knowledge.direction import direction_rank
++        from knowledge.direction import direction_rank, kpi_metric
+         from knowledge.retrieval import retrieve_for_second_llm
+     except ImportError:
+         return ""
+ 
++    info = kpi_info or {}
++
++    def metric(name: str) -> str | None:
++        category, measurable_as = info.get(name, ("", None))
++        return kpi_metric(category, measurable_as, name)
++
+     def rank(text: str) -> int | None:
+-        ranks = [direction_rank(text, _infer_category(name), direction) for name, _, direction in problem_kpis]
++        ranks = [direction_rank(text, metric(name) or "", direction) for name, _, direction in problem_kpis]
+         return None if any(r is None for r in ranks) else min(ranks)
+ 
+     def keep(items: list, text_of) -> list:
+@@ -421,7 +442,7 @@ def _retrieve_alternative_interventions(
+     for name, _, direction in problem_kpis:
+         kpi_dicts.append({
+             "name": name,
+-            "category": _infer_category(name),
++            "category": metric(name) or _infer_category(name),
+             "target_direction": direction,
+         })
+ 
+diff --git a/goal_to_parameters/second_llm/patch_validator.py b/goal_to_parameters/second_llm/patch_validator.py
+index 6953038..151aaea 100644
+--- a/goal_to_parameters/second_llm/patch_validator.py
++++ b/goal_to_parameters/second_llm/patch_validator.py
+@@ -41,6 +41,7 @@ from second_llm.scenario_merger import (
+     _detect_conflicts,
+     _resolve,
+     _role_for_name,
++    calendar_text_issue,
+ )
+ from second_llm.validation import _extract_first_number  # reused
+ 
+@@ -300,6 +301,9 @@ def _check_baseline_faithfulness(
+         val_issue = _check_baseline_value_match(baseline, mod, i)
+         if val_issue is not None:
+             out.append(val_issue)
++        cal_issue = calendar_text_issue(baseline, mod, i)
++        if cal_issue is not None:
++            out.append(cal_issue)
+     return out
+ 
+ 
+diff --git a/goal_to_parameters/second_llm/scenario_evaluation.py b/goal_to_parameters/second_llm/scenario_evaluation.py
+index e7960de..a5527da 100644
+--- a/goal_to_parameters/second_llm/scenario_evaluation.py
++++ b/goal_to_parameters/second_llm/scenario_evaluation.py
+@@ -86,6 +86,7 @@ class KPIComparisonEntry:
+     status: str = "computed"  # computed, not_computable, missing_baseline, missing_proposed
+     threshold: float | None = None  # the target's numeric threshold, if any
+     achieved: bool | None = None  # proposed value meets the threshold (None without a threshold)
++    measurable_as: str | None = None  # the target's computed-KPI name (metric of the KPI)
+ 
+ 
+ @dataclass
+@@ -475,6 +476,7 @@ def compare_kpis(
+             status = "missing_proposed"
+ 
+         entry = KPIComparisonEntry(
++            measurable_as=target.measurable_as,
+             threshold=target.threshold,
+             achieved=_is_achieved(target.direction, proposed_val, target.threshold),
+             kpi_name=_strip_temporal_suffix(target.name),
+diff --git a/goal_to_parameters/second_llm/scenario_generator.py b/goal_to_parameters/second_llm/scenario_generator.py
+index 2ae2cfc..aaeb312 100644
+--- a/goal_to_parameters/second_llm/scenario_generator.py
++++ b/goal_to_parameters/second_llm/scenario_generator.py
+@@ -674,9 +674,9 @@ def generate_scenario_patch(
+         # Pre-merge validation
+         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
+         if (pv.has_errors and attempt == max_retries
+-                and all(e.category == "baseline_mismatch" for e in pv.errors)):
++                and all(e.category in ("baseline_mismatch", "calendar_unparsed") for e in pv.errors)):
+             # Last attempt: reject only the modifications whose quoted baseline value does
+-            # not match the model and keep the rest of the patch.
++            # not match the model, or whose calendar text cannot be read, and keep the rest.
+             rejected = {e.modification_index for e in pv.errors}
+             for e in pv.errors:
+                 notes.append(f"[patch-reject] {e.message}")
+@@ -703,6 +703,9 @@ def generate_scenario_patch(
+         merge_result = apply_patch(baseline, patch, strict=strict_merge, element_name_map=flow_name_map)
+         for w in merge_result.warning_messages:
+             notes.append(f"[merge warning] {w}")
++        if not strict_merge:
++            for err in merge_result.error_messages:          # skipped in tolerant mode: reported, not silent
++                notes.append(f"[merge-skip] {err}")
+         if merge_result.has_errors and strict_merge:
+             last_error = (
+                 "Merge failed in strict mode: "
+@@ -750,7 +753,7 @@ def generate_scenario_patch(
+         for rn in budget_repair_notes:
+             notes.append(f"[budget-repair] {rn}")
+ 
+-        vr = validate_proposal(proposal, context_summary=ctx_summary)
++        vr = validate_proposal(proposal, context_summary=ctx_summary, baseline=baseline)
+         result.validation = vr
+         last_valid_proposal = proposal  # track best schema-valid+merged proposal
+         last_valid_vr = vr
+diff --git a/goal_to_parameters/second_llm/scenario_merger.py b/goal_to_parameters/second_llm/scenario_merger.py
+index 28dc7af..003f330 100644
+--- a/goal_to_parameters/second_llm/scenario_merger.py
++++ b/goal_to_parameters/second_llm/scenario_merger.py
+@@ -493,6 +493,163 @@ def _role_timetables(scenario: SimuBridgeScenario, target: str) -> list[Any]:
+     return [by_id[i] for i in ids if i in by_id]
+ 
+ 
++_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
++_DAY = r"(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?"
++_TO = r"\s*(?:-|–|—|to|through|until|bis)\s*"
++_TIME_RANGE_RE = re.compile(r"(?<![\d:])(\d{1,2})(?::(\d{2}))?\s*h?" + _TO + r"(\d{1,2})(?::(\d{2}))?\s*h?(?![\d:])", re.I)
++_DAY_RANGE_RE = re.compile(r"\b" + _DAY + _TO + _DAY, re.I)
++_EXTEND_RE = re.compile(
++    r"(?:extend\w*|lengthen\w*|longer|additional|extra|more|\+)\D{0,25}?(\d+(?:\.\d+)?)\s*(?:h\b|hrs?\b|hours?\b)|"
++    r"(\d+(?:\.\d+)?)\s*(?:h|hrs?|hours?)\s*(?:longer|more|extra|additional)", re.I)
++CALENDAR_TEXT_FORMATS = ("proposed_structured.timeTableItems, or a proposed_value such as "
++                         "'09:00-19:00 Mon-Fri' (a working-time window, optionally with a weekday range) "
++                         "or 'extend by 2 hours' (later end of every working period)")
++
++
++def _day(token: str) -> Weekday:
++    return Weekday(_DAYS[[d[:3] for d in _DAYS].index(token[:3].lower())].capitalize())
++
++
++def parse_calendar_text(text: str, current: list[TimetableItem]) -> list[TimetableItem] | None:
++    """Turn a calendar change given as text into timetable items, or None when it is not unambiguous.
++
++    Accepted: exactly one working-time window in whole hours ("09:00-19:00", "9-19 h"), optionally with
++    one weekday range ("Mon-Fri", "Monday to Saturday"), "weekdays" or "daily" (without one, each
++    current period keeps its weekdays); or an extension by whole hours ("extend by 2 hours", "+2 h",
++    "2 hours longer"), which moves the end of every current period. Anything else gives None.
++    """
++    text = (text or "").strip()
++    if not text:
++        return None
++    # A window needs a clock marker ("09:00" or "9 h"): a bare "8 to 10" may mean hours per day.
++    ranges = [m for m in _TIME_RANGE_RE.finditer(text)
++              if 0 <= int(m.group(1)) <= 24 and 0 <= int(m.group(3)) <= 24
++              and (":" in m.group(0) or re.search(r"\d\s*h\b", m.group(0), re.I))]
++    if len(ranges) == 1:
++        m = ranges[0]
++        if (m.group(2) or "00") != "00" or (m.group(4) or "00") != "00":
++            return None                                   # calendars are whole hours
++        start, end = int(m.group(1)), int(m.group(3))
++        if end <= start:
++            return None
++        days = _DAY_RANGE_RE.findall(text)
++        if len(days) > 1:
++            return None
++        if days:
++            spans = [(_day(days[0][0]), _day(days[0][1]))]
++        elif re.search(r"\bweekdays?\b", text, re.I):
++            spans = [(Weekday.MONDAY, Weekday.FRIDAY)]
++        elif re.search(r"\b(daily|every day|7 days)\b", text, re.I):
++            spans = [(Weekday.MONDAY, Weekday.SUNDAY)]
++        elif current:
++            spans = list(dict.fromkeys((it.startWeekday, it.endWeekday) for it in current))
++        else:
++            return None
++        return [TimetableItem(startWeekday=a, endWeekday=b, startTime=start, endTime=end) for a, b in spans]
++    if ranges:
++        return None                                       # several windows: ambiguous
++    ext = [m for m in _EXTEND_RE.finditer(text)]
++    if len(ext) != 1 or not current:
++        return None
++    hours = float(ext[0].group(1) or ext[0].group(2))
++    if hours != int(hours) or hours <= 0:
++        return None
++    if any(it.endTime + int(hours) > 24 for it in current):
++        return None
++    return [it.model_copy(update={"endTime": it.endTime + int(hours)}) for it in current]
++
++
++_CLOCK_RE = re.compile(r"(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?")
++
++
++def _clock_hour(value: Any) -> int | None:
++    """Whole hour of a Prosimos clock time ("09:00:00", "19:00:00.000"); "23:59:59" ends the day (24)."""
++    if isinstance(value, int) and 0 <= value <= 24:
++        return value
++    m = _CLOCK_RE.fullmatch(str(value).strip())
++    if not m:
++        return None
++    h, mi, sec = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
++    if (h, mi, sec) == (23, 59, 59):
++        return 24
++    return h if mi == 0 and sec == 0 and h <= 24 else None
++
++
++def normalise_calendar_items(items: list[Any]) -> tuple[list[TimetableItem] | None, str]:
++    """Timetable items from GLASS's form (startWeekday/endWeekday/startTime/endTime) or Prosimos's
++    period form (from/to/beginTime/endTime, e.g. {"from": "MONDAY", "to": "FRIDAY", "beginTime":
++    "09:00:00", "endTime": "19:00:00"}). Returns (items, "") or (None, reason) when an item is
++    ambiguous: unknown keys, a weekday that is not a day name, a time that is not a whole hour, or an
++    end not after the start."""
++    out: list[TimetableItem] = []
++    if not items:
++        return None, "the list of items is empty"
++    for k, it in enumerate(items, 1):
++        if not isinstance(it, dict):
++            return None, f"item {k} is not an object"
++        if {"from", "to"} <= it.keys() or "beginTime" in it:
++            try:
++                start_day, end_day = _day(str(it.get("from", ""))), _day(str(it.get("to", "")))
++            except ValueError:
++                return None, f"item {k}: weekdays {it.get('from')!r}-{it.get('to')!r} are not day names"
++            start, end = _clock_hour(it.get("beginTime")), _clock_hour(it.get("endTime"))
++            if start is None or end is None:
++                return None, (f"item {k}: times {it.get('beginTime')!r}-{it.get('endTime')!r} are not whole hours")
++            if end <= start:
++                return None, f"item {k}: the end {it.get('endTime')!r} is not after the start {it.get('beginTime')!r}"
++            out.append(TimetableItem(startWeekday=start_day, endWeekday=end_day, startTime=start, endTime=end))
++            continue
++        try:
++            out.append(TimetableItem.model_validate(it))
++        except Exception as exc:
++            return None, f"item {k}: {str(exc).splitlines()[0]}"
++    return out, ""
++
++
++def _structured_items(mod: PatchModification) -> list[Any] | None:
++    if isinstance(mod.proposed_structured, dict):
++        raw = mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items")
++        if isinstance(raw, list):
++            return raw
++    return None
++
++
++def calendar_text_issue(scenario: SimuBridgeScenario, mod: PatchModification, idx: int) -> PatchDiagnostic | None:
++    """Error for a resource_calendar modification that cannot be read: structured items that are
++    ambiguous in either accepted form, or a text that cannot be parsed."""
++    if mod.parameter_type != PatchParameterType.RESOURCE_CALENDAR:
++        return None
++    raw_items = _structured_items(mod)
++    if raw_items is not None:
++        items, reason = normalise_calendar_items(raw_items)
++        if items is not None:
++            return None
++        return PatchDiagnostic(
++            severity="error", category="calendar_unparsed",
++            message=(
++                f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
++                f"timeTableItems cannot be read ({reason}). Give items as {{startWeekday, endWeekday, "
++                f"startTime, endTime}} with whole hours (e.g. Monday, Friday, 9, 19), or as {{from, to, "
++                f"beginTime, endTime}} (e.g. MONDAY, FRIDAY, 09:00:00, 19:00:00)."
++            ),
++            modification_index=idx, element=mod.target_element,
++        )
++    targets = _role_timetables(scenario, mod.target_element)
++    if not targets:
++        return None                                       # left to the existence check
++    if parse_calendar_text(mod.proposed_value, targets[0].timeTableItems) is not None:
++        return None
++    return PatchDiagnostic(
++        severity="error", category="calendar_unparsed",
++        message=(
++            f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
++            f"proposed_value '{mod.proposed_value}' cannot be read as a working-time change. Give "
++            f"{CALENDAR_TEXT_FORMATS}."
++        ),
++        modification_index=idx, element=mod.target_element,
++    )
++
++
+ def _apply_resource_calendar(
+     scenario: SimuBridgeScenario,
+     mod: PatchModification,
+@@ -509,30 +666,31 @@ def _apply_resource_calendar(
+         ))
+         return False
+ 
+-    items_payload: list[Any] | None = None
+-    if isinstance(mod.proposed_structured, dict):
+-        raw = mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items")
+-        if isinstance(raw, list):
+-            items_payload = raw
++    items_payload: list[Any] | None = _structured_items(mod)
+     if items_payload is None:
++        parsed = parse_calendar_text(mod.proposed_value, tt.timeTableItems)
++        if parsed is None:
++            diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
++                severity="error", category="calendar_unparsed",
++                message=f"Timetable '{mod.target_element}': not applied; give {CALENDAR_TEXT_FORMATS}.",
++                modification_index=idx, element=mod.target_element,
++            ))
++            return False
+         diag.append(PatchDiagnostic(
+-            severity="error", category="invalid_value",
++            severity="warning", category="calendar_parsed",
+             message=(
+-                f"Timetable '{mod.target_element}': resource_calendar "
+-                f"modifications require proposed_structured.timeTableItems "
+-                f"as a list of TimetableItem dicts."
++                f"Timetable '{mod.target_element}': proposed_value '{mod.proposed_value}' read as "
++                + "; ".join(f"{it.startWeekday.value}-{it.endWeekday.value} {it.startTime:02d}:00-"
++                            f"{it.endTime:02d}:00" for it in parsed) + "."
+             ),
+             modification_index=idx, element=mod.target_element,
+         ))
+-        return False
+-    try:
+-        new_items = [TimetableItem.model_validate(it) for it in items_payload]
+-        if not new_items:
+-            raise ValueError("timeTableItems cannot be empty")
+-    except Exception as exc:
+-        diag.append(PatchDiagnostic(
+-            severity="error", category="invalid_value",
+-            message=f"Timetable '{mod.target_element}': invalid timeTableItems ({exc}).",
++        items_payload = [it.model_dump(mode="json") for it in parsed]
++    new_items, reason = normalise_calendar_items(items_payload)
++    if new_items is None:
++        diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
++            severity="error", category="calendar_unparsed",
++            message=f"Timetable '{mod.target_element}': not applied; timeTableItems cannot be read ({reason}).",
+             modification_index=idx, element=mod.target_element,
+         ))
+         return False
+diff --git a/goal_to_parameters/second_llm/validation.py b/goal_to_parameters/second_llm/validation.py
+index 23878ea..62eca0a 100644
+--- a/goal_to_parameters/second_llm/validation.py
++++ b/goal_to_parameters/second_llm/validation.py
+@@ -955,6 +955,67 @@ def _check_budget_exceeded(
+     return issues
+ 
+ 
++_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
++
++
++def _weekly_hours(items: list[Any]) -> float:
++    """Working hours per week of a timetable (each item: weekdays start..end, hours start..end)."""
++    total = 0.0
++    for it in items:
++        start = _WEEKDAYS.index(getattr(it.startWeekday, "value", it.startWeekday))
++        end = _WEEKDAYS.index(getattr(it.endWeekday, "value", it.endWeekday))
++        days = (end - start) % 7 + 1
++        span = it.endTime - it.startTime if it.endTime > it.startTime else 24 - it.startTime + it.endTime
++        total += days * span
++    return total
++
++
++def staff_cost_per_week(scenario: Any) -> float:
++    """Total staff cost per week: for every resource, its role's hourly cost times its weekly working
++    hours (its own calendar, else the role's schedule). Headcount and calendar extensions both count."""
++    rp = scenario.resourceParameters
++    tables = {t.id: t.timeTableItems for t in rp.timeTables}
++    total = 0.0
++    for role in rp.roles:
++        for res in role.resources:
++            total += float(role.costHour) * _weekly_hours(tables.get(res.calendar or role.schedule, []))
++    return total
++
++
++def _check_relative_budget(
++    proposal: ScenarioProposal,
++    context_summary: Any,
++    baseline: Any,
++) -> list[ValidationIssue]:
++    """Reject a proposal whose staff cost exceeds a relative limit stated in the clarification
++    context (``budget.max_increase_pct``), compared with the baseline scenario."""
++    if baseline is None or context_summary is None or getattr(context_summary, "is_empty", True):
++        return []
++    pct = (getattr(context_summary, "budget", {}) or {}).get("max_increase_pct")
++    try:
++        limit = float(pct)
++    except (TypeError, ValueError):
++        return []
++    base_cost = staff_cost_per_week(baseline)
++    prop_cost = staff_cost_per_week(proposal.scenario)
++    if base_cost <= 0:
++        return []
++    increase = (prop_cost - base_cost) / base_cost * 100.0
++    if increase <= limit + 1e-9:
++        return []
++    return [ValidationIssue(
++        category="budget_exceeded",
++        severity="error",
++        message=(
++            f"Total staff cost would rise by {increase:.1f} %, above the stated limit of +{limit:g} %: "
++            f"baseline {base_cost:,.0f} per week, proposed {prop_cost:,.0f} per week (each resource's hourly "
++            f"cost times its weekly working hours, so added resources and extended calendars both count; "
++            f"allowed at most {base_cost * (1 + limit / 100):,.0f} per week). You MUST reduce the cost of your "
++            f"proposed changes, e.g. fewer additional resources or smaller calendar extensions."
++        ),
++    )]
++
++
+ # ===================================================================
+ # 4. Public API
+ # ===================================================================
+@@ -962,6 +1023,7 @@ def _check_budget_exceeded(
+ def validate_proposal(
+     proposal: ScenarioProposal,
+     context_summary: Any = None,
++    baseline: Any = None,
+ ) -> ValidationResult:
+     """Run all post-schema validation checks on a ScenarioProposal.
+ 
+@@ -973,6 +1035,9 @@ def validate_proposal(
+         An :class:`OperationalContextSummary` from the context
+         summarisation step (optional).  When provided, feasibility
+         checks are run against user-stated operational constraints.
++    baseline:
++        The baseline scenario (optional). When provided with a relative budget limit in the
++        context summary, the proposal's total staff cost is checked against it.
+ 
+     Returns a ValidationResult collecting all issues found.
+     """
+@@ -998,5 +1063,6 @@ def validate_proposal(
+         result.issues.extend(_check_overtime_constraints(proposal, context_summary))
+         result.issues.extend(_check_shift_extension(proposal, context_summary))
+         result.issues.extend(_check_budget_exceeded(proposal, context_summary))
++        result.issues.extend(_check_relative_budget(proposal, context_summary, baseline))
+ 
+     return result

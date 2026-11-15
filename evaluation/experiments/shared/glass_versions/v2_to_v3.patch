@@ -1,0 +1,1158 @@
+diff --git a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+index 00f9d5f..080663d 100644
+--- a/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
++++ b/evaluation/loanapp_p2p/scripts/run_stage2_batch.py
+@@ -8,6 +8,9 @@ as a library (nothing under goal_to_parameters/ is modified; nothing an LLM retu
+   inputs     the KPI objects named in kpi_names_to_pass, taken from the Stage-1 record (first proposals:
+              results/stage1_results_normalised/, so measurable_as is set); utilization KPIs get
+              target_direction "minimize" and an overload sentence (lead author's interpretation, see README);
++             per-KPI inputs from the configuration's kpi_inputs (if any): description_append is appended to
++             the KPI description (so it reaches the Stage 2 prompt), target_threshold is set as
++             KPITarget.threshold on the loop's and the multi-seed evaluation's targets;
+              the three business-context answers as the clarification chat (user turns); the log profile
+   loop       iterative_evaluator.run_iterative_evaluation (max_iterations from the config) with the UI's
+              KPI targets and cost map; iteration 1 = initial, the loop's best iteration = final
+@@ -166,22 +169,39 @@ def load_inputs(cfg: dict, config: dict) -> dict:
+     if null := [k["name"] for k in kept if not k.get("measurable_as")]:
+         raise SystemExit(f"{cfg['config_id']}: measurable_as is null for {null} in {kpi_source(cfg)}")
+     stage1_dirs = {k["name"]: k["target_direction"] for k in kept}
++    kpi_inputs = cfg.get("kpi_inputs") or {}
++    if unknown := [n for n in kpi_inputs if n not in cfg["kpi_names_to_pass"]]:
++        raise SystemExit(f"{cfg['config_id']}: kpi_inputs for KPI(s) not passed: {unknown}")
+     util_kpis = []
+     for k in kept:
+         if k.get("category") == "utilization":
+             k["target_direction"] = "minimize"
+             k["description"] = f"{k['description'].rstrip()} {OVERLOAD_TEXT}"
+             util_kpis.append(k["name"])
++        if extra := kpi_inputs.get(k["name"], {}).get("description_append"):
++            k["description"] = f"{k['description'].rstrip()} {extra}"
++    thresholds = {n: v["target_threshold"] for n, v in kpi_inputs.items() if v.get("target_threshold") is not None}
+     stage1 = {"simulation_goal_structured": rec["result"]["simulation_goal_structured"],
+               "kpis": kept, "reasoning": rec["result"]["reasoning"]}
+     pool = config["expected_fix"][cfg["process"]]["G3"]["elements"][0] if util_kpis else None
+     return {"sim_params": sim_params, "sim_params_text": json.dumps(sim_params, indent=1),
+             "bpmn": (bdir / "model.bpmn").read_text(encoding="utf-8"), "stage1_result": stage1,
+             "stage1_target_direction": stage1_dirs, "util_kpis": util_kpis, "util_pool": pool,
++            "kpi_thresholds": thresholds,
+             "kpi_source_used": kpi_source(cfg),
+             "chat": [bc["staffing"], bc["budget"], bc["immutable"]], "business_context": bc}
+ 
+ 
++def apply_thresholds(targets: list, thresholds: dict[str, float]) -> list:
++    """Set KPITarget.threshold from the configuration (each threshold must match exactly one target)."""
++    for name, value in thresholds.items():
++        hits = [t for t in targets if t.name == name]
++        if len(hits) != 1:
++            raise RuntimeError(f"threshold for {name!r} matches {len(hits)} KPI target(s)")
++        hits[0].threshold = value
++    return targets
++
++
+ def load_scenario(sim_params_text: str, bpmn: str):
+     from second_llm.simod_input import accept_simod_raw_input
+     from second_llm.simod_to_simubridge import build_baseline_scenario
+@@ -438,6 +458,7 @@ def kpi_table(res, util: dict | None, util_kpis: list[str]) -> list[dict]:
+                      "pct_change": c.mean_percentage_change, "delta_ci": [c.ci_lower_change, c.ci_upper_change],
+                      "p_value": c.p_value, "significant": c.statistically_significant,
+                      "glass_improved": c.improved, "glass_violated_safeguard": c.violated_safeguard,
++                     "threshold": getattr(c, "threshold", None), "glass_achieved": getattr(c, "achieved", None),
+                      "scored_by": "utilization_rule" if is_util else "glass",
+                      "improved": util["improved"] if is_util else c.improved,
+                      "baseline_values": b.values if b else [], "proposed_values": p.values if p else []})
+@@ -557,7 +578,8 @@ def run_rep(job: dict) -> dict:
+               "temperature_schedule": "GLASS run_iterative_evaluation: min(0.3 + 0.1 * (iteration - 1), 0.7)",
+               "kpi_source_record": inputs["kpi_source_used"], "stage1_result_passed": inputs["stage1_result"],
+               "stage1_target_direction": inputs["stage1_target_direction"], "util_kpis": inputs["util_kpis"],
+-              "util_pool": inputs["util_pool"], "chat_user_turns": inputs["chat"],
++              "util_pool": inputs["util_pool"], "kpi_thresholds": inputs["kpi_thresholds"],
++              "chat_user_turns": inputs["chat"],
+               "sim_params_with_costs": inputs["sim_params"],
+               "baseline_logs_sha256": shared["baseline_logs_sha256"],
+               "healthy_logs_sha256": job["healthy_sha"][cfg["process"]]}
+@@ -575,7 +597,8 @@ def run_rep(job: dict) -> dict:
+ 
+         baseline = load_scenario(inputs["sim_params_text"], inputs["bpmn"])
+         base_json = baseline.model_dump(mode="json")
+-        loop_targets, eval_targets = _get_evaluation_targets(), _get_kpi_targets_from_workspace()
++        loop_targets = apply_thresholds(_get_evaluation_targets(), inputs["kpi_thresholds"])
++        eval_targets = apply_thresholds(_get_kpi_targets_from_workspace(), inputs["kpi_thresholds"])
+         cost_map = _build_cost_map(baseline)
+         record.update({"loop_targets": dump(loop_targets), "eval_targets": dump(eval_targets), "cost_map": cost_map})
+ 
+@@ -894,6 +917,10 @@ def write_readme(out: Path, args, config: dict, started: str, ended: str, commit
+         "resources' busy time over wall-clock time. The batch scores utilization KPIs with its own utilization rule "
+         "on the target pool against its working time (see Scoring). GLASS's own verdicts are kept in each record "
+         "(`glass_improved`).", "",
++        "Per-KPI inputs from the configuration (`kpi_inputs`, if set): `description_append` is appended to the KPI "
++        "description and `target_threshold` is passed as `KPITarget.threshold` to the loop and the multi-seed "
++        "evaluation (recorded per run as `kpi_thresholds`; GLASS's verdict per KPI as `glass_achieved`).",
++        "",
+         "## Prosimos midnight end times (distance measures only)", "",
+         "Prosimos logs a task that ends exactly at the end of a working interval (e.g. 17:00) with an end time of "
+         "00:00 on the next day. Fixed durations proposed by patches hit that boundary regularly; the stochastic "
+diff --git a/goal_to_parameters/knowledge/direction.py b/goal_to_parameters/knowledge/direction.py
+new file mode 100644
+index 0000000..bd195e4
+--- /dev/null
++++ b/goal_to_parameters/knowledge/direction.py
+@@ -0,0 +1,101 @@
++# GLASS Stage 2: scenario generation
++"""Direction of a knowledge-base entry's stated effect on a metric.
++
++The knowledge base states each entry's effect in prose ("Reduce waiting time by ...", "utilization
++improves as a side-effect of ...", "raised overall average utilization by 8.5 %"). For refinement, a
++strategy is only useful if it moves the KPI the way the KPI's target direction asks. This module derives
++that direction from the entry's own text; no field has to be maintained in the entries.
++
++Rule
++----
++The text is split into clauses (sentences, "while", "but", commas, dashes, brackets). In each clause, an
++effect word within ``WINDOW`` tokens of a word for the metric casts a vote:
++  increase  increase, raise, rise/rose, higher, boost, maximize, upward, grow, improve (for metrics where
++            higher is better: utilization, throughput), keep ... high
++  decrease  reduce, decrease, lower, minimize, cut, shorten, drop, fall/fell, below, less, downward, relieve,
++            eliminate, improve (for time and cost metrics); for utilization also "without / avoid / prevent
++            overloading"
++A word for the inverse of the metric flips the vote (for utilization: "idle", so "reduce idle time" counts
++as increasing utilization). The entry's direction is "increase" or "decrease" when all votes agree, "mixed"
++when they disagree, and ``None`` when the text states no effect on the metric.
++
++``direction_rank`` turns this into a ranking for a KPI: 0 = the stated effect is the one the KPI's
++direction asks for, 1 = no derivable direction (kept, ranked last), ``None`` = the opposite or a mixed
++effect (dropped).
++"""
++from __future__ import annotations
++
++import re
++
++WINDOW = 6
++
++# metric category -> (words for the metric, words for its inverse, higher is better)
++METRICS: dict[str, tuple[str, str | None, bool]] = {
++    "resource_utilisation": (r"utili[sz]\w*|workload|busy|saturat\w*|occupancy|load", r"idle\w*|underus\w*", True),
++    "waiting_time": (r"wait\w*|queu\w*|delay\w*", None, False),
++    "processing_time": (r"cycle|lead|processing|duration|turnaround|length|end-to-end|sojourn", None, False),
++    "cost": (r"costs?|expens\w*|spend\w*", None, False),
++    "throughput": (r"throughput|capacity|output|served|examined|processed", None, True),
++}
++_UP = (r"increas\w*|rais\w*|rise[sn]?|rising|rose|higher|boost\w*|maximi[sz]\w*|upward\w*|grow\w*|grew|"
++       r"enlarg\w*|expand\w*")
++_DOWN = (r"reduc\w*|decreas\w*|lower\w*|minimi[sz]\w*|cut\w*|shorten\w*|drop\w*|fall\w*|fell|below|less|"
++         r"downward\w*|reliev\w*|eliminat\w*")
++_IMPROVE = r"improv\w*|optimi[sz]\w*|better"
++_NO_OVERLOAD = re.compile(r"\b(without|avoid\w*|prevent\w*|no)\b(\s+\w+)?\s+overload\w*", re.I)
++_KEEP_HIGH = re.compile(r"\b(keep|kept|keeping|maintain\w*|stay\w*)\b(\s+\w+){0,3}\s+(high|higher)\b", re.I)
++_CLAUSE = re.compile(r"(?<!\d)[.;!?](?!\d)|\s[—–-]\s|[()]|,|\bwhile\b|\bbut\b|\bwhereas\b", re.I)
++_TOKEN = re.compile(r"[A-Za-z][A-Za-z\-]*")
++
++
++def _matches(pattern: str, token: str) -> bool:
++    return re.fullmatch(pattern, token, re.I) is not None
++
++
++def stated_effect(text: str, metric: str) -> str | None:
++    """'increase', 'decrease', 'mixed' or None: the effect the text states on ``metric``."""
++    spec = METRICS.get(metric)
++    if spec is None or not text:
++        return None
++    words, inverse, higher_better = spec
++    votes: set[str] = set()
++    for clause in _CLAUSE.split(text):
++        if not clause or not clause.strip():
++            continue
++        tokens = [t.lower() for t in _TOKEN.findall(clause)]
++        hits = [(i, False) for i, t in enumerate(tokens) if _matches(words, t)]
++        hits += [(i, True) for i, t in enumerate(tokens) if inverse and _matches(inverse, t)]
++        if metric == "resource_utilisation" and _NO_OVERLOAD.search(clause):
++            votes.add("decrease")
++        if not hits:
++            continue
++        if _KEEP_HIGH.search(clause) and any(not inv for _, inv in hits):
++            votes.add("increase")
++        for j, t in enumerate(tokens):
++            if _matches(_UP, t):
++                eff = "increase"
++            elif _matches(_DOWN, t):
++                eff = "decrease"
++            elif _matches(_IMPROVE, t):
++                eff = "increase" if higher_better else "decrease"
++            else:
++                continue
++            near = sorted((abs(i - j), inv) for i, inv in hits if abs(i - j) <= WINDOW and i != j)
++            if not near:
++                continue
++            flip = near[0][1]                    # the nearest metric word decides (inverse words flip)
++            votes.add({"increase": "decrease", "decrease": "increase"}[eff] if flip else eff)
++    if not votes:
++        return None
++    return votes.pop() if len(votes) == 1 else "mixed"
++
++
++def direction_rank(text: str, metric: str, target_direction: str) -> int | None:
++    """0 = stated effect matches the KPI's direction, 1 = no derivable direction, None = drop."""
++    wanted = {"minimize": "decrease", "maximize": "increase"}.get((target_direction or "").lower())
++    if wanted is None:
++        return 1
++    effect = stated_effect(text, metric)
++    if effect is None:
++        return 1
++    return 0 if effect == wanted else None
+diff --git a/goal_to_parameters/second_llm/iterative_evaluator.py b/goal_to_parameters/second_llm/iterative_evaluator.py
+index c0d95fe..205cabc 100644
+--- a/goal_to_parameters/second_llm/iterative_evaluator.py
++++ b/goal_to_parameters/second_llm/iterative_evaluator.py
+@@ -2,16 +2,19 @@
+ """Iterative evaluation loop — auto-refine scenarios via simulation feedback.
+ 
+ Runs a generate→simulate→evaluate→feedback cycle until the proposed scenario
+-achieves all target KPI improvements, or the max iteration count is reached.
++meets every target — a KPI with a numeric threshold has *achieved* it, a KPI
++without one has *improved* — or the max iteration count is reached.
+ The best result across all iterations is returned.
+ 
+-Iteration selection uses a goal-programming scoring function with
+-prospect-theoretic loss aversion (Kahneman & Tversky, 1979; λ=2.25).
++Iteration selection: most achieved targets first, then most improved KPIs, then a
++goal-programming scoring function with prospect-theoretic loss aversion
++(Kahneman & Tversky, 1979; λ=2.25).
+ """
+ 
+ from __future__ import annotations
+ 
+ import logging
++import re
+ import time
+ from dataclasses import dataclass, field
+ from typing import Any, Callable
+@@ -25,7 +28,9 @@ from second_llm.scenario_evaluation import (
+     OverallStatus,
+     ScenarioEvaluationResult,
+     compare_kpis,
++    targets_met,
+ )
++from second_llm.context_summary import _same_role
+ from second_llm.scenario_generator import ScenarioGenerationResult
+ 
+ logger = logging.getLogger(__name__)
+@@ -75,6 +80,25 @@ class IterationResult:
+ 
+         return total
+ 
++    @property
++    def targets_met(self) -> bool:
++        """Every target KPI achieved (with a threshold) or improved (without one)."""
++        return self.eval_result is not None and self.eval_result.ok and targets_met(self.eval_result.kpi_comparisons)
++
++    @property
++    def achieved_count(self) -> int:
++        """Number of target KPIs (not safeguards) that achieved their threshold."""
++        if self.eval_result is None or not self.eval_result.ok:
++            return -1
++        return sum(e.achieved is True for e in self.eval_result.kpi_comparisons if not e.is_safeguard)
++
++    @property
++    def improved_count(self) -> int:
++        """Number of target KPIs (not safeguards) that improved."""
++        if self.eval_result is None or not self.eval_result.ok:
++            return -1
++        return sum(e.improved is True for e in self.eval_result.kpi_comparisons if not e.is_safeguard)
++
+ 
+ @dataclass
+ class IterativeEvaluationResult:
+@@ -97,11 +121,117 @@ class IterativeEvaluationResult:
+     def improved(self) -> bool:
+         return self.final_status == OverallStatus.IMPROVED
+ 
++    @property
++    def targets_met(self) -> bool:
++        return self.best is not None and self.best.targets_met
++
+     @property
+     def total_iterations(self) -> int:
+         return len(self.iterations)
+ 
+ 
++def _fmt(value: float | None) -> str:
++    return "?" if value is None else f"{value:.4g}"
++
++
++def _target_text(e: KPIComparisonEntry) -> str:
++    """Per-KPI target status for a KPI with a threshold ("" without one)."""
++    if getattr(e, "threshold", None) is None:
++        return ""
++    if e.achieved is True:
++        return "target achieved"
++    if e.improved is True:
++        return f"improved but target not yet reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
++    return f"target not reached (current {_fmt(e.proposed_value)}, target {_fmt(e.threshold)})"
++
++
++def _int(text: Any) -> int | None:
++    m = re.search(r"[-+]?\d+(?:\.\d+)?", str(text or ""))
++    return int(round(float(m.group()))) if m else None
++
++
++def _refers_to(kpi_ref: str, kpi_name: str) -> bool:
++    a, b = (kpi_ref or "").lower(), (kpi_name or "").lower()
++    return bool(a) and (a in b or b in a)
++
++
++def _gap_lines(e: KPIComparisonEntry, gen_result: ScenarioGenerationResult | None) -> list[str]:
++    """For a KPI with a threshold that improved but has not reached it: the remaining gap and the
++    allowed range of the levers targeting it, taken from the operational-constraint summary that
++    is also rendered into the prompt. Empty for any other KPI."""
++    if getattr(e, "threshold", None) is None or e.achieved is not False or e.improved is not True \
++            or e.proposed_value is None:
++        return []
++    cur, target = e.proposed_value, e.threshold
++    gap = cur - target if e.target_direction == "minimize" else target - cur
++    rel = f" ({abs(gap) / abs(cur):.1%} of the current value)" if cur else ""
++    lines = [f"Remaining gap: {_fmt(abs(gap))}{rel}; a larger change than in this proposal is needed to "
++             f"reach the target."]
++
++    summary = getattr(gen_result, "context_summary", None) if gen_result else None
++    proposal = getattr(gen_result, "proposal", None) if gen_result else None
++    mods = list(getattr(proposal, "modifications", None) or [])
++    levers = [m for m in mods if _refers_to(getattr(m, "kpi_reference", ""), e.kpi_name)]
++    if summary is None or getattr(summary, "is_empty", True):
++        if not levers:
++            lines.append("No modification in the current proposal targets this KPI.")
++        return lines
++
++    def overtime(role: str) -> float | None:
++        for name, info in summary.resource_constraints.items():
++            if _same_role(name, role) and isinstance(info, dict):
++                val = info.get("max_overtime_hours_per_day")
++                if val is not None:
++                    return float(val)
++        return None
++
++    added_total = 0
++    for m in mods:
++        if getattr(m, "parameter_type", "") == "resource_count":
++            n0, n1 = _int(m.baseline_value), _int(m.proposed_value)
++            if n0 is not None and n1 is not None and n1 > n0:
++                added_total += n1 - n0
++    capacity = False
++    for m in levers:
++        ptype, role = getattr(m, "parameter_type", ""), getattr(m, "target_element", "")
++        if ptype == "resource_count":
++            capacity = True
++            n0, n1 = _int(m.baseline_value), _int(m.proposed_value)
++            if n0 is None or n1 is None:
++                continue
++            if summary.is_role_fixed(role):
++                lines.append(f"Allowed range for '{role}': its staffing is fixed by the operational constraints.")
++                continue
++            ceiling = summary.get_effective_max_headcount(role, current_count=n0)
++            if ceiling is None:
++                lines.append(f"Allowed range for '{role}': no staffing limit was stated; the current proposal "
++                             f"changes its headcount from {n0} to {n1}.")
++            else:
++                lines.append(f"Allowed range for '{role}' (operational constraints): staffing may be increased by up "
++                             f"to +{max(0, ceiling - n0)} (to {ceiling}); the current proposal adds {n1 - n0:+d}, so "
++                             f"{max(0, ceiling - n1)} more addition(s) remain for this role.")
++        elif ptype == "resource_calendar":
++            hours = overtime(role)
++            if hours is not None:
++                lines.append(f"Allowed range for '{role}' (operational constraints): working time may be extended "
++                             f"by up to {hours:g} h per day.")
++    if capacity:
++        cap = summary.get_global_max_additional()
++        if cap is not None:
++            lines.append(f"Across all roles at most +{cap} additional resources are allowed; the current proposal "
++                         f"adds +{added_total}, so {max(0, cap - added_total)} more remain.")
++        pct = (summary.budget or {}).get("max_increase_pct")
++        if pct is not None:
++            lines.append(f"Total staff cost may increase by at most {float(pct):g} %.")
++    if not levers:
++        lines.append("No modification in the current proposal targets this KPI.")
++        limits = [f"'{name}' +{info['max_additional']}" for name, info in summary.resource_constraints.items()
++                  if isinstance(info, dict) and info.get("max_additional") is not None]
++        if limits:
++            lines.append("Staffing limits from the operational constraints: " + ", ".join(limits) + ".")
++    return lines
++
++
+ def _build_evaluation_feedback(
+     eval_result: ScenarioEvaluationResult,
+     gen_result: ScenarioGenerationResult,
+@@ -111,7 +241,8 @@ def _build_evaluation_feedback(
+     """Build a structured feedback message enriched with causal attribution and KB evidence.
+ 
+     Includes:
+-      1. Quantitative simulation results per KPI
++      1. Quantitative simulation results per KPI (and, for a KPI with a threshold,
++         whether the target is achieved or only improved)
+       2. Causal attribution: maps each worsened KPI to the specific modification that targeted it
+       3. KB-retrieved alternative interventions for worsened KPIs
+       4. Strategy guidance grounded in literature
+@@ -121,6 +252,11 @@ def _build_evaluation_feedback(
+     lines.append("")
+     lines.append("Your proposed scenario was simulated using Prosimos (discrete-event simulation).")
+     lines.append(f"Overall Result: {eval_result.summary.overall_status.value.upper()}")
++    with_threshold = [e for e in eval_result.kpi_comparisons
++                      if getattr(e, "threshold", None) is not None and not e.is_safeguard]
++    if with_threshold:
++        reached = sum(e.achieved is True for e in with_threshold)
++        lines.append(f"Targets reached: {reached} of {len(with_threshold)}")
+     lines.append("")
+ 
+     # --- Section 1: Quantitative KPI Results ---
+@@ -129,6 +265,8 @@ def _build_evaluation_feedback(
+     improved_kpis: list[str] = []
+     worsened_kpis: list[tuple[str, str, str]] = []  # (name, pct, direction)
+     violated_kpis: list[tuple[str, str, str]] = []
++    not_reached: list[KPIComparisonEntry] = []  # improved, threshold not yet reached
++    achieved: list[str] = []
+ 
+     for e in eval_result.kpi_comparisons:
+         if e.status != "computed":
+@@ -152,7 +290,16 @@ def _build_evaluation_feedback(
+         else:
+             marker = "UNCHANGED"
+ 
+-        lines.append(f"  - {e.kpi_name}: {baseline_str} → {proposed_str}{unit_str} ({pct_str}) — {marker}")
++        target = _target_text(e)
++        if getattr(e, "threshold", None) is not None and not e.is_safeguard:
++            if e.achieved is True:
++                achieved.append(e.kpi_name)
++            elif e.improved is True:
++                not_reached.append(e)
++        lines.append(
++            f"  - {e.kpi_name}: {baseline_str} → {proposed_str}{unit_str} ({pct_str}) — {marker}"
++            + (f"; {target}" if target else "")
++        )
+ 
+     # --- Section 2: Causal Attribution (map modifications → KPI effects) ---
+     proposal = gen_result.proposal if gen_result else None
+@@ -191,7 +338,9 @@ def _build_evaluation_feedback(
+             lines.append("  → REMOVE or REPLACE the modifications marked with '← LIKELY CAUSED DEGRADATION'.")
+ 
+     # --- Section 3: KB-Retrieved Alternative Interventions ---
+-    alternatives_text = _retrieve_alternative_interventions(worsened_kpis, violated_kpis)
++    alternatives_text = _retrieve_alternative_interventions(
++        worsened_kpis + [(e.kpi_name, "", e.target_direction) for e in not_reached], violated_kpis,
++    )
+     if alternatives_text:
+         lines.append("")
+         lines.append("## Literature-Backed Alternative Interventions:")
+@@ -214,6 +363,17 @@ def _build_evaluation_feedback(
+             lines.append(f"  • {name} degraded by {pct} — target was to {direction}.")
+         lines.append("")
+ 
++    if not_reached:
++        lines.append("TARGETS NOT YET REACHED (improved, but more change is needed):")
++        for e in not_reached:
++            lines.append(f"  • {e.kpi_name}: {_target_text(e)}.")
++            lines.extend(f"    {g}" for g in _gap_lines(e, gen_result))
++        lines.append("")
++
++    if achieved:
++        lines.append("TARGETS ACHIEVED (keep them): " + ", ".join(f"{n}: target achieved" for n in achieved))
++        lines.append("")
++
+     if improved_kpis:
+         lines.append(f"PRESERVE improvements in: {', '.join(improved_kpis)}")
+         lines.append("")
+@@ -231,16 +391,32 @@ def _retrieve_alternative_interventions(
+     worsened_kpis: list[tuple[str, str, str]],
+     violated_kpis: list[tuple[str, str, str]],
+ ) -> str:
+-    """Query the knowledge base for alternative interventions for problem KPIs."""
++    """Query the knowledge base for alternative interventions for problem KPIs.
++
++    Direction-aware (see :mod:`knowledge.direction`): an entry whose stated effect on a problem
++    KPI's metric is the opposite of the KPI's direction, or mixed, is dropped (a minimize KPI only
++    gets entries that state a decrease, and vice versa); entries that state no effect on the metric
++    are kept and ranked after those that state the wanted one. More entries are retrieved than
++    shown so that enough remain after filtering.
++    """
+     problem_kpis = worsened_kpis + violated_kpis
+     if not problem_kpis:
+         return ""
+ 
+     try:
++        from knowledge.direction import direction_rank
+         from knowledge.retrieval import retrieve_for_second_llm
+     except ImportError:
+         return ""
+ 
++    def rank(text: str) -> int | None:
++        ranks = [direction_rank(text, _infer_category(name), direction) for name, _, direction in problem_kpis]
++        return None if any(r is None for r in ranks) else min(ranks)
++
++    def keep(items: list, text_of) -> list:
++        ranked = [(r, i, it) for i, it in enumerate(items) if (r := rank(text_of(it))) is not None]
++        return [it for _, _, it in sorted(ranked, key=lambda x: (x[0], x[1]))]
++
+     kpi_dicts = []
+     for name, _, direction in problem_kpis:
+         kpi_dicts.append({
+@@ -254,18 +430,24 @@ def _retrieve_alternative_interventions(
+             goal_structured=f"Find alternative interventions to improve: {', '.join(name for name, _, _ in problem_kpis)}",
+             kpis=kpi_dicts,
+             context_profile=None,
+-            top_k=12,
+-            per_kind_caps={"mapping": 4, "literature": 3, "parameter": 3, "rule": 0, "pdf_chunk": 2},
++            top_k=24,
++            per_kind_caps={"mapping": 10, "literature": 6, "parameter": 3, "rule": 0, "pdf_chunk": 4},
+         )
+     except Exception as exc:
+         logger.debug("KB retrieval for feedback failed: %s", exc)
+         return ""
+ 
++    mappings = keep(result.goal_mappings, lambda m: " ".join(
++        [m.goal_description] + [f"{c.rationale} {c.quantitative_evidence}" for c in m.parameter_changes]))
++    literature = keep(result.literature, lambda lit: f"{lit.key_finding} {lit.quantitative_result}")
++    chunks = keep(list(zip(result.pdf_chunks, result.pdf_chunk_scores,
++                           result.pdf_chunk_paper_ids + ["?"] * len(result.pdf_chunks))), lambda c: c[0])
++
+     lines: list[str] = []
+ 
+-    if result.goal_mappings:
++    if mappings:
+         lines.append("  Recommended strategies from BPS literature:")
+-        for i, mapping in enumerate(result.goal_mappings[:4], 1):
++        for i, mapping in enumerate(mappings[:4], 1):
+             lines.append(f"  {i}. {mapping.goal_description} (domain: {mapping.domain})")
+             for change in mapping.parameter_changes[:3]:
+                 evidence_str = f" — Evidence: {change.quantitative_evidence}" if change.quantitative_evidence else ""
+@@ -275,22 +457,19 @@ def _retrieve_alternative_interventions(
+                     f"{change.rationale}{evidence_str}{paper_str}"
+                 )
+ 
+-    if result.literature:
++    if literature:
+         lines.append("")
+         lines.append("  Supporting evidence:")
+-        for lit in result.literature[:3]:
++        for lit in literature[:3]:
+             lines.append(
+                 f"  - {lit.authors} ({lit.year}): {lit.key_finding} "
+                 f"Result: {lit.quantitative_result}"
+             )
+ 
+-    if result.pdf_chunks:
++    if chunks:
+         lines.append("")
+         lines.append("  Source excerpts (from indexed papers):")
+-        for i, (chunk_text, score) in enumerate(
+-            zip(result.pdf_chunks[:2], result.pdf_chunk_scores[:2]), 1
+-        ):
+-            paper_id = result.pdf_chunk_paper_ids[i - 1] if i - 1 < len(result.pdf_chunk_paper_ids) else "?"
++        for i, (chunk_text, score, paper_id) in enumerate(chunks[:2], 1):
+             excerpt = chunk_text[:300].replace("\n", " ")
+             lines.append(f"  {i}. [Paper {paper_id}, score={score:.3f}] {excerpt}")
+ 
+@@ -315,15 +494,23 @@ def _infer_category(kpi_name: str) -> str:
+     return "processing_capacity"
+ 
+ 
++def _selection_key(it: IterationResult) -> tuple[int, int, float]:
++    return it.achieved_count, it.improved_count, it.score
++
++
+ def _select_best_iteration(iterations: list[IterationResult]) -> int | None:
+-    """Return the index of the best iteration by score."""
++    """Index of the best iteration: most achieved targets, then most improved KPIs, then score.
++
++    Ties keep the earlier iteration. Failed iterations rank last.
++    """
+     if not iterations:
+         return None
+     best_idx = 0
+-    best_score = iterations[0].score
++    best_key = _selection_key(iterations[0])
+     for i, it in enumerate(iterations[1:], 1):
+-        if it.score > best_score:
+-            best_score = it.score
++        key = _selection_key(it)
++        if key > best_key:
++            best_key = key
+             best_idx = i
+     return best_idx
+ 
+@@ -442,9 +629,10 @@ def run_iterative_evaluation(
+ 
+         result.iterations.append(iter_result)
+ 
+-        # Check if we're done
+-        if iter_result.status == OverallStatus.IMPROVED:
+-            _notify(i, "All KPIs improved! Stopping.")
++        # Done when every KPI with a threshold has achieved it and every KPI without
++        # one has improved (without thresholds: every computed KPI improved).
++        if iter_result.targets_met:
++            _notify(i, "All targets met! Stopping.")
+             break
+ 
+         # Build feedback and inject for next iteration
+diff --git a/goal_to_parameters/second_llm/multi_seed_evaluation.py b/goal_to_parameters/second_llm/multi_seed_evaluation.py
+index d858ced..677e4cd 100644
+--- a/goal_to_parameters/second_llm/multi_seed_evaluation.py
++++ b/goal_to_parameters/second_llm/multi_seed_evaluation.py
+@@ -26,6 +26,7 @@ from second_llm.scenario_evaluation import (
+     TargetDirection,
+     _match_kpi_value,
+     _strip_temporal_suffix,
++    _is_achieved,
+     _is_improved,
+     _is_safeguard_violated,
+ )
+@@ -77,6 +78,8 @@ class MultiSeedKPIComparison:
+     violated_safeguard: bool | None
+     p_value: float | None = None
+     status: str = "computed"  # computed | not_computable | missing_baseline | missing_proposed
++    threshold: float | None = None  # the target's numeric threshold, if any
++    achieved: bool | None = None  # mean proposed value meets the threshold (None without one)
+ 
+ 
+ @dataclass
+@@ -403,6 +406,8 @@ def evaluate_multi_seed(
+             improved=improved,
+             violated_safeguard=violated,
+             status=status,
++            threshold=target.threshold,
++            achieved=_is_achieved(target.direction, mean_p, target.threshold),
+         )
+         result.kpi_comparisons.append(comp)
+ 
+@@ -449,12 +454,14 @@ def evaluate_multi_seed(
+         OverallStatus.INVALID: "invalid_scenario",
+     }[overall]
+ 
++    with_threshold = [c for c in result.kpi_comparisons if c.threshold is not None and not c.is_safeguard]
+     result.summary = EvaluationSummary(
+         target_kpis_improved=all_targets_improved if target_total > 0 else None,
+         safeguards_respected=safeguards_ok if safeguard_total > 0 else None,
+         overall_status=overall,
+         trade_offs=trade_offs,
+         recommendation=recommendation,
++        targets_achieved=all(c.achieved is True for c in with_threshold) if with_threshold else None,
+     )
+ 
+     result.simulation_settings = settings
+diff --git a/goal_to_parameters/second_llm/patch_validator.py b/goal_to_parameters/second_llm/patch_validator.py
+index 957933b..6953038 100644
+--- a/goal_to_parameters/second_llm/patch_validator.py
++++ b/goal_to_parameters/second_llm/patch_validator.py
+@@ -40,6 +40,7 @@ from second_llm.scenario_merger import (
+     _check_target_exists,
+     _detect_conflicts,
+     _resolve,
++    _role_for_name,
+ )
+ from second_llm.validation import _extract_first_number  # reused
+ 
+@@ -318,55 +319,49 @@ def repair_patch_against_baseline(
+ ) -> tuple[ScenarioPatch, list[str]]:
+     """Auto-repair common LLM mistakes before validation.
+ 
+-    Currently handles one case: the LLM sets ``target_element`` to an
+-    individual resource name (e.g. "Alberto Duport") for a
+-    ``resource_count`` or ``resource_cost`` modification, when the
+-    merger expects the *role* name/id that the resource belongs to.
++    Role targets: for a ``resource_count``, ``resource_cost`` or
++    ``resource_calendar`` modification whose ``target_element`` is not a
++    role (nor, for a calendar, a timetable) but names one of a role's
++    resources (e.g. "Alberto Duport"), the stem the role's resource ids
++    share (e.g. ``POOL`` for ``POOL_1`` … ``POOL_n``, which SIMOD uses as
++    the resource-profile id), or a resource name with an index
++    (``Role X-000001``), the target is redirected to that role.
+ 
+-    If the target does not match any role but does match a resource
+-    inside some role, the target is silently redirected to that role.
++    ``resource_count`` with direction ``add_new`` on an existing role is
++    changed to ``increase``.
+     """
+     notes: list[str] = []
+-
+-    # Build index: lowercased resource id/name -> parent role
+-    resource_to_role: dict[str, Any] = {}
+-    for role in baseline.resourceParameters.roles:
+-        for resource in role.resources:
+-            for attr in ("id", "name"):
+-                val = getattr(resource, attr, None)
+-                if val:
+-                    resource_to_role[str(val).lower()] = role
+-
+     roles = baseline.resourceParameters.roles
++    timetables = baseline.resourceParameters.timeTables
+ 
+     for mod in patch.modifications:
+-        if mod.parameter_type not in _ROLE_PARAM_TYPES:
++        if mod.parameter_type not in _ROLE_PARAM_TYPES | {PatchParameterType.RESOURCE_CALENDAR}:
+             continue
+-        # Already resolves to a known role — check for ADD_NEW direction fix.
+-        resolved_role = _resolve(roles, mod.target_element)
+-        if resolved_role is not None:
+-            # Role exists but direction is ADD_NEW: correct it to INCREASE
+-            # so the merger won't skip the existence check.
+-            if (
+-                mod.parameter_type == PatchParameterType.RESOURCE_COUNT
+-                and mod.direction == ModificationDirection.ADD_NEW
+-            ):
+-                mod.direction = ModificationDirection.INCREASE
++        if _resolve(roles, mod.target_element) is None and not (
++            mod.parameter_type == PatchParameterType.RESOURCE_CALENDAR
++            and _resolve(timetables, mod.target_element) is not None
++        ):
++            parent_role = _role_for_name(roles, mod.target_element)
++            if parent_role is not None:
++                old_name = mod.target_element
++                mod.target_element = parent_role.id
+                 notes.append(
+-                    f"Auto-repaired: changed direction for resource_count "
+-                    f"on existing role '{mod.target_element}' from "
+-                    f"'add_new' to 'increase'."
++                    f"Auto-repaired: redirected {mod.parameter_type.value} "
++                    f"target from '{old_name}' (a resource id, id stem or "
++                    f"resource name) to role '{parent_role.id}'."
+                 )
+-            continue
+-        # Check if it matches an individual resource.
+-        parent_role = resource_to_role.get(mod.target_element.lower())
+-        if parent_role is not None:
+-            old_name = mod.target_element
+-            mod.target_element = parent_role.id
++        # Role exists but direction is ADD_NEW: correct it to INCREASE
++        # so the merger won't skip the existence check.
++        if (
++            mod.parameter_type == PatchParameterType.RESOURCE_COUNT
++            and mod.direction == ModificationDirection.ADD_NEW
++            and _resolve(roles, mod.target_element) is not None
++        ):
++            mod.direction = ModificationDirection.INCREASE
+             notes.append(
+-                f"Auto-repaired: redirected {mod.parameter_type.value} "
+-                f"target from individual resource '{old_name}' to "
+-                f"parent role '{parent_role.id}'."
++                f"Auto-repaired: changed direction for resource_count "
++                f"on existing role '{mod.target_element}' from "
++                f"'add_new' to 'increase'."
+             )
+ 
+     return patch, notes
+diff --git a/goal_to_parameters/second_llm/payload_builder.py b/goal_to_parameters/second_llm/payload_builder.py
+index acaa445..4ff9d83 100644
+--- a/goal_to_parameters/second_llm/payload_builder.py
++++ b/goal_to_parameters/second_llm/payload_builder.py
+@@ -42,6 +42,46 @@ def summarize_intermediate_events(scenario: Any) -> str:
+     return "\n".join(lines)
+ 
+ 
++def simod_for_llm(simod_json: dict[str, Any] | None) -> dict[str, Any] | None:
++    """Copy of the SIMOD parameters for the LLM prompt with resources shown by name.
++
++    SIMOD gives resource profiles and resources both an id (e.g. ``POOL`` and
++    ``POOL_1``) and a name (the role, e.g. "Role X", and "Role X-000001"). The
++    scenario's roles are keyed by the profile name, so a profile id copied from
++    the prompt is not a valid patch target. Every string value equal to such an id
++    (the profile's and resources' ``id`` and references such as
++    ``task_resource_distribution[].resources[].resource_id``) is replaced by the
++    name, when the name is set, differs from the id and is unique. Calendar ids are
++    left as they are. The input is not modified; the baseline is built from it.
++    """
++    if not isinstance(simod_json, dict):
++        return simod_json
++    profiles = simod_json.get("resource_profiles")
++    if not isinstance(profiles, list):
++        return simod_json
++    pairs: list[tuple[str, str]] = []
++    for prof in profiles:
++        if not isinstance(prof, dict):
++            continue
++        items = [prof] + [r for r in prof.get("resource_list") or [] if isinstance(r, dict)]
++        pairs += [(str(it["id"]), str(it["name"])) for it in items if it.get("id") and it.get("name")]
++    names = [n for _, n in pairs]
++    id_to_name = {i: n for i, n in pairs if i != n and names.count(n) == 1}
++    if not id_to_name:
++        return simod_json
++
++    def swap(obj: Any) -> Any:
++        if isinstance(obj, dict):
++            return {k: swap(v) for k, v in obj.items()}
++        if isinstance(obj, list):
++            return [swap(v) for v in obj]
++        if isinstance(obj, str):
++            return id_to_name.get(obj, obj)
++        return obj
++
++    return swap(simod_json)
++
++
+ class DraftPayloadBuilder:
+     """Builds the second-LLM request from workspace state."""
+ 
+@@ -144,7 +184,7 @@ class DraftPayloadBuilder:
+                 evidence = build_second_llm_evidence(
+                     goal_structured=goal_structured,
+                     kpis=kpis,
+-                    simod_json=simod_dict,
++                    simod_json=simod_for_llm(simod_dict),
+                     log_profile=self._log_profile,
+                     context_profile=self._context_profile,
+                 )
+diff --git a/goal_to_parameters/second_llm/scenario_evaluation.py b/goal_to_parameters/second_llm/scenario_evaluation.py
+index 22fdcf4..e7960de 100644
+--- a/goal_to_parameters/second_llm/scenario_evaluation.py
++++ b/goal_to_parameters/second_llm/scenario_evaluation.py
+@@ -61,7 +61,7 @@ class KPITarget:
+     category: str = ""
+     is_safeguard: bool = False
+     tolerance: float | None = None  # For maintain-direction: allowed % deviation
+-    threshold: float | None = None  # Absolute threshold (e.g., max utilization 0.85)
++    threshold: float | None = None  # Absolute target value (e.g. utilization 0.85); see _is_achieved
+     unit: str = ""
+     measurable_as: str | None = None  # Exact computed KPI name from kpi_computation.py
+     description: str = ""  # KPI description and suggested formula (role resolution for utilization)
+@@ -84,6 +84,8 @@ class KPIComparisonEntry:
+     violated_safeguard: bool | None  # True if safeguard was violated
+     interpretation: str
+     status: str = "computed"  # computed, not_computable, missing_baseline, missing_proposed
++    threshold: float | None = None  # the target's numeric threshold, if any
++    achieved: bool | None = None  # proposed value meets the threshold (None without a threshold)
+ 
+ 
+ @dataclass
+@@ -95,6 +97,8 @@ class EvaluationSummary:
+     overall_status: OverallStatus
+     trade_offs: list[str] = field(default_factory=list)
+     recommendation: str = ""
++    # Every target with a threshold achieved (None when no target has one)
++    targets_achieved: bool | None = None
+ 
+ 
+ @dataclass
+@@ -156,6 +160,41 @@ def _is_improved(
+     return None
+ 
+ 
++def _is_achieved(
++    direction: TargetDirection,
++    proposed: float | None,
++    threshold: float | None,
++) -> bool | None:
++    """Whether a KPI value meets its numeric threshold in the KPI's direction.
++
++    minimize: value <= threshold; maximize: value >= threshold. ``None`` without a
++    threshold or a value, and for maintain (whose target is the baseline, see
++    ``tolerance``).
++    """
++    if threshold is None or proposed is None:
++        return None
++    if direction == TargetDirection.MINIMIZE:
++        return proposed <= threshold
++    if direction == TargetDirection.MAXIMIZE:
++        return proposed >= threshold
++    return None
++
++
++def targets_met(entries: list[Any]) -> bool:
++    """Every target KPI met: achieved where it has a threshold, improved where it has none.
++
++    ``entries`` are :class:`KPIComparisonEntry` or multi-seed comparisons. KPIs that
++    could not be computed are not counted (as in the overall status); at least one
++    target must be computed, and no safeguard may be violated.
++    """
++    if any(e.violated_safeguard is True for e in entries):
++        return False
++    targets = [e for e in entries if not e.is_safeguard and e.status == "computed"]
++    return bool(targets) and all(
++        (e.achieved is True) if e.threshold is not None else (e.improved is True) for e in targets
++    )
++
++
+ def _is_safeguard_violated(
+     direction: TargetDirection,
+     baseline: float | None,
+@@ -436,6 +475,8 @@ def compare_kpis(
+             status = "missing_proposed"
+ 
+         entry = KPIComparisonEntry(
++            threshold=target.threshold,
++            achieved=_is_achieved(target.direction, proposed_val, target.threshold),
+             kpi_name=_strip_temporal_suffix(target.name),
+             category=target.category,
+             target_direction=target.direction.value,
+@@ -523,12 +564,14 @@ def compare_kpis(
+         OverallStatus.INVALID: "invalid_scenario",
+     }[overall]
+ 
++    with_threshold = [e for e in result.kpi_comparisons if e.threshold is not None and not e.is_safeguard]
+     result.summary = EvaluationSummary(
+         target_kpis_improved=all_targets_improved if target_total > 0 else None,
+         safeguards_respected=safeguards_ok if safeguard_total > 0 else None,
+         overall_status=overall,
+         trade_offs=trade_offs,
+         recommendation=recommendation,
++        targets_achieved=all(e.achieved is True for e in with_threshold) if with_threshold else None,
+     )
+ 
+     return result
+diff --git a/goal_to_parameters/second_llm/scenario_generator.py b/goal_to_parameters/second_llm/scenario_generator.py
+index e8d800e..2ae2cfc 100644
+--- a/goal_to_parameters/second_llm/scenario_generator.py
++++ b/goal_to_parameters/second_llm/scenario_generator.py
+@@ -36,7 +36,7 @@ from second_llm.output_schema_patch import (
+     get_patch_constrained_decoding_schema,
+ )
+ from second_llm.compatibility_adapter import build_legacy_proposal
+-from second_llm.payload_builder import summarize_intermediate_events
++from second_llm.payload_builder import simod_for_llm, summarize_intermediate_events
+ from second_llm.patch_validator import (
+     enforce_headcount_constraints,
+     repair_patch_against_baseline,
+@@ -549,10 +549,11 @@ def generate_scenario_patch(
+     declared_kpis = [k.get("name") for k in kpis if isinstance(k, dict) and k.get("name")]
+     simod_dict = _parse_simod_json(simod_raw_text, simod_json_content)
+ 
++    # The prompt shows resources by name; the baseline below is built from simod_dict.
+     evidence = build_second_llm_evidence(
+         goal_structured=goal_structured,
+         kpis=kpis,
+-        simod_json=simod_dict,
++        simod_json=simod_for_llm(simod_dict),
+         log_profile=log_profile,
+         context_profile=context_profile,
+         bpmn_xml=bpmn_xml,
+@@ -672,6 +673,15 @@ def generate_scenario_patch(
+ 
+         # Pre-merge validation
+         pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
++        if (pv.has_errors and attempt == max_retries
++                and all(e.category == "baseline_mismatch" for e in pv.errors)):
++            # Last attempt: reject only the modifications whose quoted baseline value does
++            # not match the model and keep the rest of the patch.
++            rejected = {e.modification_index for e in pv.errors}
++            for e in pv.errors:
++                notes.append(f"[patch-reject] {e.message}")
++            patch.modifications = [m for k, m in enumerate(patch.modifications, start=1) if k not in rejected]
++            pv = validate_patch(patch, baseline=baseline, declared_kpis=declared_kpis)
+         if pv.warnings:
+             for w in pv.warnings:
+                 notes.append(f"[patch warning] {w.message}")
+diff --git a/goal_to_parameters/second_llm/scenario_merger.py b/goal_to_parameters/second_llm/scenario_merger.py
+index cda2cfd..28dc7af 100644
+--- a/goal_to_parameters/second_llm/scenario_merger.py
++++ b/goal_to_parameters/second_llm/scenario_merger.py
+@@ -675,6 +675,63 @@ def _check_element_kind(
+     return None
+ 
+ 
++BASELINE_MISMATCH_TOLERANCE = 0.25  # relative; a larger deviation rejects the modification
++
++
++_INDEX_SUFFIX_RE = re.compile(r"[\s_\-]*\d+$")
++
++
++def _id_stem(text: str) -> str:
++    """``text`` without a trailing index: 'POOL_3' -> 'POOL', 'Clerk-000001' -> 'Clerk'."""
++    return _INDEX_SUFFIX_RE.sub("", text.strip()).strip()
++
++
++def _role_for_name(roles: list[Role], name: str) -> Role | None:
++    """The role a name refers to, or ``None``.
++
++    In order: the role's id/name; the id/name of one of its resources; the stem its
++    resource ids share (e.g. ``POOL`` for ``POOL_1`` … ``POOL_n``, as SIMOD names a
++    resource profile); the name without a trailing index (``Role X-000001``) resolved
++    the same way. A stem or index match must point to exactly one role.
++    """
++    role = _resolve(roles, name)
++    if role is not None:
++        return role
++    needle = (name or "").strip().lower()
++    if not needle:
++        return None
++    for r in roles:
++        if any(str(getattr(res, attr, None) or "").lower() == needle
++               for res in r.resources for attr in ("id", "name")):
++            return r
++
++    def by_stem(stem: str) -> Role | None:
++        hits = [r for r in roles
++                if any(_id_stem(str(getattr(res, attr, None) or "")).lower() == stem
++                       for res in r.resources for attr in ("id", "name"))]
++        return hits[0] if len(hits) == 1 else None
++
++    found = by_stem(needle)
++    if found is None:
++        stripped = _id_stem(needle)
++        if stripped and stripped != needle:
++            found = _resolve(roles, stripped) or by_stem(stripped)
++    return found
++
++
++def _baseline_mismatch(mod: PatchModification, idx: int, quoted: str, actual: str, why: str) -> PatchDiagnostic:
++    return PatchDiagnostic(
++        severity="error", category="baseline_mismatch",
++        message=(
++            f"Modification #{idx} ({mod.parameter_type.value}) on '{mod.target_element}' was rejected: "
++            f"the quoted baseline_value '{quoted}' does not match the model's actual value {actual} ({why}). "
++            f"Check that this is the element you mean; if it is, quote baseline_value as {actual} and "
++            f"state proposed_value relative to it, in the same unit."
++        ),
++        modification_index=idx, element=mod.target_element,
++    )
++
++
+ def _check_baseline_value_match(
+     scenario: SimuBridgeScenario,
+     mod: PatchModification,
+@@ -682,55 +739,67 @@ def _check_baseline_value_match(
+ ) -> PatchDiagnostic | None:
+     """Compare the LLM's quoted baseline_value to the actual baseline.
+ 
+-    Emits a ``warning`` (not an error) on numeric disagreement so the
+-    merge can proceed in tolerant mode; strict mode escalates.
++    Numeric values (resource count, hourly cost, duration and inter-arrival means in the
++    element's own time unit) must lie within ``BASELINE_MISMATCH_TOLERANCE`` of the actual
++    value; the roles quoted for a resource_activity_assignment must be the activity's roles.
++    A mismatch is an ``error`` (category ``baseline_mismatch``): the modification is not
++    applied, and the message states the actual value so the LLM can correct its target.
++    Elements that do not exist, and empty quotes, are left to the other checks.
+     """
++    roles = scenario.resourceParameters.roles
++    if mod.parameter_type == PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT:
++        act = _resolve([a for m in scenario.models for a in m.modelParameter.activities], mod.target_element)
++        if act is None or not mod.baseline_value.strip():
++            return None
++        tokens = [t.strip() for t in re.split(r"[,;]", mod.baseline_value) if t.strip()]
++        quoted = {getattr(_role_for_name(roles, t), "id", f"unknown:{t}") for t in tokens}
++        if quoted != set(act.resources):
++            return _baseline_mismatch(mod, idx, mod.baseline_value, ", ".join(act.resources) or "(no role)",
++                                      "roles assigned to the activity")
++        return None
++
+     numeric_quoted = _first_number(mod.baseline_value)
+     if numeric_quoted is None:
+         return None
+ 
+     actual_numeric: float | None = None
++    unit = ""
+     if mod.parameter_type == PatchParameterType.RESOURCE_COUNT:
+-        role = _resolve(scenario.resourceParameters.roles, mod.target_element)
++        role = _resolve(roles, mod.target_element)
+         if role is not None:
+-            actual_numeric = float(len(role.resources))
++            actual_numeric, unit = float(len(role.resources)), "resources"
+     elif mod.parameter_type == PatchParameterType.RESOURCE_COST:
+-        role = _resolve(scenario.resourceParameters.roles, mod.target_element)
++        role = _resolve(roles, mod.target_element)
+         if role is not None:
+-            actual_numeric = float(role.costHour)
++            actual_numeric, unit = float(role.costHour), "per hour"
+     elif mod.parameter_type == PatchParameterType.ACTIVITY_DURATION:
+         act = _resolve(
+             [a for m in scenario.models for a in m.modelParameter.activities],
+             mod.target_element,
+         )
+         if act is not None:
+-            actual_numeric = _distribution_mean(act.duration)
++            actual_numeric, unit = _distribution_mean(act.duration), act.duration.timeUnit.value
+     elif mod.parameter_type == PatchParameterType.INTER_ARRIVAL_TIME:
+         events = [e for m in scenario.models for e in m.modelParameter.events]
+         event = _resolve(events, mod.target_element) or (events[0] if events else None)
+         if event is not None:
+-            actual_numeric = _distribution_mean(event.interArrivalTime)
++            actual_numeric, unit = _distribution_mean(event.interArrivalTime), event.interArrivalTime.timeUnit.value
+     elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
+         evt = _resolve(
+             [e for m in scenario.models for e in m.modelParameter.intermediateEvents],
+             mod.target_element,
+         )
+         if evt is not None:
+-            actual_numeric = _distribution_mean(evt.duration)
++            actual_numeric, unit = _distribution_mean(evt.duration), evt.duration.timeUnit.value
+ 
+     if actual_numeric is None:
+         return None
+ 
+-    tol = max(1e-6, abs(actual_numeric) * 0.05)
++    tol = max(1e-6, abs(actual_numeric) * BASELINE_MISMATCH_TOLERANCE)
+     if abs(actual_numeric - numeric_quoted) > tol:
+-        return PatchDiagnostic(
+-            severity="warning", category="baseline_value_mismatch",
+-            message=(
+-                f"Modification on '{mod.target_element}': quoted baseline_value "
+-                f"{numeric_quoted} disagrees with actual baseline "
+-                f"{actual_numeric:.4g} (>5% tolerance)."
+-            ),
+-            modification_index=idx, element=mod.target_element,
++        return _baseline_mismatch(
++            mod, idx, mod.baseline_value, f"{actual_numeric:g} {unit}".strip(),
++            f"more than {BASELINE_MISMATCH_TOLERANCE:.0%} apart",
+         )
+     return None
+ 
+@@ -841,16 +910,13 @@ def apply_patch(
+                 result.skipped_modifications.append(i)
+                 continue
+ 
+-        # Baseline value sanity.
++        # Baseline value sanity: a quoted value that does not match the model rejects the
++        # modification in both modes (it most likely targets the wrong element or unit).
+         value_issue = _check_baseline_value_match(scenario, mod, i)
+         if value_issue is not None:
+-            if strict:
+-                value_issue.severity = "error"
+-                result.diagnostics.append(value_issue)
+-                result.skipped_modifications.append(i)
+-                continue
+-            else:
+-                result.diagnostics.append(value_issue)
++            result.diagnostics.append(value_issue)
++            result.skipped_modifications.append(i)
++            continue
+ 
+         # Dispatch.
+         applier = _APPLIERS.get(mod.parameter_type)
+diff --git a/goal_to_parameters/tests/test_patch_flow.py b/goal_to_parameters/tests/test_patch_flow.py
+index a5ec03e..28833fd 100644
+--- a/goal_to_parameters/tests/test_patch_flow.py
++++ b/goal_to_parameters/tests/test_patch_flow.py
+@@ -5,8 +5,7 @@ Covers:
+ 
+ * valid patch merges cleanly and applies every modification,
+ * missing baseline element is rejected,
+-* wrong ``baseline_value`` surfaces a warning in tolerant mode and an
+-  error in strict mode,
++* wrong ``baseline_value`` rejects the modification (error) in both modes,
+ * no-op modifications are rejected (schema or merger),
+ * invalid distribution / gateway probabilities / resource counts are
+   rejected,
+@@ -219,17 +218,18 @@ def test_missing_element_rejected():
+ # Baseline value mismatch
+ # -------------------------------------------------------------------
+ 
+-def test_baseline_value_mismatch_warning_in_tolerant_mode():
++def test_baseline_value_mismatch_rejected_in_tolerant_mode():
+     baseline = _make_baseline()
+     # Baseline has 2 analysts; claim 10 in the quote
+     patch = _mk_patch([_mk_mod(baseline_value="10", proposed_value="4")])
+     result = apply_patch(baseline, patch, strict=False)
+     assert any(
+-        d.category == "baseline_value_mismatch" and d.severity == "warning"
++        d.category == "baseline_mismatch" and d.severity == "error"
+         for d in result.diagnostics
+     )
+-    # The merger still applies the change in tolerant mode
+-    assert 1 in result.applied_modifications
++    # The modification is not applied (previously it was, with a warning)
++    assert 1 in result.skipped_modifications
++    assert len(result.scenario.resourceParameters.roles[0].resources) == 2
+ 
+ 
+ def test_baseline_value_mismatch_error_in_strict_mode():
+@@ -238,7 +238,7 @@ def test_baseline_value_mismatch_error_in_strict_mode():
+     result = apply_patch(baseline, patch, strict=True)
+     assert 1 in result.skipped_modifications
+     assert any(
+-        d.category == "baseline_value_mismatch" and d.severity == "error"
++        d.category == "baseline_mismatch" and d.severity == "error"
+         for d in result.diagnostics
+     )
+ 

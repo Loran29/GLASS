@@ -1,0 +1,1119 @@
+# GLASS Stage 2: scenario generation
+"""Deterministic patch application: baseline + ScenarioPatch -> merged scenario.
+
+This is the heart of the delta-based architecture. The LLM produces a
+:class:`~second_llm.output_schema_patch.ScenarioPatch` describing *what
+should change*; this module takes the SIMOD-derived
+:class:`~second_llm.output_schema.SimuBridgeScenario` baseline and
+produces the final merged scenario that the simulator will consume.
+
+Design
+------
+The merger is intentionally dumb and deterministic:
+
+  1. It deep-copies the baseline so the input is never mutated.
+  2. For each modification it resolves the target element in the baseline,
+     checks that the element kind matches the parameter type, (optionally)
+     verifies that the quoted ``baseline_value`` is consistent with what
+     we actually find, and then applies the change.
+  3. All findings are collected in a structured diagnostics object.
+  4. In strict mode any ``error``-level diagnostic aborts that modification
+     (and, for the whole patch, makes the merger return ``None`` for the
+     scenario so callers can surface the failure). In tolerant mode the
+     offending modification is skipped and recorded.
+
+Unchanged baseline fields are preserved automatically — there is no
+step where the LLM gets a chance to rewrite them.
+"""
+
+from __future__ import annotations
+
+import copy
+import math
+import re
+from dataclasses import dataclass, field
+from typing import Any
+
+from second_llm.output_schema import (
+    Activity,
+    DistributionParameter,
+    DistributionType,
+    Gateway,
+    ModificationDirection,
+    Resource,
+    Role,
+    SimuBridgeScenario,
+    StartEvent,
+    TimeDistribution,
+    TimeUnit,
+    Timetable,
+    TimetableItem,
+    Weekday,
+)
+from second_llm.output_schema_patch import (
+    PatchDiagnostic,
+    PatchModification,
+    PatchParameterType,
+    PatchTargetKind,
+    ScenarioPatch,
+    expected_target_kind,
+)
+
+
+# -------------------------------------------------------------------
+# Result container
+# -------------------------------------------------------------------
+
+@dataclass
+class MergeResult:
+    """Outcome of merging a :class:`ScenarioPatch` onto a baseline."""
+
+    scenario: SimuBridgeScenario | None = None
+    diagnostics: list[PatchDiagnostic] = field(default_factory=list)
+    applied_modifications: list[int] = field(default_factory=list)
+    skipped_modifications: list[int] = field(default_factory=list)
+
+    @property
+    def has_errors(self) -> bool:
+        return any(d.severity == "error" for d in self.diagnostics)
+
+    @property
+    def error_messages(self) -> list[str]:
+        return [d.message for d in self.diagnostics if d.severity == "error"]
+
+    @property
+    def warning_messages(self) -> list[str]:
+        return [d.message for d in self.diagnostics if d.severity == "warning"]
+
+
+# -------------------------------------------------------------------
+# Utilities
+# -------------------------------------------------------------------
+
+_NUMBER_RE = re.compile(r"[-+]?\d*\.?\d+")
+
+
+def _first_number(text: str) -> float | None:
+    if not isinstance(text, str):
+        return None
+    m = _NUMBER_RE.search(text)
+    if not m:
+        return None
+    try:
+        return float(m.group())
+    except ValueError:
+        return None
+
+
+def _index_by_name(items: list[Any]) -> dict[str, Any]:
+    """Index by both ``id`` and ``name`` (lowercased) for forgiving lookup."""
+    out: dict[str, Any] = {}
+    for it in items:
+        for attr in ("id", "name"):
+            val = getattr(it, attr, None)
+            if val:
+                out[str(val).lower()] = it
+    return out
+
+
+def _resolve(items: list[Any], needle: str) -> Any | None:
+    if not needle:
+        return None
+    return _index_by_name(items).get(needle.lower())
+
+
+# -------------------------------------------------------------------
+# Individual appliers
+# -------------------------------------------------------------------
+
+_STRUCT_DURATION_KEYS = {"distributionType", "timeUnit", "values"}
+
+
+def _distribution_from_payload(
+    payload: Any,
+    fallback_unit: TimeUnit,
+    proposed_scalar: str,
+) -> TimeDistribution | None:
+    """Build a :class:`TimeDistribution` from a structured payload or scalar."""
+    if isinstance(payload, dict) and _STRUCT_DURATION_KEYS & payload.keys():
+        try:
+            return TimeDistribution.model_validate(payload)
+        except Exception:
+            return None
+
+    # Scalar -> constant distribution in the existing unit.
+    num = _first_number(proposed_scalar)
+    if num is None:
+        return None
+    return TimeDistribution(
+        distributionType=DistributionType.CONSTANT,
+        timeUnit=fallback_unit,
+        values=[DistributionParameter(id="constantValue", value=num)],
+    )
+
+
+def _apply_activity_duration(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    activities = [a for m in scenario.models for a in m.modelParameter.activities]
+    act = _resolve(activities, mod.target_element)
+    if act is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=(
+                f"Activity '{mod.target_element}' not found in baseline — "
+                f"cannot apply activity_duration modification."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    fallback_unit = act.duration.timeUnit
+    new_dist = _distribution_from_payload(
+        mod.proposed_structured, fallback_unit, mod.proposed_value,
+    )
+    if new_dist is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Activity '{mod.target_element}': could not parse a valid "
+                f"duration from proposed_value='{mod.proposed_value}' or "
+                f"proposed_structured."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    act.duration = new_dist
+    return True
+
+
+def _apply_event_duration(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    """Set the delay of an intermediate (timer) event; same handling as activity durations.
+
+    A proposed value of 0 removes the delay (constant distribution of 0).
+    """
+    events = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
+    evt = _resolve(events, mod.target_element)
+    if evt is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=(
+                f"Intermediate event '{mod.target_element}' not found in baseline — "
+                f"cannot apply event_duration modification."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    new_dist = _distribution_from_payload(
+        mod.proposed_structured, evt.duration.timeUnit, mod.proposed_value,
+    )
+    if new_dist is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Intermediate event '{mod.target_element}': could not parse a valid "
+                f"duration from proposed_value='{mod.proposed_value}' or "
+                f"proposed_structured."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    evt.duration = new_dist
+    return True
+
+
+def _apply_inter_arrival_time(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    events = [e for m in scenario.models for e in m.modelParameter.events]
+    if not events:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message="No start events in baseline — cannot apply inter_arrival_time modification.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    event = _resolve(events, mod.target_element) or events[0]
+    fallback_unit = event.interArrivalTime.timeUnit
+    new_dist = _distribution_from_payload(
+        mod.proposed_structured, fallback_unit, mod.proposed_value,
+    )
+    if new_dist is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Start event '{event.id}': could not parse proposed "
+                f"inter-arrival time from '{mod.proposed_value}'."
+            ),
+            modification_index=idx, element=event.id,
+        ))
+        return False
+
+    event.interArrivalTime = new_dist
+    return True
+
+
+def _apply_gateway_probabilities(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+    element_name_map: dict[str, str] | None = None,
+) -> bool:
+    gateways = [g for m in scenario.models for g in m.modelParameter.gateways]
+    gw = _resolve(gateways, mod.target_element)
+    if gw is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=f"Gateway '{mod.target_element}' not found in baseline.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    new_probs: dict[str, float] | None = None
+    if isinstance(mod.proposed_structured, dict):
+        raw = mod.proposed_structured.get("probabilities", mod.proposed_structured)
+        if isinstance(raw, dict):
+            try:
+                new_probs = {str(k): float(v) for k, v in raw.items()}
+            except (TypeError, ValueError):
+                new_probs = None
+
+    # Fallback: scalar proposed_value like "approve=0.8, reject=0.2"
+    if new_probs is None:
+        kv_matches = re.findall(
+            r"([A-Za-z0-9_\-]+)\s*[:=]\s*([-+]?\d*\.?\d+)", mod.proposed_value,
+        )
+        if kv_matches:
+            try:
+                new_probs = {k: float(v) for k, v in kv_matches}
+            except ValueError:
+                new_probs = None
+
+    if not new_probs:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Gateway '{mod.target_element}': proposed_value "
+                f"'{mod.proposed_value}' is not a parseable probability map."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    # The existing gateway's keys define the legitimate outgoing flows.
+    unknown = set(new_probs) - set(gw.probabilities)
+    if unknown:
+        nm = element_name_map or {}
+        readable = sorted(nm.get(fid, fid) for fid in unknown)
+        diag.append(PatchDiagnostic(
+            severity="warning", category="unknown_flow",
+            message=(
+                f"Gateway '{mod.target_element}': proposed probabilities "
+                f"reference unknown flow(s) {readable} — ignored."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        for u in unknown:
+            new_probs.pop(u, None)
+
+    # Fill missing keys with their current baseline value so Pydantic's
+    # sum-to-one invariant stands a chance.
+    for key, val in gw.probabilities.items():
+        new_probs.setdefault(key, val)
+
+    total = sum(new_probs.values())
+    if total <= 0:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=f"Gateway '{mod.target_element}': probabilities sum to {total}.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    if abs(total - 1.0) > 0.01:
+        new_probs = {k: v / total for k, v in new_probs.items()}
+
+    try:
+        gw.probabilities = new_probs
+        # Re-run the Pydantic model validator to enforce invariants.
+        Gateway.model_validate(gw.model_dump())
+    except Exception as exc:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=f"Gateway '{mod.target_element}': invalid probabilities ({exc}).",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    return True
+
+
+def _apply_resource_count(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    role = _resolve(scenario.resourceParameters.roles, mod.target_element)
+    if role is None:
+        if mod.direction == ModificationDirection.ADD_NEW:
+            diag.append(PatchDiagnostic(
+                severity="error", category="missing_element",
+                message=(
+                    f"ADD_NEW resource_count on '{mod.target_element}' requires "
+                    f"an existing baseline role — greenfield role creation is "
+                    f"not supported by the merger."
+                ),
+                modification_index=idx, element=mod.target_element,
+            ))
+        else:
+            diag.append(PatchDiagnostic(
+                severity="error", category="missing_element",
+                message=f"Role '{mod.target_element}' not found in baseline.",
+                modification_index=idx, element=mod.target_element,
+            ))
+        return False
+
+    proposed_n = _first_number(mod.proposed_value)
+    if proposed_n is None and isinstance(mod.proposed_structured, dict):
+        raw = mod.proposed_structured.get("count")
+        proposed_n = float(raw) if raw is not None else None
+
+    if proposed_n is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Role '{mod.target_element}': cannot parse integer count "
+                f"from proposed_value='{mod.proposed_value}'."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    target_count = max(1, int(round(proposed_n)))
+    current = list(role.resources)
+    current_count = len(current)
+
+    if target_count == current_count:
+        diag.append(PatchDiagnostic(
+            severity="warning", category="no_op",
+            message=(
+                f"Role '{mod.target_element}': proposed count equals baseline "
+                f"({target_count}) — modification is a no-op."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    if target_count < current_count:
+        role.resources = current[:target_count]
+    else:
+        additions: list[Resource] = []
+        for i in range(current_count, target_count):
+            additions.append(Resource(id=f"{role.id}_{i + 1}"))
+        role.resources = current + additions
+    return True
+
+
+def _apply_resource_cost(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    role = _resolve(scenario.resourceParameters.roles, mod.target_element)
+    if role is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=f"Role '{mod.target_element}' not found in baseline.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    new_cost = _first_number(mod.proposed_value)
+    if new_cost is None or new_cost < 0:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Role '{mod.target_element}': proposed cost "
+                f"'{mod.proposed_value}' is not a non-negative number."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    if math.isclose(role.costHour, new_cost, rel_tol=1e-9, abs_tol=1e-9):
+        diag.append(PatchDiagnostic(
+            severity="warning", category="no_op",
+            message=f"Role '{mod.target_element}': cost already at {new_cost}.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    role.costHour = new_cost
+    return True
+
+
+def _role_timetables(scenario: SimuBridgeScenario, target: str) -> list[Any]:
+    """Every timetable used by the role(s) a resource_calendar target refers to.
+
+    The target may name a role or one of the timetables a role uses (its schedule or
+    one of its resources' calendars); the change then applies to all resources of that
+    role. A timetable no role uses resolves to itself.
+    """
+    rp = scenario.resourceParameters
+    by_id = {t.id: t for t in rp.timeTables}
+    role = _resolve(rp.roles, target)
+    tt = _resolve(rp.timeTables, target)
+    if role is not None:
+        owners = [role]
+    elif tt is not None:
+        owners = [r for r in rp.roles
+                  if tt.id == r.schedule or any(res.calendar == tt.id for res in r.resources)]
+        if not owners:
+            return [tt]
+    else:
+        return []
+    ids: list[str] = []
+    for r in owners:
+        for tid in [r.schedule] + [res.calendar for res in r.resources if res.calendar]:
+            if tid not in ids:
+                ids.append(tid)
+    return [by_id[i] for i in ids if i in by_id]
+
+
+_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+_DAY = r"(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?"
+_TO = r"\s*(?:-|–|—|to|through|until|bis)\s*"
+_TIME_RANGE_RE = re.compile(r"(?<![\d:])(\d{1,2})(?::(\d{2}))?\s*h?" + _TO + r"(\d{1,2})(?::(\d{2}))?\s*h?(?![\d:])", re.I)
+_DAY_RANGE_RE = re.compile(r"\b" + _DAY + _TO + _DAY, re.I)
+_EXTEND_RE = re.compile(
+    r"(?:extend\w*|lengthen\w*|longer|additional|extra|more|\+)\D{0,25}?(\d+(?:\.\d+)?)\s*(?:h\b|hrs?\b|hours?\b)|"
+    r"(\d+(?:\.\d+)?)\s*(?:h|hrs?|hours?)\s*(?:longer|more|extra|additional)", re.I)
+CALENDAR_TEXT_FORMATS = ("proposed_structured.timeTableItems, or a proposed_value such as "
+                         "'09:00-19:00 Mon-Fri' (a working-time window, optionally with a weekday range) "
+                         "or 'extend by 2 hours' (later end of every working period)")
+
+
+def _day(token: str) -> Weekday:
+    return Weekday(_DAYS[[d[:3] for d in _DAYS].index(token[:3].lower())].capitalize())
+
+
+def parse_calendar_text(text: str, current: list[TimetableItem]) -> list[TimetableItem] | None:
+    """Turn a calendar change given as text into timetable items, or None when it is not unambiguous.
+
+    Accepted: exactly one working-time window in whole hours ("09:00-19:00", "9-19 h"), optionally with
+    one weekday range ("Mon-Fri", "Monday to Saturday"), "weekdays" or "daily" (without one, each
+    current period keeps its weekdays); or an extension by whole hours ("extend by 2 hours", "+2 h",
+    "2 hours longer"), which moves the end of every current period. Anything else gives None.
+    """
+    text = (text or "").strip()
+    if not text:
+        return None
+    # A window needs a clock marker ("09:00" or "9 h"): a bare "8 to 10" may mean hours per day.
+    ranges = [m for m in _TIME_RANGE_RE.finditer(text)
+              if 0 <= int(m.group(1)) <= 24 and 0 <= int(m.group(3)) <= 24
+              and (":" in m.group(0) or re.search(r"\d\s*h\b", m.group(0), re.I))]
+    if len(ranges) == 1:
+        m = ranges[0]
+        if (m.group(2) or "00") != "00" or (m.group(4) or "00") != "00":
+            return None                                   # calendars are whole hours
+        start, end = int(m.group(1)), int(m.group(3))
+        if end <= start:
+            return None
+        days = _DAY_RANGE_RE.findall(text)
+        if len(days) > 1:
+            return None
+        if days:
+            spans = [(_day(days[0][0]), _day(days[0][1]))]
+        elif re.search(r"\bweekdays?\b", text, re.I):
+            spans = [(Weekday.MONDAY, Weekday.FRIDAY)]
+        elif re.search(r"\b(daily|every day|7 days)\b", text, re.I):
+            spans = [(Weekday.MONDAY, Weekday.SUNDAY)]
+        elif current:
+            spans = list(dict.fromkeys((it.startWeekday, it.endWeekday) for it in current))
+        else:
+            return None
+        return [TimetableItem(startWeekday=a, endWeekday=b, startTime=start, endTime=end) for a, b in spans]
+    if ranges:
+        return None                                       # several windows: ambiguous
+    ext = [m for m in _EXTEND_RE.finditer(text)]
+    if len(ext) != 1 or not current:
+        return None
+    hours = float(ext[0].group(1) or ext[0].group(2))
+    if hours != int(hours) or hours <= 0:
+        return None
+    if any(it.endTime + int(hours) > 24 for it in current):
+        return None
+    return [it.model_copy(update={"endTime": it.endTime + int(hours)}) for it in current]
+
+
+_CLOCK_RE = re.compile(r"(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?")
+
+
+def _clock_hour(value: Any) -> int | None:
+    """Whole hour of a Prosimos clock time ("09:00:00", "19:00:00.000"); "23:59:59" ends the day (24)."""
+    if isinstance(value, int) and 0 <= value <= 24:
+        return value
+    m = _CLOCK_RE.fullmatch(str(value).strip())
+    if not m:
+        return None
+    h, mi, sec = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
+    if (h, mi, sec) == (23, 59, 59):
+        return 24
+    return h if mi == 0 and sec == 0 and h <= 24 else None
+
+
+def normalise_calendar_items(items: list[Any]) -> tuple[list[TimetableItem] | None, str]:
+    """Timetable items from GLASS's form (startWeekday/endWeekday/startTime/endTime) or Prosimos's
+    period form (from/to/beginTime/endTime, e.g. {"from": "MONDAY", "to": "FRIDAY", "beginTime":
+    "09:00:00", "endTime": "19:00:00"}). Returns (items, "") or (None, reason) when an item is
+    ambiguous: unknown keys, a weekday that is not a day name, a time that is not a whole hour, or an
+    end not after the start."""
+    out: list[TimetableItem] = []
+    if not items:
+        return None, "the list of items is empty"
+    for k, it in enumerate(items, 1):
+        if not isinstance(it, dict):
+            return None, f"item {k} is not an object"
+        if {"from", "to"} <= it.keys() or "beginTime" in it:
+            try:
+                start_day, end_day = _day(str(it.get("from", ""))), _day(str(it.get("to", "")))
+            except ValueError:
+                return None, f"item {k}: weekdays {it.get('from')!r}-{it.get('to')!r} are not day names"
+            start, end = _clock_hour(it.get("beginTime")), _clock_hour(it.get("endTime"))
+            if start is None or end is None:
+                return None, (f"item {k}: times {it.get('beginTime')!r}-{it.get('endTime')!r} are not whole hours")
+            if end <= start:
+                return None, f"item {k}: the end {it.get('endTime')!r} is not after the start {it.get('beginTime')!r}"
+            out.append(TimetableItem(startWeekday=start_day, endWeekday=end_day, startTime=start, endTime=end))
+            continue
+        try:
+            out.append(TimetableItem.model_validate(it))
+        except Exception as exc:
+            return None, f"item {k}: {str(exc).splitlines()[0]}"
+    return out, ""
+
+
+def _structured_items(mod: PatchModification) -> list[Any] | None:
+    if isinstance(mod.proposed_structured, dict):
+        raw = mod.proposed_structured.get("timeTableItems") or mod.proposed_structured.get("items")
+        if isinstance(raw, list):
+            return raw
+    return None
+
+
+def calendar_text_issue(scenario: SimuBridgeScenario, mod: PatchModification, idx: int) -> PatchDiagnostic | None:
+    """Error for a resource_calendar modification that cannot be read: structured items that are
+    ambiguous in either accepted form, or a text that cannot be parsed."""
+    if mod.parameter_type != PatchParameterType.RESOURCE_CALENDAR:
+        return None
+    raw_items = _structured_items(mod)
+    if raw_items is not None:
+        items, reason = normalise_calendar_items(raw_items)
+        if items is not None:
+            return None
+        return PatchDiagnostic(
+            severity="error", category="calendar_unparsed",
+            message=(
+                f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
+                f"timeTableItems cannot be read ({reason}). Give items as {{startWeekday, endWeekday, "
+                f"startTime, endTime}} with whole hours (e.g. Monday, Friday, 9, 19), or as {{from, to, "
+                f"beginTime, endTime}} (e.g. MONDAY, FRIDAY, 09:00:00, 19:00:00)."
+            ),
+            modification_index=idx, element=mod.target_element,
+        )
+    targets = _role_timetables(scenario, mod.target_element)
+    if not targets:
+        return None                                       # left to the existence check
+    if parse_calendar_text(mod.proposed_value, targets[0].timeTableItems) is not None:
+        return None
+    return PatchDiagnostic(
+        severity="error", category="calendar_unparsed",
+        message=(
+            f"Modification #{idx} (resource_calendar) on '{mod.target_element}' was not applied: its "
+            f"proposed_value '{mod.proposed_value}' cannot be read as a working-time change. Give "
+            f"{CALENDAR_TEXT_FORMATS}."
+        ),
+        modification_index=idx, element=mod.target_element,
+    )
+
+
+def _apply_resource_calendar(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    targets = _role_timetables(scenario, mod.target_element)
+    tt = targets[0] if targets else None
+    if tt is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=f"Timetable '{mod.target_element}' not found in baseline.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    items_payload: list[Any] | None = _structured_items(mod)
+    if items_payload is None:
+        parsed = parse_calendar_text(mod.proposed_value, tt.timeTableItems)
+        if parsed is None:
+            diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
+                severity="error", category="calendar_unparsed",
+                message=f"Timetable '{mod.target_element}': not applied; give {CALENDAR_TEXT_FORMATS}.",
+                modification_index=idx, element=mod.target_element,
+            ))
+            return False
+        diag.append(PatchDiagnostic(
+            severity="warning", category="calendar_parsed",
+            message=(
+                f"Timetable '{mod.target_element}': proposed_value '{mod.proposed_value}' read as "
+                + "; ".join(f"{it.startWeekday.value}-{it.endWeekday.value} {it.startTime:02d}:00-"
+                            f"{it.endTime:02d}:00" for it in parsed) + "."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        items_payload = [it.model_dump(mode="json") for it in parsed]
+    new_items, reason = normalise_calendar_items(items_payload)
+    if new_items is None:
+        diag.append(calendar_text_issue(scenario, mod, idx) or PatchDiagnostic(
+            severity="error", category="calendar_unparsed",
+            message=f"Timetable '{mod.target_element}': not applied; timeTableItems cannot be read ({reason}).",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+    for t in targets:
+        t.timeTableItems = [it.model_copy() for it in new_items]
+    return True
+
+
+def _apply_resource_activity_assignment(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    diag: list[PatchDiagnostic],
+    idx: int,
+) -> bool:
+    activities = [a for m in scenario.models for a in m.modelParameter.activities]
+    act = _resolve(activities, mod.target_element)
+    if act is None:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=f"Activity '{mod.target_element}' not found in baseline.",
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    role_ids = {r.id for r in scenario.resourceParameters.roles}
+
+    new_roles_raw: list[str] | None = None
+    if isinstance(mod.proposed_structured, dict):
+        raw = mod.proposed_structured.get("roles") or mod.proposed_structured.get("resources")
+        if isinstance(raw, list):
+            new_roles_raw = [str(x) for x in raw]
+    if new_roles_raw is None and mod.proposed_value:
+        new_roles_raw = [
+            r.strip() for r in re.split(r"[,;]", mod.proposed_value) if r.strip()
+        ]
+
+    if not new_roles_raw:
+        diag.append(PatchDiagnostic(
+            severity="error", category="invalid_value",
+            message=(
+                f"Activity '{mod.target_element}': cannot parse roles from "
+                f"proposed_value='{mod.proposed_value}'."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    unknown = [r for r in new_roles_raw if r not in role_ids]
+    if unknown:
+        diag.append(PatchDiagnostic(
+            severity="error", category="missing_element",
+            message=(
+                f"Activity '{mod.target_element}': roles {unknown} do not "
+                f"exist in the baseline."
+            ),
+            modification_index=idx, element=mod.target_element,
+        ))
+        return False
+
+    act.resources = new_roles_raw
+    return True
+
+
+# Dispatch table --------------------------------------------------------
+
+_APPLIERS = {
+    PatchParameterType.ACTIVITY_DURATION: _apply_activity_duration,
+    PatchParameterType.INTER_ARRIVAL_TIME: _apply_inter_arrival_time,
+    PatchParameterType.GATEWAY_PROBABILITIES: _apply_gateway_probabilities,
+    PatchParameterType.RESOURCE_COUNT: _apply_resource_count,
+    PatchParameterType.RESOURCE_COST: _apply_resource_cost,
+    PatchParameterType.RESOURCE_CALENDAR: _apply_resource_calendar,
+    PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT: _apply_resource_activity_assignment,
+    PatchParameterType.EVENT_DURATION: _apply_event_duration,
+}
+
+
+# -------------------------------------------------------------------
+# Pre-flight: baseline faithfulness checks
+# -------------------------------------------------------------------
+
+def _check_target_exists(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    idx: int,
+) -> PatchDiagnostic | None:
+    kind = expected_target_kind(mod.parameter_type)
+    if mod.direction == ModificationDirection.DIFFERENTIATE:
+        # Segment-derived elements are allowed to be new as long as the
+        # original baseline element exists under the same prefix (see
+        # prompt rule 2f). We only require *some* baseline match.
+        baseline_prefix = mod.target_element.split("_", 1)[0]
+        return _check_element_kind(scenario, baseline_prefix, kind, idx)
+    return _check_element_kind(scenario, mod.target_element, kind, idx)
+
+
+def _check_element_kind(
+    scenario: SimuBridgeScenario,
+    name: str,
+    kind: PatchTargetKind,
+    idx: int,
+) -> PatchDiagnostic | None:
+    if kind == PatchTargetKind.ACTIVITY:
+        pool = [a for m in scenario.models for a in m.modelParameter.activities]
+    elif kind == PatchTargetKind.GATEWAY:
+        pool = [g for m in scenario.models for g in m.modelParameter.gateways]
+    elif kind == PatchTargetKind.START_EVENT:
+        pool = [e for m in scenario.models for e in m.modelParameter.events]
+    elif kind == PatchTargetKind.ROLE:
+        pool = list(scenario.resourceParameters.roles)
+    elif kind == PatchTargetKind.TIMETABLE:
+        # A role name is accepted: the change applies to every timetable of the role.
+        pool = list(scenario.resourceParameters.timeTables) + list(scenario.resourceParameters.roles)
+    elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
+        pool = [e for m in scenario.models for e in m.modelParameter.intermediateEvents]
+    else:
+        pool = []
+
+    if _resolve(pool, name) is None:
+        # Build a hint: list the actual IDs/names the LLM could use instead.
+        hint = ""
+        if pool and kind == PatchTargetKind.ACTIVITY:
+            candidates = [
+                f"{a.name} ({a.id})" if a.name and a.name != a.id else a.id
+                for a in pool[:6]
+            ]
+            hint = f" Known activities (first 6): {candidates}."
+        elif kind == PatchTargetKind.INTERMEDIATE_EVENT:
+            candidates = [f"{e.name} ({e.id})" for e in pool[:6]]
+            hint = f" Known intermediate events (first 6): {candidates}."
+        return PatchDiagnostic(
+            severity="warning", category="missing_element",
+            message=(
+                f"Target '{name}' of kind '{kind.value}' does not exist in "
+                f"the SIMOD baseline — this modification will be skipped; "
+                f"other changes will still be applied.{hint}"
+            ),
+            modification_index=idx, element=name,
+        )
+    return None
+
+
+BASELINE_MISMATCH_TOLERANCE = 0.25  # relative; a larger deviation rejects the modification
+
+
+_INDEX_SUFFIX_RE = re.compile(r"[\s_\-]*\d+$")
+
+
+def _id_stem(text: str) -> str:
+    """``text`` without a trailing index: 'POOL_3' -> 'POOL', 'Clerk-000001' -> 'Clerk'."""
+    return _INDEX_SUFFIX_RE.sub("", text.strip()).strip()
+
+
+def _role_for_name(roles: list[Role], name: str) -> Role | None:
+    """The role a name refers to, or ``None``.
+
+    In order: the role's id/name; the id/name of one of its resources; the stem its
+    resource ids share (e.g. ``POOL`` for ``POOL_1`` … ``POOL_n``, as SIMOD names a
+    resource profile); the name without a trailing index (``Role X-000001``) resolved
+    the same way. A stem or index match must point to exactly one role.
+    """
+    role = _resolve(roles, name)
+    if role is not None:
+        return role
+    needle = (name or "").strip().lower()
+    if not needle:
+        return None
+    for r in roles:
+        if any(str(getattr(res, attr, None) or "").lower() == needle
+               for res in r.resources for attr in ("id", "name")):
+            return r
+
+    def by_stem(stem: str) -> Role | None:
+        hits = [r for r in roles
+                if any(_id_stem(str(getattr(res, attr, None) or "")).lower() == stem
+                       for res in r.resources for attr in ("id", "name"))]
+        return hits[0] if len(hits) == 1 else None
+
+    found = by_stem(needle)
+    if found is None:
+        stripped = _id_stem(needle)
+        if stripped and stripped != needle:
+            found = _resolve(roles, stripped) or by_stem(stripped)
+    return found
+
+
+def _baseline_mismatch(mod: PatchModification, idx: int, quoted: str, actual: str, why: str) -> PatchDiagnostic:
+    return PatchDiagnostic(
+        severity="error", category="baseline_mismatch",
+        message=(
+            f"Modification #{idx} ({mod.parameter_type.value}) on '{mod.target_element}' was rejected: "
+            f"the quoted baseline_value '{quoted}' does not match the model's actual value {actual} ({why}). "
+            f"Check that this is the element you mean; if it is, quote baseline_value as {actual} and "
+            f"state proposed_value relative to it, in the same unit."
+        ),
+        modification_index=idx, element=mod.target_element,
+    )
+
+
+def _check_baseline_value_match(
+    scenario: SimuBridgeScenario,
+    mod: PatchModification,
+    idx: int,
+) -> PatchDiagnostic | None:
+    """Compare the LLM's quoted baseline_value to the actual baseline.
+
+    Numeric values (resource count, hourly cost, duration and inter-arrival means in the
+    element's own time unit) must lie within ``BASELINE_MISMATCH_TOLERANCE`` of the actual
+    value; the roles quoted for a resource_activity_assignment must be the activity's roles.
+    A mismatch is an ``error`` (category ``baseline_mismatch``): the modification is not
+    applied, and the message states the actual value so the LLM can correct its target.
+    Elements that do not exist, and empty quotes, are left to the other checks.
+    """
+    roles = scenario.resourceParameters.roles
+    if mod.parameter_type == PatchParameterType.RESOURCE_ACTIVITY_ASSIGNMENT:
+        act = _resolve([a for m in scenario.models for a in m.modelParameter.activities], mod.target_element)
+        if act is None or not mod.baseline_value.strip():
+            return None
+        tokens = [t.strip() for t in re.split(r"[,;]", mod.baseline_value) if t.strip()]
+        quoted = {getattr(_role_for_name(roles, t), "id", f"unknown:{t}") for t in tokens}
+        if quoted != set(act.resources):
+            return _baseline_mismatch(mod, idx, mod.baseline_value, ", ".join(act.resources) or "(no role)",
+                                      "roles assigned to the activity")
+        return None
+
+    numeric_quoted = _first_number(mod.baseline_value)
+    if numeric_quoted is None:
+        return None
+
+    actual_numeric: float | None = None
+    unit = ""
+    if mod.parameter_type == PatchParameterType.RESOURCE_COUNT:
+        role = _resolve(roles, mod.target_element)
+        if role is not None:
+            actual_numeric, unit = float(len(role.resources)), "resources"
+    elif mod.parameter_type == PatchParameterType.RESOURCE_COST:
+        role = _resolve(roles, mod.target_element)
+        if role is not None:
+            actual_numeric, unit = float(role.costHour), "per hour"
+    elif mod.parameter_type == PatchParameterType.ACTIVITY_DURATION:
+        act = _resolve(
+            [a for m in scenario.models for a in m.modelParameter.activities],
+            mod.target_element,
+        )
+        if act is not None:
+            actual_numeric, unit = _distribution_mean(act.duration), act.duration.timeUnit.value
+    elif mod.parameter_type == PatchParameterType.INTER_ARRIVAL_TIME:
+        events = [e for m in scenario.models for e in m.modelParameter.events]
+        event = _resolve(events, mod.target_element) or (events[0] if events else None)
+        if event is not None:
+            actual_numeric, unit = _distribution_mean(event.interArrivalTime), event.interArrivalTime.timeUnit.value
+    elif mod.parameter_type == PatchParameterType.EVENT_DURATION:
+        evt = _resolve(
+            [e for m in scenario.models for e in m.modelParameter.intermediateEvents],
+            mod.target_element,
+        )
+        if evt is not None:
+            actual_numeric, unit = _distribution_mean(evt.duration), evt.duration.timeUnit.value
+
+    if actual_numeric is None:
+        return None
+
+    tol = max(1e-6, abs(actual_numeric) * BASELINE_MISMATCH_TOLERANCE)
+    if abs(actual_numeric - numeric_quoted) > tol:
+        return _baseline_mismatch(
+            mod, idx, mod.baseline_value, f"{actual_numeric:g} {unit}".strip(),
+            f"more than {BASELINE_MISMATCH_TOLERANCE:.0%} apart",
+        )
+    return None
+
+
+def _distribution_mean(dist: TimeDistribution) -> float | None:
+    """Return a single representative value for a distribution (for comparison)."""
+    params = {p.id: p.value for p in dist.values}
+    if "mean" in params:
+        return params["mean"]
+    if "constantValue" in params:
+        return params["constantValue"]
+    if "lower" in params and "upper" in params:
+        return (params["lower"] + params["upper"]) / 2.0
+    if "peak" in params:
+        return params["peak"]
+    return None
+
+
+def _detect_conflicts(
+    patch: ScenarioPatch,
+) -> list[PatchDiagnostic]:
+    """Flag multiple modifications that touch the same element-field pair."""
+    out: list[PatchDiagnostic] = []
+    seen: dict[tuple[str, str], int] = {}
+    for i, mod in enumerate(patch.modifications, start=1):
+        key = (
+            mod.target_element.lower().strip(),
+            mod.parameter_type.value,
+        )
+        if key in seen:
+            out.append(PatchDiagnostic(
+                severity="error", category="conflicting_modifications",
+                message=(
+                    f"Modifications #{seen[key]} and #{i} both target "
+                    f"({mod.target_element}, {mod.parameter_type.value}). "
+                    f"Consolidate into a single modification."
+                ),
+                modification_index=i, element=mod.target_element,
+            ))
+        else:
+            seen[key] = i
+    return out
+
+
+# -------------------------------------------------------------------
+# Public API
+# -------------------------------------------------------------------
+
+def apply_patch(
+    baseline: SimuBridgeScenario,
+    patch: ScenarioPatch,
+    *,
+    strict: bool = False,
+    element_name_map: dict[str, str] | None = None,
+) -> MergeResult:
+    """Apply ``patch`` onto a deep copy of ``baseline``.
+
+    Parameters
+    ----------
+    baseline:
+        Deterministically-built SimuBridge scenario derived from SIMOD.
+    patch:
+        LLM-produced :class:`ScenarioPatch` describing the delta.
+    strict:
+        When ``True``, any error-level diagnostic aborts the merge and
+        the returned :class:`MergeResult` has ``scenario=None``. When
+        ``False`` (default), the merger skips the offending modification
+        and continues — each skip is recorded in ``skipped_modifications``
+        and in ``diagnostics``.
+
+    Returns
+    -------
+    MergeResult
+        The merged scenario (or ``None`` in strict-failure mode) plus
+        structured diagnostics for UI and logging.
+    """
+    result = MergeResult()
+
+    # Deep copy so callers can keep the original baseline untouched.
+    scenario = copy.deepcopy(baseline)
+
+    # 1. Pre-flight: detect conflicting modifications.
+    conflicts = _detect_conflicts(patch)
+    result.diagnostics.extend(conflicts)
+    conflict_indices = {
+        d.modification_index for d in conflicts if d.severity == "error"
+    }
+    if conflicts and strict:
+        result.scenario = None
+        return result
+
+    # 2. Per-modification apply.
+    for i, mod in enumerate(patch.modifications, start=1):
+        if i in conflict_indices:
+            result.skipped_modifications.append(i)
+            continue
+
+        # Existence check (skip for ADD_NEW which creates elements).
+        if mod.direction not in (ModificationDirection.ADD_NEW,):
+            exists_issue = _check_target_exists(scenario, mod, i)
+            if exists_issue is not None:
+                result.diagnostics.append(exists_issue)
+                if strict:
+                    result.skipped_modifications.append(i)
+                    continue
+                # Tolerant mode still cannot apply a change to a missing
+                # element, so always skip.
+                result.skipped_modifications.append(i)
+                continue
+
+        # Baseline value sanity: a quoted value that does not match the model rejects the
+        # modification in both modes (it most likely targets the wrong element or unit).
+        value_issue = _check_baseline_value_match(scenario, mod, i)
+        if value_issue is not None:
+            result.diagnostics.append(value_issue)
+            result.skipped_modifications.append(i)
+            continue
+
+        # Dispatch.
+        applier = _APPLIERS.get(mod.parameter_type)
+        if applier is None:
+            result.diagnostics.append(PatchDiagnostic(
+                severity="error", category="unsupported_parameter_type",
+                message=(
+                    f"parameter_type '{mod.parameter_type.value}' has no "
+                    f"registered applier."
+                ),
+                modification_index=i, element=mod.target_element,
+            ))
+            result.skipped_modifications.append(i)
+            continue
+
+        if mod.parameter_type == PatchParameterType.GATEWAY_PROBABILITIES:
+            ok = _apply_gateway_probabilities(
+                scenario, mod, result.diagnostics, i, element_name_map or {},
+            )
+        else:
+            ok = applier(scenario, mod, result.diagnostics, i)
+        if ok:
+            result.applied_modifications.append(i)
+        else:
+            result.skipped_modifications.append(i)
+
+    # 3. Final: re-validate the merged scenario under Pydantic rules to
+    # catch cross-cutting invariants (e.g. gateway prob sums, role<->tt
+    # references).
+    try:
+        SimuBridgeScenario.model_validate(scenario.model_dump())
+    except Exception as exc:
+        result.diagnostics.append(PatchDiagnostic(
+            severity="error", category="post_merge_validation",
+            message=f"Merged scenario fails Pydantic validation: {exc}",
+        ))
+        if strict:
+            result.scenario = None
+            return result
+
+    result.scenario = scenario
+    return result
