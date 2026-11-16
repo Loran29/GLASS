@@ -15,7 +15,7 @@ maps the paths stored in setup files and run records to the folders of this rele
 The modified LoanApp and Procure2Pay models compared with the original models, and the expected KPIs per goal.
 - **Inputs:** `inputs/bps_models/` (original and modified models), `inputs/quality_measures.csv`.
 - **Results:** `results/synthetic_vs_original_comparison.xlsx`, `results/Expected_KPIs.xlsx`,
-  `results/Expected_KPIs_Author_A_Author_B_with_resolutions.xlsx`.
+  `results/Expected_KPIs_resolutions.xlsx`.
 - **Scripts:** `scripts/build_workbook.py` (uses `scripts/bpmn_parser.py`).
 - **Rerun:** from this folder, `python scripts/build_workbook.py` (no LLM).
 
