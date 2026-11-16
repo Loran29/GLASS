@@ -52,7 +52,7 @@ into simulation models by hand and simulated like GLASS's scenarios.
   of each recommendation, hand-built models), `inputs/manual_models/`, `inputs/glass_event_logs/v3.2_rag_comparison/manifest.csv`.
   The GLASS side uses the run records of `experiment_2_valid_improving_kpis/` and of the Experiment 4 folder.
 - **Results:** `results/comparison_repeat_runs_Summary.xlsx`, `results/kpi_values_manual_runs.csv`,
-  `results/kpi_values_glass_extra_configs.csv`, `results/kpi_values_per_log.csv`, `results/GLASS_runtimes.xlsx`.
+  `results/kpi_values_glass_extra_configs.csv`, `results/kpi_values_per_log.csv`, `results/GLASS_runtimes.xlsx`, PI_Copilot_Recommendation_Applicability.xlsx .
 - **Scripts:** `scripts/build_repeat_run_models.py`, `scripts/simulate_repeat_runs.py`,
   `scripts/compare_repeat_runs_with_glass.py` (uses `scripts/kpi_comparison.py`).
 - **Rerun:** from this folder, `python scripts/build_repeat_run_models.py jobs`, `python scripts/build_repeat_run_models.py build`,
