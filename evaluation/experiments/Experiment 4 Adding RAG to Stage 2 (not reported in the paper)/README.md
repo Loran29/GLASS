@@ -77,10 +77,5 @@ Consequently, RAG is retained as an optional component of GLASS and is disabled 
 
 The paper reports the results obtained without RAG. This additional experiment documents the effect of enabling the knowledge-retrieval component and provides further evidence about its potential benefits and limitations.
 
-## 5. Limitations
 
-The experiment was conducted using GPT-4o-mini and a limited number of datasets and improvement goals. Therefore, the findings should not be generalized to other LLMs, knowledge bases, or process improvement settings without further evaluation.
 
-The statistical tests reported above treat runs as independent observations. Since repetitions within the same process and goal configuration may be related, their p-values should be interpreted cautiously.
-
-Future work could investigate selective retrieval approaches that introduce external knowledge only when it is relevant to the process context and improvement goal.
